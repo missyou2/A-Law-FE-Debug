@@ -12,7 +12,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-  },
+  } as const,
   title: {
     fontSize: '34px',
     fontWeight: '530',
@@ -21,7 +21,7 @@ const styles = {
     marginBottom: '100px',
     lineHeight: '1.3',
     color: '#1a1a1aff',
-  },
+  } as const,
 
   buttonBase: {
     width: '100%',
