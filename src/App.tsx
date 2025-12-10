@@ -1,12 +1,11 @@
 import React from 'react';
 import { useNavigate, Routes, Route } from "react-router-dom";
-import './App.css';
 
-import MainScreen from "./pages/MainScreen";
-import ScanPage from "./pages/ScanPage";
-import FailedPage from './pages/ScanFailed';
-import LoadingPage from './pages/ScanLoading';
-import SaveComplete from './pages/SaveComplete';
+import MainScreen from "./pages/MainScreen.js";
+import ScanPage from "./pages/ScanPage.js";
+import FailedPage from './pages/ScanFailed.js';
+import LoadingPage from './pages/ScanLoading.js';
+import SaveComplete from './pages/SaveComplete.js';
 
 function App(){
   const navigate = useNavigate();
