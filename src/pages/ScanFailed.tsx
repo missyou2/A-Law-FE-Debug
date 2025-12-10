@@ -1,7 +1,10 @@
+import '../App.css'
+
 import { useNavigate } from 'react-router-dom';
 import AlbumIcon from '../assets/icons/album.png';
 import CameraIcon from '../assets/icons/camera.png';
 import { FaArrowLeft } from 'react-icons/fa';
+
 
 const styles = {
   container: {
@@ -13,7 +16,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-  },
+  } as const,
   title: {
     fontSize: '34px',
     fontWeight: '530',
@@ -22,7 +25,7 @@ const styles = {
     marginBottom: '100px',
     lineHeight: '1.3',
     color: '#1a1a1aff',
-  },
+  } as const,
 
   buttonBase: {
     width: '100%',

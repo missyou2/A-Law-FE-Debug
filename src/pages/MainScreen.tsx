@@ -1,4 +1,5 @@
-import '../App.css';
+import React, { type CSSProperties, type FC } from 'react';
+import '../App.css'
 
 // Icon (imported)
 import ScanIcon from '../assets/icons/scan-icon.png';
@@ -11,6 +12,13 @@ import UserIcon from '../assets/icons/user.png';
 
 // Icon (react icon)
 import { FaChevronRight } from 'react-icons/fa';
+
+interface Contract {
+    id: number;
+    title: string;
+    date: string;
+    isImportant: boolean;
+}
 
 // 더미데이터
 const recentContracts = [
@@ -26,14 +34,14 @@ const styles = {
     minHeight: '100vh',
     padding: '24px 20px',
     margin: '0',
-  },
+  } as const,
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: '30px',
     color: '#333',
-  },
+  } as const,
   mainFeaturesContainer: {
     display: 'flex',
     gap: '15px',
@@ -51,22 +59,22 @@ const styles = {
     position: 'relative',
     boxShadow: '0 4px 10px rgba(143, 143, 143, 0.8)',
     cursor: 'pointer',
-  },
+  } as const,
   scanTitle: {
-    fontSize: '48px',
+    fontSize: '46px',
     fontWeight: '750',
     textShadow: '0px 2px 3px rgba(0, 0, 0, 0.4)',
     marginBottom: '3px',
     lineHeight: 1.2,
     textAlign: 'left',
     fontFamily: 'Paperlogy, sans-serif',
-  },
+  } as const,
   scanIconBox: {
     position: 'absolute',
     bottom: '20px',
     right: '20px',
     filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4))',
-  },
+  } as const,
   voiceChat: {
     width: '100px',
     backgroundColor: 'white',
@@ -90,7 +98,7 @@ const styles = {
     padding: '25px',
     borderRadius: '17px',
     textAlign: 'right',
-    fontSize: '34px',
+    fontSize: '30px',
     fontWeight: '600',
     textShadow: '0px 2px 3px rgba(0, 0, 0, 0.4)',
     display: 'flex',
@@ -102,14 +110,14 @@ const styles = {
     boxShadow: '0 4px 10px rgba(143, 143, 143, 0.8)',
     cursor: 'pointer',
     fontFamily: 'Paperlogy, sans-serif',
-  },
+  } as const,
   sectionTitle: {
     fontSize: '26px',
     fontWeight: '750',
     color: '#000000ff',
     marginBottom: '8px',
     textAlign: 'left',
-  },
+  } as const,
   recentContractsBox: {
     backgroundColor: 'white',
     borderRadius: '15px',
@@ -140,13 +148,13 @@ const styles = {
     fontWeight: '700',
     marginBottom: '3px',
     textAlign: 'left',
-  },
+  } as const,
   contractDate: {
     fontSize: '16px',
     color: '#888',
     textAlign: 'left',
     fontWeight: '500',
-  },
+  } as const,
   viewButton: {
     fontSize: '15px',
     color: '#999',
@@ -156,7 +164,13 @@ const styles = {
   },
 };
 
-const RecentContractItem = ({ title, date, isImportant }) => {
+interface RecentContractItemProps {
+    title: string;
+    date: string;
+    isImportant: boolean;
+}
+
+const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImportant }) => {
   const iconSrc = isImportant ? DocsImportantIcon : DocsNormalIcon;
 
   return (
@@ -173,7 +187,11 @@ const RecentContractItem = ({ title, date, isImportant }) => {
 );
 };
 
-const MainScreen = ({onScanClick}) => {
+interface MainScreenProps {
+    onScanClick: () => void; 
+}
+
+const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
   return (
     <div style={styles.container}>
       {/* Header */}
@@ -222,5 +240,7 @@ const MainScreen = ({onScanClick}) => {
     </div>
   )
 }
+
+
 
 export default MainScreen;

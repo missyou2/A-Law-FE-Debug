@@ -1,3 +1,5 @@
+import '../App.css'
+
 import { useNavigate } from 'react-router-dom';
 import AlbumIcon from '../assets/icons/album.png';
 import CameraIcon from '../assets/icons/camera.png';
@@ -83,7 +85,7 @@ const ScanPage = () => {
       <div 
         style={{...styles.buttonBase, ...styles.captureButton}}
         className="hover-scale-effect"
-        onClick={() => navigate('/loading')}
+        onClick={() => navigate('/camera')}
       >
         <img src={CameraIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
         지금 바로 촬영하기

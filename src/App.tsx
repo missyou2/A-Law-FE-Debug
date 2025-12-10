@@ -6,6 +6,8 @@ import ScanPage from "./pages/ScanPage.js";
 import FailedPage from './pages/ScanFailed.js';
 import LoadingPage from './pages/ScanLoading.js';
 import SaveComplete from './pages/SaveComplete.js';
+import CameraPage from './pages/CameraPage.js';
+import CapturedResult from './pages/CapturedResult.js';
 
 function App(){
   const navigate = useNavigate();
@@ -24,6 +26,12 @@ function App(){
 
       {/* Scan Page */}
       <Route path="/scan" element={<ScanPage />} />
+
+      {/* Camera Page */}
+      <Route path="/camera" element={<CameraPage />} />
+
+      {/* (Debug) Captured Result Page */}
+      <Route path="/capturedResult" element={<CapturedResult />} />
 
       {/* Scan Failed Page */}
       <Route path="/fail" element={<FailedPage />} />

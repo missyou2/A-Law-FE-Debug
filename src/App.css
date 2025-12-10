@@ -4,13 +4,18 @@
 /* Paperlogy */
 @import url('https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css');
 
+*{
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
+  padding: 0;
+  margin: 0;
 }
 
 #root {
-  max-width: 420px;
-  margin:0 auto;
+  margin: 0 auto;
   padding:0;
   color:#F1F2F6;
 }
