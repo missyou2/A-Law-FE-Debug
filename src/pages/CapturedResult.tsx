@@ -69,7 +69,7 @@ const CapturedResult: React.FC = () => {
             </div>
 
             <h1 style={styles.title}>
-                촬영 결과<br/>테스트 페이지
+                계약서 촬영을<br/>완료했습니다.
             </h1>
 
             {/* 2. 캡처된 이미지 표시 */}
