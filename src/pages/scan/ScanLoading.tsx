@@ -1,8 +1,8 @@
-import '../App.css'
+import '../../App.css'
 
 import { useNavigate } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
-import LoadingIcon from '../assets/icons/loading.png'
+import LoadingIcon from '../../assets/icons/loading.png'
 
 const styles = {
   container: {

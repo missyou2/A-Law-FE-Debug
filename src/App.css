@@ -17,7 +17,7 @@ body {
 #root {
   margin: 0 auto;
   padding:0;
-  color:#F1F2F6;
+  color:#050505;
 }
 
 .logo {
@@ -53,7 +53,7 @@ body {
 }
 
 .read-the-docs {
-  color: #888;
+  color: #030303;
 }
 
 /* 호버 이펙트 -> 마우스 기능이 있어야 (데탑환경) 작동해서 일단 주석처리합니다. */

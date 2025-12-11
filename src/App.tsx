@@ -2,12 +2,13 @@ import React from 'react';
 import { useNavigate, Routes, Route } from "react-router-dom";
 
 import MainScreen from "./pages/MainScreen.js";
-import ScanPage from "./pages/ScanPage.js";
-import FailedPage from './pages/ScanFailed.js';
-import LoadingPage from './pages/ScanLoading.js';
+import ScanPage from "./pages/scan/ScanPage.js";
+import FailedPage from './pages/scan/ScanFailed.js';
+import LoadingPage from './pages/scan/ScanLoading.js';
 import SaveComplete from './pages/SaveComplete.js';
-import CameraPage from './pages/CameraPage.js';
-import CapturedResult from './pages/CapturedResult.js';
+import CameraPage from './pages/scan/CameraPage.js';
+import CapturedResult from './pages/scan/CapturedResult.js';
+import ContractCarousel from './pages/contract/ContractCarousel.js';
 
 function App(){
   const navigate = useNavigate();
@@ -41,6 +42,9 @@ function App(){
 
       {/* Scan Saved Page */}
       <Route path="/saved" element={<SaveComplete />} />
+
+      {/* Contract carousel page */}
+      <Route path="/contract" element={<ContractCarousel />} />
     </Routes>
   );
 }
