@@ -330,3 +330,25 @@
   transform: scale(0.96);
 }
 
+/* drag-select */
+.page-container,
+.doc-box {
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+}
+
+.highlight {
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+}
+
+.doc-box {
+  touch-action: pan-y;
+}
+
+::selection {
+  background: #fff59d;   
+  color: #111;
+}

@@ -1,5 +1,5 @@
-import React, { useRef, useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
@@ -7,6 +7,7 @@ import ClauseSummaryPage from "./ClauseSummaryPage.js";
 import RiskAnalysisPage from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
 import DocumentSavePage from "./DocumentSavePage.js";
+
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
 import ChatbotPanel from "./ChatbotPanel.js";
 
@@ -31,11 +32,169 @@ function ContractCarousel() {
   const touchStartTime = useRef<number | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
 
-  const viewportWidth =
-    typeof window !== "undefined" ? window.innerWidth : 390;
+  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 390;
+
+  const carouselViewportRef = useRef<HTMLDivElement | null>(null);
 
   const haptic = () => {
     if (navigator.vibrate) navigator.vibrate(10);
+  };
+
+  const isTextSelectingRef = useRef(false);
+  const selectingRef = useRef(false);
+  const openTimerRef = useRef<number | null>(null);
+
+  const selectionStartRangeRef = useRef<Range | null>(null);
+
+  const persistMarkAttr = "data-persist-highlight";
+  const persistIdRef = useRef(0);
+
+  const clearOpenTimer = () => {
+    if (openTimerRef.current !== null) {
+      window.clearTimeout(openTimerRef.current);
+      openTimerRef.current = null;
+    }
+  };
+
+  const isInSelectableTextArea = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+    return !!target.closest(".doc-box");
+  };
+
+  const getCaretRangeFromPoint = (x: number, y: number): Range | null => {
+    const docAny = document as any;
+    if (docAny.caretRangeFromPoint) return docAny.caretRangeFromPoint(x, y) as Range;
+
+    const caretPositionFromPoint = (document as any).caretPositionFromPoint;
+    if (caretPositionFromPoint) {
+      const pos = caretPositionFromPoint.call(document, x, y);
+      if (!pos) return null;
+      const r = document.createRange();
+      r.setStart(pos.offsetNode, pos.offset);
+      r.setEnd(pos.offsetNode, pos.offset);
+      return r;
+    }
+    return null;
+  };
+
+  const setSelectionRange = (start: Range, end: Range) => {
+    const sel = window.getSelection();
+    if (!sel) return;
+
+    const r = document.createRange();
+    try {
+      r.setStart(start.startContainer, start.startOffset);
+      r.setEnd(end.startContainer, end.startOffset);
+    } catch {
+      return;
+    }
+
+    sel.removeAllRanges();
+    sel.addRange(r);
+  };
+
+  const selectionIsInsideViewport = (sel: Selection) => {
+    if (!carouselViewportRef.current) return false;
+    if (sel.rangeCount === 0) return false;
+
+    const anchorNode = sel.anchorNode;
+    const focusNode = sel.focusNode;
+    if (!anchorNode || !focusNode) return false;
+
+    const anchorEl =
+      anchorNode.nodeType === 1 ? (anchorNode as Element) : anchorNode.parentElement;
+    const focusEl =
+      focusNode.nodeType === 1 ? (focusNode as Element) : focusNode.parentElement;
+    if (!anchorEl || !focusEl) return false;
+
+    return (
+      carouselViewportRef.current.contains(anchorEl) &&
+      carouselViewportRef.current.contains(focusEl)
+    );
+  };
+
+  const clearPersistentHighlight = () => {
+    const root = carouselViewportRef.current;
+    if (!root) return;
+
+    const marks = root.querySelectorAll(`span[${persistMarkAttr}="1"]`);
+    marks.forEach((span) => {
+      const parent = span.parentNode;
+      if (!parent) return;
+
+      while (span.firstChild) parent.insertBefore(span.firstChild, span);
+      parent.removeChild(span);
+      parent.normalize();
+    });
+  };
+
+  const applyPersistentHighlightFromSelection = () => {
+    const sel = window.getSelection();
+    if (!sel) return null;
+    if (!selectionIsInsideViewport(sel)) return null;
+    if (sel.rangeCount === 0) return null;
+
+    const range = sel.getRangeAt(0);
+    const text = sel.toString().trim();
+    if (text.length < 2) return null;
+
+    clearPersistentHighlight();
+
+    const safeRange = range.cloneRange();
+    const span = document.createElement("span");
+    span.setAttribute(persistMarkAttr, "1");
+    span.setAttribute("data-id", String(++persistIdRef.current));
+    span.style.background = "#FFE066";
+    span.style.borderRadius = "4px";
+    span.style.padding = "0 3px";
+    span.style.boxDecorationBreak = "clone";
+    (span.style as any).webkitBoxDecorationBreak = "clone";
+
+    try {
+      const frag = safeRange.extractContents();
+      span.appendChild(frag);
+      safeRange.insertNode(span);
+    } catch {
+      return null;
+    }
+
+    sel.removeAllRanges();
+    return text;
+  };
+
+  const getSelectionTextIfInsideViewport = () => {
+    if (sheetOpen) return null;
+    if (chatbotOpen) return null;
+    if (!carouselViewportRef.current) return null;
+
+    const sel = window.getSelection();
+    if (!sel) return null;
+    if (!selectionIsInsideViewport(sel)) return null;
+
+    const text = sel.toString().trim();
+    if (text.length < 2) return null;
+
+    return text;
+  };
+
+  const openOverlayNow = () => {
+    if (Math.abs(dragOffset) > 3) return;
+    if (sheetOpen) return;
+    if (chatbotOpen) return;
+
+    const fixedText = applyPersistentHighlightFromSelection();
+    const picked = fixedText ?? getSelectionTextIfInsideViewport();
+    if (!picked) return;
+
+    setSelectedText(picked);
+    setSheetOpen(true);
+  };
+
+  const scheduleOpenOverlay = (delayMs: number) => {
+    clearOpenTimer();
+    openTimerRef.current = window.setTimeout(() => {
+      openOverlayNow();
+    }, delayMs);
   };
 
   if (showSavePage) {
@@ -55,7 +214,7 @@ function ContractCarousel() {
               setTimeout(() => {
                 setShowSavePage(false);
                 setAnimOut(false);
-                navigate('/contract/saved');
+                navigate("/contract/saved");
               }, 300);
             }}
           />
@@ -65,24 +224,81 @@ function ContractCarousel() {
   }
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const inText = isInSelectableTextArea(e.target);
+    isTextSelectingRef.current = inText;
+
+    if (inText) {
+      selectingRef.current = true;
+      clearOpenTimer();
+
+      touchStartX.current = null;
+      touchStartTime.current = null;
+      setDragOffset(0);
+
+      const touch =
+        e.touches && e.touches.length > 0
+          ? e.touches[0]
+          : e.changedTouches && e.changedTouches.length > 0
+          ? e.changedTouches[0]
+          : null;
+
+      if (!touch) return;
+
+      const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
+      selectionStartRangeRef.current = startRange;
+
+      return;
+    }
+
     touchStartX.current = e.touches[0]!.clientX;
     touchStartTime.current = Date.now();
     setDragOffset(0);
   };
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (isTextSelectingRef.current && selectingRef.current) {
+      e.preventDefault();
+
+      const start = selectionStartRangeRef.current;
+      if (!start) return;
+
+      const touch =
+        e.touches && e.touches.length > 0
+          ? e.touches[0]
+          : e.changedTouches && e.changedTouches.length > 0
+          ? e.changedTouches[0]
+          : null;
+
+      if (!touch) return;
+
+      const end = getCaretRangeFromPoint(touch.clientX, touch.clientY);
+      if (!end) return;
+
+      setSelectionRange(start, end);
+      return;
+    }
+
     if (touchStartX.current === null) return;
     const delta = e.touches[0]!.clientX - touchStartX.current;
     let adjusted = delta;
 
     if (currentIndex === 0 && delta > 0) adjusted = delta * 0.35;
-    else if (currentIndex === pages.length - 1 && delta < 0)
-      adjusted = delta * 0.35;
+    else if (currentIndex === pages.length - 1 && delta < 0) adjusted = delta * 0.35;
 
     setDragOffset(adjusted);
   };
 
   const onTouchEnd = () => {
+    if (isTextSelectingRef.current) {
+      isTextSelectingRef.current = false;
+      selectingRef.current = false;
+      selectionStartRangeRef.current = null;
+      setDragOffset(0);
+
+      scheduleOpenOverlay(250);
+      return;
+    }
+
     if (touchStartX.current === null || touchStartTime.current === null) {
       setDragOffset(0);
       return;
@@ -107,6 +323,7 @@ function ContractCarousel() {
   };
 
   const handleHighlightClick = (text: string) => {
+    clearPersistentHighlight();
     setSelectedText(text);
     setSheetOpen(true);
   };
@@ -139,12 +356,29 @@ function ContractCarousel() {
     );
   };
 
+  useEffect(() => {
+    const onMouseUp = () => openOverlayNow();
+    document.addEventListener("mouseup", onMouseUp);
+
+    return () => {
+      clearOpenTimer();
+      document.removeEventListener("mouseup", onMouseUp);
+    };
+  }, [sheetOpen, chatbotOpen, dragOffset]);
+
+  const handleOverlayClose = () => {
+    clearPersistentHighlight();
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    setSheetOpen(false);
+  };
+
   return (
     <div className="container">
       <div className="" />
 
       <div className="header">
-        <span className="back-btn" onClick={() => navigate('/')}>
+        <span className="back-btn" onClick={() => navigate("/")}>
           ← 이전으로 돌아가기
         </span>
 
@@ -162,6 +396,7 @@ function ContractCarousel() {
 
       <div
         className="carousel-viewport"
+        ref={carouselViewportRef}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -198,7 +433,7 @@ function ContractCarousel() {
       {sheetOpen && (
         <ContractOverlay
           selectedText={selectedText}
-          onClose={() => setSheetOpen(false)}
+          onClose={handleOverlayClose}
         />
       )}
 
