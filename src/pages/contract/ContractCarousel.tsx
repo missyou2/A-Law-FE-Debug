@@ -6,7 +6,6 @@ import ContractOriginalPage from "./ContractOriginalPage.js";
 import ClauseSummaryPage from "./ClauseSummaryPage.js";
 import RiskAnalysisPage from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
-import DocumentSavePage from "./DocumentSavePage.js";
 
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
 import ChatbotPanel from "./ChatbotPanel.js";
@@ -22,9 +21,6 @@ function ContractCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
-
-  const [showSavePage, setShowSavePage] = useState(false);
-  const [animOut, setAnimOut] = useState(false);
 
   const [chatbotOpen, setChatbotOpen] = useState(false);
 
@@ -197,32 +193,6 @@ function ContractCarousel() {
     }, delayMs);
   };
 
-  if (showSavePage) {
-    return (
-      <div>
-        <div className={animOut ? "page-transition-out" : "page-transition-scale-fade"}>
-          <DocumentSavePage
-            onBack={() => {
-              setAnimOut(true);
-              setTimeout(() => {
-                setShowSavePage(false);
-                setAnimOut(false);
-              }, 300);
-            }}
-            onSave={() => {
-              setAnimOut(true);
-              setTimeout(() => {
-                setShowSavePage(false);
-                setAnimOut(false);
-                navigate("/contract/saved");
-              }, 300);
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const inText = isInSelectableTextArea(e.target);
     isTextSelectingRef.current = inText;
@@ -387,7 +357,7 @@ function ContractCarousel() {
           style={{ fontSize: 15, color: "#111", cursor: "pointer" }}
           onClick={() => {
             haptic();
-            setShowSavePage(true);
+            navigate("/contract/save");
           }}
         >
           다음 →

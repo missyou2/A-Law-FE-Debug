@@ -9,6 +9,7 @@ import SaveComplete from './pages/SaveComplete.js';
 import CameraPage from './pages/scan/CameraPage.js';
 import CapturedResult from './pages/scan/CapturedResult.js';
 import ContractCarousel from './pages/contract/ContractCarousel.js';
+import DocumentSavePage from './pages/contract/DocumentSavePage.js';
 import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePage.js';
 
 function App(){
@@ -46,6 +47,9 @@ function App(){
 
       {/* Contract carousel view page */}
       <Route path="/contract/view" element={<ContractCarousel />} />
+
+      {/* Contract save page */}
+      <Route path="/contract/save" element={<DocumentSavePage />} />
 
       {/* Contract carousel saved page */}
       <Route path="/contract/saved" element={<DocumentSavedCompletePage />} />

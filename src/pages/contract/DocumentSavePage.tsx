@@ -3,11 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './contractCarousel.css'
 import '../../App.css'
 
-interface Props {
-  onBack: () => void;
-  onSave: () => void;  
-}
-
 const styles={
     container: {
     backgroundColor: '#F1F2F6',
@@ -42,7 +37,7 @@ const styles={
   },
 }
 
-function DocumentSavePage({onBack, onSave}: Props) {
+function DocumentSavePage() {
   const [title, setTitle] = useState("2024-11-표준계약서_임대");
 
   const navigate = useNavigate();
@@ -133,7 +128,7 @@ function DocumentSavePage({onBack, onSave}: Props) {
           color: "#666",
           cursor: "pointer",
         }}
-        onClick={onBack}
+        onClick={() => navigate(-1)}
       >
         ← 이전으로 돌아가기
       </div>
