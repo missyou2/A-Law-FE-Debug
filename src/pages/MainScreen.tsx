@@ -1,4 +1,5 @@
 import React, { type CSSProperties, type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../App.css'
 
 // Icon (imported)
@@ -192,12 +193,18 @@ interface MainScreenProps {
 }
 
 const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
+  const navigate = useNavigate();
+
   return (
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
         <img src={MenuIcon} style={{width:'28px', height:'28px', cursor: 'pointer' }} />
-        <img src={UserIcon} style={{width:'36px', height:'36px', cursor: 'pointer' }} />
+        <img
+          src={UserIcon}
+          style={{ width: '36px', height: '36px', cursor: 'pointer' }}
+          onClick={() => navigate('/mypage')}
+        />
       </div>
 
       {/*Main Features*/}
@@ -220,7 +227,7 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
       </div>
 
       {/*챗봇과 대화하기 버튼*/}
-      <div style={styles.chatbotButton}>
+      <div style={styles.chatbotButton} onClick={() => navigate('/chatbot')}>
           <img src={ChatbotIcon} style={{width:'60px', height: '60px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4))'}}/>
         챗봇과 대화하기
       </div>
