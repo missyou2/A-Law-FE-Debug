@@ -12,6 +12,7 @@ import CapturedResult from './pages/scan/CapturedResult.js';
 import ContractCarousel from './pages/contract/ContractCarousel.js';
 import DocumentSavePage from './pages/contract/DocumentSavePage.js';
 import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePage.js';
+import MyContracts from './pages/MyContracts.js';
 
 import MyPage from './pages/mypage/MyPage.js';
 import TermsPage from './pages/mypage/TermsPage.js';
@@ -90,6 +91,9 @@ function App(){
 
         {/* Mypage */}
         <Route path="/mypage" element={<Page><MyPage /></Page>} />
+
+        {/* Contract carousel saved page */}
+        <Route path="/MyContracts" element={<MyContracts />} />
 
         {/* Static Page Router */}
         <Route path="/terms" element={<Page><TermsPage /></Page>} />
