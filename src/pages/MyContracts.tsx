@@ -116,7 +116,7 @@ const MyContracts = () => {
   const [isEditing, setIsEditing] = useState(false);
   // 상태 관리: 선택된 아이템 ID들
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  // 상태 관리: 계약서 리스트 (추후 API로)
+  // 상태 관리: 계약서 리스트
   const [contracts, setContracts] = useState([
     { id: 1, title: '2024년 복정동 전세...', date: '2024. 11. 19', isImportant: true },
     { id: 2, title: '논현동 매매계약서', date: '2024. 12. 10', isImportant: false },
@@ -124,6 +124,55 @@ const MyContracts = () => {
     { id: 4, title: '2023년 월세계약서', date: '2023. 05. 22', isImportant: false },
   ]);
 
+  // // 2. 유저별 계약서 리스트 불러오기 (백엔드 연결 시 활성화)
+  // /*
+  // const userId = "user123"; // 실제로는 context나 auth 상태에서 가져옴
+
+  // useEffect(() => {
+  //   const fetchUserContracts = async () => {
+  //     try {
+  //       // 백엔드 API 호출 예시
+  //       // const response = await fetch(`https://api.yourservice.com/contracts?userId=${userId}`);
+  //       // if (response.ok) {
+  //       //   const data = await response.json();
+  //       //   setContracts(data); // 불러온 데이터로 상태 업데이트
+  //       // }
+  //       console.log(`${userId}님의 데이터를 불러왔습니다.`);
+  //     } catch (error) {
+  //       console.error("데이터 로딩 실패:", error);
+  //     }
+  //   };
+
+  //   fetchUserContracts();
+  // }, [userId]);
+  // */
+
+  // // 3. 삭제 실행 (백엔드 통신 고려)
+  // const handleDelete = async () => {
+  //   if (selectedIds.length === 0) return;
+    
+  //   // UI에서 즉시 반영
+  //   const updatedContracts = contracts.filter(c => !selectedIds.includes(c.id));
+    
+  //   /* [백엔드 삭제 요청 주석]
+  //   try {
+  //     // await fetch(`https://api.yourservice.com/contracts/delete`, {
+  //     //   method: 'POST',
+  //     //   body: JSON.stringify({ ids: selectedIds })
+  //     // });
+  //     console.log("서버에서 삭제 완료:", selectedIds);
+  //     setContracts(updatedContracts);
+  //   } catch (error) {
+  //     alert("삭제 중 오류가 발생했습니다.");
+  //   }
+  //   */
+
+  //   // 현재는 로컬 상태만 업데이트
+  //   setContracts(updatedContracts);
+  //   setSelectedIds([]);
+  //   setIsEditing(false);
+  // };
+  
   // 편집 모드 토글
   const toggleEdit = () => {
     setIsEditing(!isEditing);
@@ -181,14 +230,12 @@ const MyContracts = () => {
           >
             <div style={styles.iconWrapper}>
               {isEditing ? (
-                // 편집 모드: 전달해주신 checkbox.png 사용
                 <img 
                   src={checkboxIcon} 
                   alt="checkbox" 
                   style={styles.checkboxPng} 
                 />
               ) : (
-                // 일반 모드: 기존 문서 아이콘
                 <img 
                   src={item.isImportant ? docsImportant : docsNormal} 
                   alt="contract icon" 

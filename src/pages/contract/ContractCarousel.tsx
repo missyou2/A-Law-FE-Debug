@@ -118,8 +118,8 @@ function ContractCarousel() {
       const parent = span.parentNode;
       if (!parent) return;
 
-      while (span.firstChild) parent.insertBefore(span.firstChild, span);
-      parent.removeChild(span);
+      const textNode = document.createTextNode(span.textContent || "");
+      parent.replaceChild(textNode, span);
       parent.normalize();
     });
   };
@@ -136,21 +136,78 @@ function ContractCarousel() {
 
     clearPersistentHighlight();
 
-    const safeRange = range.cloneRange();
-    const span = document.createElement("span");
-    span.setAttribute(persistMarkAttr, "1");
-    span.setAttribute("data-id", String(++persistIdRef.current));
-    span.style.background = "#FFE066";
-    span.style.borderRadius = "4px";
-    span.style.padding = "0 3px";
-    span.style.boxDecorationBreak = "clone";
-    (span.style as any).webkitBoxDecorationBreak = "clone";
+    // 하이라이트를 위한 CSS 클래스 기반 접근
+    const markId = `mark-${++persistIdRef.current}`;
 
     try {
-      const frag = safeRange.extractContents();
-      span.appendChild(frag);
-      safeRange.insertNode(span);
-    } catch {
+      // 선택 영역을 개별 텍스트 노드 범위로 분할
+      const startContainer = range.startContainer;
+      const endContainer = range.endContainer;
+
+      if (startContainer === endContainer && startContainer.nodeType === 3) {
+        // 단순한 경우: 같은 텍스트 노드 내
+        const span = document.createElement("span");
+        span.setAttribute(persistMarkAttr, "1");
+        span.setAttribute("data-id", markId);
+        span.style.background = "#FFE066";
+        span.style.borderRadius = "4px";
+        span.style.padding = "0 3px";
+        span.style.display = "inline";
+
+        const clonedRange = range.cloneRange();
+        clonedRange.surroundContents(span);
+      } else {
+        // 복잡한 경우: 여러 노드에 걸침
+        // 각 텍스트 노드에 개별적으로 span 적용
+        const treeWalker = document.createTreeWalker(
+          range.commonAncestorContainer,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: (node) => {
+              if (range.intersectsNode(node)) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              return NodeFilter.FILTER_REJECT;
+            }
+          }
+        );
+
+        const textNodes: Text[] = [];
+        let currentNode;
+        while ((currentNode = treeWalker.nextNode())) {
+          textNodes.push(currentNode as Text);
+        }
+
+        textNodes.forEach((textNode, index) => {
+          const nodeRange = document.createRange();
+          nodeRange.selectNodeContents(textNode);
+
+          // 시작 노드
+          if (textNode === startContainer) {
+            nodeRange.setStart(startContainer, range.startOffset);
+          }
+          // 끝 노드
+          if (textNode === endContainer) {
+            nodeRange.setEnd(endContainer, range.endOffset);
+          }
+
+          const span = document.createElement("span");
+          span.setAttribute(persistMarkAttr, "1");
+          span.setAttribute("data-id", `${markId}-${index}`);
+          span.style.background = "#FFE066";
+          span.style.borderRadius = "4px";
+          span.style.padding = "0 3px";
+          span.style.display = "inline";
+
+          try {
+            nodeRange.surroundContents(span);
+          } catch (e) {
+            console.warn("Failed to surround node:", e);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("highlight failed:", err);
       return null;
     }
 

@@ -1,4 +1,4 @@
-import React, { type CSSProperties, type FC } from 'react';
+import React, { type CSSProperties, type FC, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../App.css'
 
@@ -195,11 +195,58 @@ interface MainScreenProps {
 const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
   const navigate = useNavigate();
 
+  // 녹음 관련 상태 및 Ref
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  // 2. 녹음 시작 함수
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = []; // 초기화
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        // 녹음이 끝나면 조각들을 합쳐서 최종 오디오 Blob 생성
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        console.log("녹음 완료! 생성된 파일:", audioBlob);
+        
+        // 백엔드 서버 전송
+        // 여기에 API 차후 작성예정
+        
+        // 스트림 종료 (마이크 끄기)
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      if (navigator.vibrate) navigator.vibrate(50);
+    } catch (err) {
+      console.error("마이크 접근 권한이 필요합니다:", err);
+    }
+  };
+
+  // 3. 녹음 종료 함수
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       {/* Header */}
       <div style={styles.header}>
-        <img src={MenuIcon} style={{width:'28px', height:'28px', cursor: 'pointer' }} />
+        <img src={MenuIcon} style={{width:'28px', height:'28px', cursor: 'pointer' }} onClick={()=> navigate('/mycontracts')} />
         <img
           src={UserIcon}
           style={{ width: '36px', height: '36px', cursor: 'pointer' }}
@@ -221,8 +268,25 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
         </div>
 
         {/*음성 인식*/}
-        <div style={styles.voiceChat}>
-          <img src={MicIcon} style={{width:'52px', height: '52px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
+        <div 
+          style={{
+            ...styles.voiceChat,
+            backgroundColor: isRecording ? '#FF4B4B' : 'white', // 녹음 중일 때 붉은색
+            transition: 'all 0.2s ease',
+            transform: isRecording ? 'scale(0.95)' : 'scale(1)',
+            boxShadow: isRecording ? '0 0 15px rgba(255, 75, 75, 0.5)' : styles.voiceChat.boxShadow,
+          }}
+          onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+          onTouchEnd={stopRecording}
+        >
+          <img 
+            src={MicIcon} 
+            style={{
+              width:'52px', 
+              height: '52px',
+              filter: isRecording ? 'brightness(0) invert(1)' : 'none'
+            }}
+          />
         </div>
       </div>
 

@@ -1,14 +1,66 @@
 import React from "react";
+// import { generateRiskAnalysis } from "../../services/contractService.js";  // 서비스 사용 시
 
 interface Props {
   onSelect: (text: string) => void;
 }
 
 function RiskAnalysisPage({ onSelect }: Props) {
+  // ============================================
+  // 여기에 API 호출 코드 삽입
+  // ============================================
+  // API: POST /api/v1/contracts/{id}/risks
+  // 설명: Risk 분석 생성
+  //
+  // 필요한 데이터:
+  // - contractId: string (계약서 ID)
+  //
+  // 예시 코드:
+  // const [riskAnalysis, setRiskAnalysis] = useState("");
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [error, setError] = useState("");
+  //
+  // useEffect(() => {
+  //   const fetchRiskAnalysis = async () => {
+  //     const API_KEY = "여기에 API 키 입력";
+  //     const BASE_URL = "http://localhost:3000/api/v1";
+  //     const CONTRACT_ID = "contract_123";  // 실제 계약서 ID로 교체 필요
+  //
+  //     setIsLoading(true);
+  //     setError("");
+  //
+  //     try {
+  //       const response = await fetch(
+  //         `${BASE_URL}/contracts/${CONTRACT_ID}/risks`,
+  //         {
+  //           method: 'POST',
+  //           headers: {
+  //             'Authorization': `Bearer ${API_KEY}`,
+  //             'Content-Type': 'application/json',
+  //           },
+  //         }
+  //       );
+  //
+  //       if (!response.ok) throw new Error('위험 분석 생성 실패');
+  //       const data = await response.json();
+  //
+  //       setIsLoading(false);
+  //       setRiskAnalysis(data.riskAnalysis);
+  //     } catch (error) {
+  //       setIsLoading(false);
+  //       setError('위험 분석을 불러오는데 실패했습니다.');
+  //     }
+  //   };
+  //
+  //   fetchRiskAnalysis();
+  // }, []);
+  // ============================================
+
   return (
     <div className="page-container">
       <h2 className="page-title">위험 요소 분석</h2>
       <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+      {/* TODO: API 연동 후 동적 데이터로 교체 필요 */}
 
       <div className="doc-box">
 

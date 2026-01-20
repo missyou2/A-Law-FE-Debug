@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+// import { generateChatResponse } from "../../services/llmService.js";  // 서비스 사용 시
 
 interface Props {
   onClose: () => void;
@@ -49,23 +50,7 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const generateBotAnswer = (q: string) => {
-    if (q.includes("보증금")) {
-      return "보증금 조항은 반환 시점과 조건이 핵심이에요. 반환 기한이 명시되지 않았다면 분쟁 가능성이 있습니다.";
-    }
-    if (q.includes("해지")) {
-      return "중도 해지 조항은 위약금이나 통보 기간이 과도하지 않은지 꼭 확인해야 합니다.";
-    }
-    if (q.includes("임차인")) {
-      return "임차인에게만 책임이 집중되어 있다면 불리한 조항일 수 있습니다.";
-    }
-    if (q.includes("위험") || q.includes("불리")) {
-      return "이 조항은 일반적으로 임차인에게 불리하게 해석될 가능성이 있습니다.";
-    }
-    return "해당 조항은 계약 조건에 따라 해석이 달라질 수 있어 주의가 필요합니다.";
-  };
-
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
 
     setMessages(prev => [
@@ -76,17 +61,63 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
 
     setInput("");
 
+    // ============================================
+    // 여기에 API 호출 코드 삽입
+    // ============================================
+    // 참고: 챗봇은 백엔드 API 명세서에 별도 엔드포인트가 없으므로
+    //       LLM API를 직접 호출하거나, 백엔드에 챗봇 API 추가 필요
+    //
+    // 예시 코드 (LLM 직접 호출):
+    // const API_KEY = "여기에 LLM API 키 입력";
+    // const history = messages
+    //   .filter(m => !m.typing)
+    //   .map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
+    //
+    // try {
+    //   const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Authorization': `Bearer ${API_KEY}`,
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       model: 'gpt-4',
+    //       messages: [
+    //         { role: 'system', content: '당신은 계약서 전문가입니다.' },
+    //         ...history,
+    //         { role: 'user', content: text }
+    //       ],
+    //     }),
+    //   });
+    //   const data = await response.json();
+    //   const botResponse = data.choices[0].message.content;
+    //
+    //   setMessages(prev => {
+    //     const filtered = prev.filter(m => !m.typing);
+    //     return [...filtered, { role: "bot", text: botResponse, typing: undefined }];
+    //   });
+    // } catch (error) {
+    //   setMessages(prev => {
+    //     const filtered = prev.filter(m => !m.typing);
+    //     return [...filtered, { role: "bot", text: "응답 생성 실패", typing: undefined }];
+    //   });
+    // }
+    // ============================================
+
+    // 임시: 더미 동작 (위 코드로 교체하세요)
     setTimeout(() => {
+      let response = "";
+      if (text.includes("보증금")) {
+        response = "보증금 조항은 반환 시점과 조건이 핵심이에요.";
+      } else if (text.includes("위험")) {
+        response = "이 조항은 임차인에게 불리할 가능성이 있습니다.";
+      } else {
+        response = "해당 조항은 계약 조건에 따라 해석이 달라질 수 있어 주의가 필요합니다.";
+      }
+
       setMessages(prev => {
         const filtered = prev.filter(m => !m.typing);
-        return [
-          ...filtered,
-          {
-            role: "bot",
-            text: generateBotAnswer(text),
-            typing: undefined
-          }
-        ];
+        return [...filtered, { role: "bot", text: response, typing: undefined }];
       });
     }, 700);
   };

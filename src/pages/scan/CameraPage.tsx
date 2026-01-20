@@ -127,6 +127,34 @@ const CameraPage: React.FC = () => {
             if (context) {
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+                // == API 호출 영역 ==
+                // canvas.toBlob(async (blob)=>{
+                //     if (!blob){
+                //         console.error("Blob 생성 실패");
+                //         return;
+                //     }
+
+                //     // FormData 객체 생성
+                //     const formData = new FormData();
+                //     formData.append('contract_image', blob, 'contract_capture.png');
+
+                //     try{
+                //         // 4. 백엔드 API 호출
+                //         // const response = await fetch('https://your-api-endpoint.com/upload', {
+                //         //     method: 'POST',
+                //         //     body: formData,
+                //         // });
+
+                //         // if (response.ok) {
+                //         //     const result = await response.json();
+                //         //     console.log("서버 전송 성공:", result);
+                //         // }
+                //     }
+                //     catch (err) {
+                //     console.error("서버 전송 오류:", err);
+                //     }
+                // })
+
                 const dataUrl = canvas.toDataURL('image/png'); 
                 
                 setCapturedImage(dataUrl);
