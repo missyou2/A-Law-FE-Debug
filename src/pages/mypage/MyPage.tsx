@@ -200,7 +200,9 @@ const styles = {
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
   const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   const user = useMemo(
@@ -215,6 +217,7 @@ const MyPage = () => {
     if (isAuthLoading) return;
     setIsAuthLoading(true);
     window.setTimeout(() => {
+      localStorage.setItem('isLoggedIn', 'true');
       setIsLoggedIn(true);
       setIsAuthLoading(false);
     }, 800);
@@ -222,6 +225,7 @@ const MyPage = () => {
 
   const handleLogout = () => {
     if (isAuthLoading) return;
+    localStorage.removeItem('isLoggedIn');
     setIsLoggedIn(false);
   };
 
