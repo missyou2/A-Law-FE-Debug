@@ -7,7 +7,8 @@ import menuIcon from '../assets/icons/menu.png';
 import userIcon from '../assets/icons/user.png';
 import docsImportant from '../assets/icons/docs-important.png';
 import docsNormal from '../assets/icons/docs-normal.png';
-import checkboxIcon from '../assets/icons/checkbox.png';
+import checkSelected from '../assets/icons/check-selected.png';
+import checkUnselected from '../assets/icons/check-unselected.png';
 
 
 const styles = {
@@ -187,7 +188,7 @@ const MyContracts = () => {
     <div style={styles.container}>
       <header style={styles.header}>
         <img src={menuIcon} style={{width:'28px', height:'28px', cursor: 'pointer' }} />
-        <img src={userIcon} style={{width:'36px', height:'36px', cursor: 'pointer' }} />
+        <img src={userIcon} style={{width:'36px', height:'36px', cursor: 'pointer' }} onClick={() => navigate('/mypage')} />
       </header>
 
       {/* 페이지 제목 및 버튼 섹션 */}
@@ -229,10 +230,10 @@ const MyContracts = () => {
           >
             <div style={styles.iconWrapper}>
               {isEditing ? (
-                <img 
-                  src={checkboxIcon} 
-                  alt="checkbox" 
-                  style={styles.checkboxPng} 
+                <img
+                  src={selectedIds.includes(item.id) ? checkSelected : checkUnselected}
+                  alt="checkbox"
+                  style={styles.checkboxPng}
                 />
               ) : (
                 <img 
