@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import "../pages/contract/contractCarousel.css";
 import { generateEasyExplanation } from "../services/contractApi.js";
+import type { EasyExplanationResponse } from "../types/contract.js";
 
 type Props = {
   selectedText: string | null;
@@ -20,7 +21,7 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
   const startHeight = useRef(minHeight);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [explanation, setExplanation] = useState<string>("");
+  const [explanationData, setExplanationData] = useState<EasyExplanationResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -92,10 +93,11 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
 
       setIsLoading(true);
       setError("");
+      setExplanationData(null);
 
       try {
         const result = await generateEasyExplanation(contractId, selectedText);
-        setExplanation(result.easyTranslation);
+        setExplanationData(result);
       } catch (err) {
         console.error("설명 생성 실패:", err);
         setError("설명을 불러오는데 실패했습니다.");
@@ -140,8 +142,21 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
           <p className="sheet-placeholder">설명을 불러오는 중...</p>
         ) : error ? (
           <p className="sheet-placeholder" style={{ color: "#e74c3c" }}>{error}</p>
-        ) : explanation ? (
-          <p className="sheet-placeholder">{explanation}</p>
+        ) : explanationData ? (
+          <div className="sheet-explanation">
+            <p className="sheet-easy-translation">{explanationData.easy_translation}</p>
+
+            {explanationData.legal_term_guide && explanationData.legal_term_guide.length > 0 && (
+              <div className="sheet-legal-terms" style={{ marginTop: "16px" }}>
+                <h4 style={{ fontSize: "14px", marginBottom: "8px", color: "#666" }}>법률 용어 설명</h4>
+                {explanationData.legal_term_guide.map((term, index) => (
+                  <div key={index} style={{ marginBottom: "8px", paddingLeft: "8px", borderLeft: "2px solid #3498db" }}>
+                    <strong style={{ color: "#2c3e50" }}>{term.term}</strong>: {term.meaning}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           <p className="sheet-placeholder">선택한 문구에 대한 설명이 여기에 표시됩니다.</p>
         )}

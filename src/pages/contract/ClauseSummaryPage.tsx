@@ -20,7 +20,7 @@ function ClauseSummaryPage({ onSelect, contractId }: Props) {
 
       try {
         const result = await generateSummary(contractId);
-        setSummary(result.contextSummary);
+        setSummary(result.summary_content);
       } catch (err) {
         console.error("요약 생성 실패:", err);
         setError("요약을 불러오는데 실패했습니다.");

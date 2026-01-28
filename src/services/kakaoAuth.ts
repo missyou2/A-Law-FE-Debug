@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 // Kakao SDK 타입 정의
 declare global {
   interface Window {
@@ -8,29 +10,76 @@ declare global {
 // 카카오 앱 키 (환경변수에서 가져오기)
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_APP_KEY;
 
+// 쿠키 키 상수
+const COOKIE_KEYS = {
+  ACCESS_TOKEN: 'kakao_access_token',
+  USER_INFO: 'kakao_user',
+} as const;
+
+// 쿠키 옵션
+const COOKIE_OPTIONS = {
+  expires: 7, // 7일 후 만료
+  secure: window.location.protocol === 'https:', // HTTPS에서만 전송
+  sameSite: 'strict' as const, // CSRF 방지
+  path: '/', // 모든 경로에서 접근 가능
+};
+
+/**
+ * Kakao SDK 로드 대기
+ */
+const waitForKakaoSDK = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // 이미 로드되어 있으면 즉시 반환
+    if (window.Kakao) {
+      resolve();
+      return;
+    }
+
+    // 최대 5초 동안 100ms마다 체크
+    let attempts = 0;
+    const maxAttempts = 50;
+
+    const checkKakao = setInterval(() => {
+      attempts++;
+
+      if (window.Kakao) {
+        clearInterval(checkKakao);
+        resolve();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkKakao);
+        reject(new Error('Kakao SDK 로드 시간 초과'));
+      }
+    }, 100);
+  });
+};
+
 /**
  * 카카오 SDK 초기화
  */
-export const initKakao = () => {
+export const initKakao = async (): Promise<void> => {
   console.log('=== 카카오 SDK 초기화 시작 ===');
-  console.log('window.Kakao 존재 여부:', !!window.Kakao);
-  console.log('KAKAO_APP_KEY:', KAKAO_APP_KEY ? '설정됨 (' + KAKAO_APP_KEY.substring(0, 4) + '...)' : '설정 안 됨');
 
-  if (!window.Kakao) {
-    console.error('❌ Kakao SDK가 로드되지 않았습니다. index.html을 확인하세요.');
-    return;
-  }
+  try {
+    // SDK 로드 대기
+    await waitForKakaoSDK();
 
-  if (!KAKAO_APP_KEY) {
-    console.error('❌ VITE_KAKAO_APP_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.');
-    return;
-  }
+    console.log('✅ Kakao SDK 로드 완료');
+    console.log('KAKAO_APP_KEY:', KAKAO_APP_KEY ? '설정됨 (' + KAKAO_APP_KEY.substring(0, 4) + '...)' : '설정 안 됨');
 
-  if (!window.Kakao.isInitialized()) {
-    window.Kakao.init(KAKAO_APP_KEY);
-    console.log('✅ Kakao SDK 초기화 완료:', window.Kakao.isInitialized());
-  } else {
-    console.log('ℹ️ Kakao SDK는 이미 초기화되어 있습니다.');
+    if (!KAKAO_APP_KEY) {
+      console.error('❌ VITE_KAKAO_APP_KEY 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.');
+      return;
+    }
+
+    if (!window.Kakao.isInitialized()) {
+      window.Kakao.init(KAKAO_APP_KEY);
+      console.log('✅ Kakao SDK 초기화 완료:', window.Kakao.isInitialized());
+    } else {
+      console.log('ℹ️ Kakao SDK는 이미 초기화되어 있습니다.');
+    }
+  } catch (error) {
+    console.error('❌ Kakao SDK 초기화 실패:', error);
+    throw error;
   }
 };
 
@@ -45,9 +94,11 @@ export const loginWithKakao = (): Promise<KakaoUserInfo> => {
       return;
     }
 
+    console.log('🔵 카카오 로그인 팝업 호출 시작...');
+
     window.Kakao.Auth.login({
       success: (authObj: any) => {
-        console.log('카카오 로그인 성공:', authObj);
+        console.log('✅ 카카오 로그인 성공:', authObj);
 
         // 사용자 정보 가져오기
         window.Kakao.API.request({
@@ -60,9 +111,11 @@ export const loginWithKakao = (): Promise<KakaoUserInfo> => {
               email: response.kakao_account?.email,
             };
 
-            // 로컬 스토리지에 저장
-            localStorage.setItem('kakao_user', JSON.stringify(userInfo));
-            localStorage.setItem('kakao_access_token', authObj.access_token);
+            // 쿠키에 저장
+            Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(userInfo), COOKIE_OPTIONS);
+            Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, authObj.access_token, COOKIE_OPTIONS);
+
+            console.log('✅ 토큰과 사용자 정보가 쿠키에 저장되었습니다.');
 
             resolve(userInfo);
           },
@@ -86,17 +139,20 @@ export const loginWithKakao = (): Promise<KakaoUserInfo> => {
 export const logoutKakao = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (!window.Kakao || !window.Kakao.Auth.getAccessToken()) {
-      // 이미 로그아웃 상태
-      localStorage.removeItem('kakao_user');
-      localStorage.removeItem('kakao_access_token');
+      // 이미 로그아웃 상태 - 쿠키만 삭제
+      Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
+      Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
+      console.log('✅ 쿠키가 삭제되었습니다.');
       resolve();
       return;
     }
 
     window.Kakao.Auth.logout(() => {
       console.log('카카오 로그아웃 성공');
-      localStorage.removeItem('kakao_user');
-      localStorage.removeItem('kakao_access_token');
+      // 쿠키 삭제
+      Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
+      Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
+      console.log('✅ 쿠키가 삭제되었습니다.');
       resolve();
     });
   });
@@ -106,7 +162,7 @@ export const logoutKakao = (): Promise<void> => {
  * 저장된 사용자 정보 가져오기
  */
 export const getKakaoUser = (): KakaoUserInfo | null => {
-  const userStr = localStorage.getItem('kakao_user');
+  const userStr = Cookies.get(COOKIE_KEYS.USER_INFO);
   if (!userStr) return null;
 
   try {
@@ -120,7 +176,14 @@ export const getKakaoUser = (): KakaoUserInfo | null => {
  * 로그인 상태 확인
  */
 export const isKakaoLoggedIn = (): boolean => {
-  return !!localStorage.getItem('kakao_access_token');
+  return !!Cookies.get(COOKIE_KEYS.ACCESS_TOKEN);
+};
+
+/**
+ * 액세스 토큰 가져오기
+ */
+export const getKakaoAccessToken = (): string | undefined => {
+  return Cookies.get(COOKIE_KEYS.ACCESS_TOKEN);
 };
 
 // 타입 정의

@@ -214,16 +214,26 @@ const MyPage = () => {
 
   // 카카오 SDK 초기화 및 로그인 상태 확인
   useEffect(() => {
-    initKakao();
+    const init = async () => {
+      try {
+        await initKakao();
+        console.log('✅ 카카오 SDK 초기화 성공');
 
-    // 저장된 로그인 정보 확인
-    if (isKakaoLoggedIn()) {
-      const user = getKakaoUser();
-      if (user) {
-        setKakaoUser(user);
-        setIsLoggedIn(true);
+        // 저장된 로그인 정보 확인
+        if (isKakaoLoggedIn()) {
+          const user = getKakaoUser();
+          if (user) {
+            setKakaoUser(user);
+            setIsLoggedIn(true);
+            console.log('✅ 저장된 로그인 정보 복원:', user.nickname);
+          }
+        }
+      } catch (error) {
+        console.error('❌ 카카오 SDK 초기화 실패:', error);
       }
-    }
+    };
+
+    init();
   }, []);
 
   const user = useMemo(
@@ -246,7 +256,8 @@ const MyPage = () => {
       console.log('카카오 로그인 성공:', userInfo);
     } catch (error) {
       console.error('카카오 로그인 실패:', error);
-      alert('로그인에 실패했습니다. 다시 시도해주세요.');
+      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
+      alert(`로그인에 실패했습니다.\n\n오류: ${errorMessage}\n\n다시 시도해주세요.`);
     } finally {
       setIsAuthLoading(false);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { generateRiskAnalysis } from "../../services/contractApi.js";
+import { getRiskAnalysis } from "../../services/contractApi.js";
+import type { RiskItem } from "../../types/contract.js";
 
 interface Props {
   onSelect: (text: string) => void;
@@ -7,7 +8,7 @@ interface Props {
 }
 
 function RiskAnalysisPage({ onSelect, contractId }: Props) {
-  const [risks, setRisks] = useState<Array<{ level: string; items: string[] }>>([]);
+  const [risks, setRisks] = useState<RiskItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -19,8 +20,8 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
       setError("");
 
       try {
-        const result = await generateRiskAnalysis(contractId);
-        setRisks(result.risks);
+        const result = await getRiskAnalysis(contractId);
+        setRisks(result.risk_items);
       } catch (err) {
         console.error("위험 분석 실패:", err);
         setError("위험 분석을 불러오는데 실패했습니다.");
@@ -52,14 +53,33 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
       ) : risks.length > 0 ? (
         <div className="doc-box">
           {risks.map((risk, idx) => (
-            <div key={idx}>
-              {risk.items.map((item, itemIdx) => (
-                <p key={itemIdx}>
-                  <span className="highlight" onClick={() => onSelect(item)}>
-                    {item}
-                  </span>
+            <div key={idx} style={{ marginBottom: "20px", padding: "15px", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                <h3 style={{ fontSize: "16px", margin: 0 }}>
+                  {risk.clause_no} - {risk.title}
+                </h3>
+                <span style={{
+                  padding: "4px 8px",
+                  borderRadius: "4px",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  backgroundColor: risk.severity === "HIGH" ? "#e74c3c" : risk.severity === "MEDIUM" ? "#f39c12" : "#3498db",
+                  color: "white"
+                }}>
+                  {risk.severity}
+                </span>
+              </div>
+              <p style={{ marginBottom: "10px" }}>{risk.description}</p>
+              {risk.sources && (
+                <p style={{ fontSize: "14px", color: "#666", marginBottom: "10px" }}>
+                  <strong>출처:</strong> {risk.sources}
                 </p>
-              ))}
+              )}
+              {risk.alternative_text && (
+                <p style={{ fontSize: "14px", color: "#27ae60" }}>
+                  <strong>권장사항:</strong> {risk.alternative_text}
+                </p>
+              )}
             </div>
           ))}
         </div>
