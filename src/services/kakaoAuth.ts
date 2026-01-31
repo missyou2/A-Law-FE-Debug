@@ -193,3 +193,24 @@ export interface KakaoUserInfo {
   profileImage?: string;
   email?: string;
 }
+
+/**
+ * 더미 로그인 (백엔드 구축 전 테스트용)
+ */
+export const dummyLogin = (): Promise<KakaoUserInfo> => {
+  return new Promise((resolve) => {
+    const dummyUser: KakaoUserInfo = {
+      id: 12345678,
+      nickname: '테스트 사용자',
+      profileImage: undefined,
+      email: 'test@example.com',
+    };
+
+    // 쿠키에 저장
+    Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(dummyUser), COOKIE_OPTIONS);
+    Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, 'dummy_access_token_for_testing', COOKIE_OPTIONS);
+
+    console.log('✅ 더미 로그인 완료:', dummyUser);
+    resolve(dummyUser);
+  });
+};

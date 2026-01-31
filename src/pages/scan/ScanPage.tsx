@@ -6,15 +6,15 @@ import { useNavigate } from 'react-router-dom';
 import AlbumIcon from '../../assets/icons/album.png';
 import CameraIcon from '../../assets/icons/camera.png';
 import { FaArrowLeft } from 'react-icons/fa';
+import { isKakaoLoggedIn } from '../../services/kakaoAuth';
 
 const ScanPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      navigate('/mypage');
+    if (!isKakaoLoggedIn()) {
+      navigate('/mypage', { replace: true });
     }
   }, [navigate]);
 
