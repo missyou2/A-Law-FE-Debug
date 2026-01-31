@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../App.css'
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import menuIcon from '../assets/icons/menu.png';
 import userIcon from '../assets/icons/user.png';
 import docsImportant from '../assets/icons/docs-important.png';
 import docsNormal from '../assets/icons/docs-normal.png';
-import checkboxIcon from '../assets/icons/checkbox.png';
+import checkSelected from '../assets/icons/check-selected.png';
+import checkUnselected from '../assets/icons/check-unselected.png';
 
 
 const styles = {
@@ -109,6 +111,8 @@ const styles = {
   },
 };
 
+const API_URL = "http://localhost:4000/contracts";
+
 const MyContracts = () => {
   const navigate = useNavigate();
 
@@ -116,70 +120,40 @@ const MyContracts = () => {
   const [isEditing, setIsEditing] = useState(false);
   // 상태 관리: 선택된 아이템 ID들
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  // 상태 관리: 계약서 리스트
-  const [contracts, setContracts] = useState([
-    { id: 1, title: '2024년 복정동 전세...', date: '2024. 11. 19', isImportant: true },
-    { id: 2, title: '논현동 매매계약서', date: '2024. 12. 10', isImportant: false },
-    { id: 3, title: '매매계약서 사본', date: '2024. 11. 17', isImportant: false },
-    { id: 4, title: '2023년 월세계약서', date: '2023. 05. 22', isImportant: false },
-  ]);
+  const [contracts, setContracts] = useState<any[]>([]); // 초기값 빈 배열
+  const [loading, setLoading] = useState(false); // 로딩 상태 추가
 
-  // // 2. 유저별 계약서 리스트 불러오기 (백엔드 연결 시 활성화)
-  // /*
-  // const userId = "user123"; // 실제로는 context나 auth 상태에서 가져옴
+  useEffect(() => {
+    const fetchContracts = async () => {
+      try {
+        const response = await axios.get(API_URL);
+        // json-server는 응답 데이터 자체가 배열이므로 바로 set 가능
+        setContracts(response.data); 
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+      }
+    };
+    fetchContracts();
+  }, []);
 
-  // useEffect(() => {
-  //   const fetchUserContracts = async () => {
-  //     try {
-  //       // 백엔드 API 호출 예시
-  //       // const response = await fetch(`https://api.yourservice.com/contracts?userId=${userId}`);
-  //       // if (response.ok) {
-  //       //   const data = await response.json();
-  //       //   setContracts(data); // 불러온 데이터로 상태 업데이트
-  //       // }
-  //       console.log(`${userId}님의 데이터를 불러왔습니다.`);
-  //     } catch (error) {
-  //       console.error("데이터 로딩 실패:", error);
-  //     }
-  //   };
-
-  //   fetchUserContracts();
-  // }, [userId]);
-  // */
-
-  // // 3. 삭제 실행 (백엔드 통신 고려)
-  // const handleDelete = async () => {
-  //   if (selectedIds.length === 0) return;
-    
-  //   // UI에서 즉시 반영
-  //   const updatedContracts = contracts.filter(c => !selectedIds.includes(c.id));
-    
-  //   /* [백엔드 삭제 요청 주석]
-  //   try {
-  //     // await fetch(`https://api.yourservice.com/contracts/delete`, {
-  //     //   method: 'POST',
-  //     //   body: JSON.stringify({ ids: selectedIds })
-  //     // });
-  //     console.log("서버에서 삭제 완료:", selectedIds);
-  //     setContracts(updatedContracts);
-  //   } catch (error) {
-  //     alert("삭제 중 오류가 발생했습니다.");
-  //   }
-  //   */
-
-  //   // 현재는 로컬 상태만 업데이트
-  //   setContracts(updatedContracts);
-  //   setSelectedIds([]);
-  //   setIsEditing(false);
-  // };
-  
-  // 편집 모드 토글
-  const toggleEdit = () => {
-    setIsEditing(!isEditing);
-    setSelectedIds([]); // 편집 모드 종료 시 선택 초기화
+  const fetchContracts = async () => {
+    try {
+      const token = localStorage.getItem('token'); // 로그인 토큰 확인
+      const response = await axios.get('/api/contracts', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setContracts(response.data);
+    } catch (error) {
+      console.error("데이터 로드 실패:", error);
+      // 401 Unauthorized인 경우 로그인 페이지로 이동시키는 로직 추가 가능
+    }
   };
 
-  // 체크박스 선택/해제
+  const toggleEdit = () => {
+    setIsEditing(!isEditing);
+    setSelectedIds([]);
+  };
+
   const toggleSelect = (id: number) => {
     if (selectedIds.includes(id)) {
       setSelectedIds(selectedIds.filter(item => item !== id));
@@ -188,28 +162,48 @@ const MyContracts = () => {
     }
   };
 
-  // 삭제 실행
-  const handleDelete = () => {
+  // 3. 삭제 API 연동 로직
+  const handleDelete = async () => {
     if (selectedIds.length === 0) return;
     
-    // 실제 삭제 로직 (필터링)
-    const updatedContracts = contracts.filter(c => !selectedIds.includes(c.id));
-    setContracts(updatedContracts);
-    setSelectedIds([]);
-    setIsEditing(false); // 삭제 후 편집모드 종료
+    try {
+      // json-server의 경우 여러 개 삭제 기능을 기본으로 제공하지 않으므로, 
+      // 반복문을 돌거나 UI에서만 먼저 삭제 후 서버에 개별 요청을 보냅니다.
+      // 여기서는 UI 반영 후 순차적 삭제를 예시로 듭니다.
+      for (const id of selectedIds) {
+        await axios.delete(`${API_URL}/${id}`);
+      }
+
+      const updatedContracts = contracts.filter(c => !selectedIds.includes(c.id));
+      setContracts(updatedContracts);
+      setSelectedIds([]);
+      setIsEditing(false);
+      alert("삭제 완료!");
+    } catch (error) {
+      alert("삭제 중 오류가 발생했습니다.");
+    }
   };
 
   return (
     <div style={styles.container}>
       <header style={styles.header}>
         <img src={menuIcon} style={{width:'28px', height:'28px', cursor: 'pointer' }} />
-        <img src={userIcon} style={{width:'36px', height:'36px', cursor: 'pointer' }} />
+        <img src={userIcon} style={{width:'36px', height:'36px', cursor: 'pointer' }} onClick={() => navigate('/mypage')} />
       </header>
 
       {/* 페이지 제목 및 버튼 섹션 */}
       <div style={styles.titleWrapper}>
         {isEditing ? (
-          <span style={styles.deleteBtn} onClick={handleDelete}>삭제</span>
+          <span 
+            style={{ 
+              ...styles.deleteBtn, 
+              opacity: loading || selectedIds.length === 0 ? 0.5 : 1,
+              pointerEvents: loading ? 'none' : 'auto' 
+            }} 
+            onClick={handleDelete}
+          >
+            {loading ? "삭제 중..." : "삭제"}
+          </span>
         ) : (
           <h1 style={styles.sectionTitle}>이전계약</h1>
         )}
@@ -219,7 +213,13 @@ const MyContracts = () => {
       </div>
 
       <div style={styles.recentContractsBox}>
-        {contracts.map((item, index) => (
+        {contracts.length === 0 && !loading && (
+          <div style={{ textAlign: 'center', marginTop: '50px', color: '#888' }}>
+            내역이 없습니다.
+          </div>
+        )}
+
+        {Array.isArray(contracts) && contracts.map((item, index) => (
           <div 
             key={item.id} 
             onClick={() => isEditing && toggleSelect(item.id)}
@@ -230,10 +230,10 @@ const MyContracts = () => {
           >
             <div style={styles.iconWrapper}>
               {isEditing ? (
-                <img 
-                  src={checkboxIcon} 
-                  alt="checkbox" 
-                  style={styles.checkboxPng} 
+                <img
+                  src={selectedIds.includes(item.id) ? checkSelected : checkUnselected}
+                  alt="checkbox"
+                  style={styles.checkboxPng}
                 />
               ) : (
                 <img 

@@ -208,7 +208,9 @@ const styles = {
 
 const MyPage = () => {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return localStorage.getItem('isLoggedIn') === 'true';
+  });
   const [isAuthLoading, setIsAuthLoading] = useState(false);
   const [kakaoUser, setKakaoUser] = useState<KakaoUserInfo | null>(null);
 

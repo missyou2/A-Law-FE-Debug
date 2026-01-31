@@ -1,6 +1,7 @@
 import '../../App.css'
 import './scan.css'
 
+import { useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AlbumIcon from '../../assets/icons/album.png';
 import CameraIcon from '../../assets/icons/camera.png';
@@ -8,6 +9,30 @@ import { FaArrowLeft } from 'react-icons/fa';
 
 const ScanPage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      navigate('/mypage');
+    }
+  }, [navigate]);
+
+  const handleAlbumClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        navigate('/contract/view', { state: { capturedImageData: dataUrl } });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="scan-container">
@@ -26,9 +51,16 @@ const ScanPage = () => {
       </div>
 
       {/* 3. 앨범에서 불러오기 버튼 */}
-      <div 
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
+      <div
         className="btn-base btn-album"
-        onClick={() => navigate('/fail')} // (디버깅용) 앨범에서 불러오기 선택시 실패페이지로 이동합니다 - 차후 수정예정
+        onClick={handleAlbumClick}
       >
         <img src={AlbumIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
         앨범에서 불러오기

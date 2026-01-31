@@ -1,5 +1,6 @@
-import React, { type CSSProperties, type FC, useState, useRef } from 'react';
+import React, { type CSSProperties, type FC, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../App.css'
 
 // Icon (imported)
@@ -24,13 +25,7 @@ interface Contract {
     isImportant: boolean;
 }
 
-// 더미데이터
-const recentContracts = [
-  { id: 1, title: '2024년 복정동 전세...', date: '2024. 11. 19', isImportant: true },
-  { id: 2, title: '논현동 매매계약서', date: '2024. 12. 10', isImportant: false },
-  { id: 3, title: '매매계약서 사본', date: '2024. 11. 17', isImportant: false  },
-  { id: 4, title: '2023년 월세계약서', date: '2023. 05. 22', isImportant: false  },
-];
+const API_URL = "http://localhost:4000/contracts";
 
 const styles = {
   container: {
@@ -198,6 +193,20 @@ interface MainScreenProps {
 const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
   const navigate = useNavigate();
 
+  const [contracts, setContracts] = useState<Contract[]>([]);
+
+  useEffect(() => {
+    const fetchContracts = async () => {
+      try {
+        const response = await axios.get(API_URL);
+        setContracts(response.data);
+      } catch (error) {
+        console.error("데이터 로딩 실패:", error);
+      }
+    };
+    fetchContracts();
+  }, []);
+
   // 녹음 관련 상태 및 Ref
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -305,7 +314,7 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
       {/* Recent Contracts*/}
       <div style={styles.sectionTitle}>이전계약</div>
       <div style={styles.recentContractsBox}>
-        {recentContracts.map((contract) => (
+        {contracts.map((contract) => (
           <RecentContractItem
             key={contract.id}
             title={contract.title}
