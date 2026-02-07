@@ -10,6 +10,14 @@ function ClauseSummaryPage({ onSelect, contractId }: Props) {
   const [summary, setSummary] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -32,13 +40,30 @@ function ClauseSummaryPage({ onSelect, contractId }: Props) {
     fetchSummary();
   }, [contractId]);
 
+  if (initialLoading) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">임대차 계약 요약</h2>
+        <p className="page-caption">AI가 임대차 계약 내용을 이해하기 쉽게 요약했습니다.</p>
+        <div className="ai-loading-container">
+          <div className="ai-loading-icon">🔍</div>
+          <p className="ai-loading-text">AI가 계약서를 요약하고 있어요</p>
+          <p className="ai-loading-subtext">핵심 조항을 분석하는 중입니다...</p>
+          <div className="ai-loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <h2 className="page-title">임대차 계약 요약</h2>
       <p className="page-caption">AI가 임대차 계약 내용을 이해하기 쉽게 요약했습니다.</p>
 
       {!contractId ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           <p style={{ color: "#999", fontStyle: "italic" }}>계약서 ID가 필요합니다.</p>
         </div>
       ) : isLoading ? (
@@ -46,15 +71,15 @@ function ClauseSummaryPage({ onSelect, contractId }: Props) {
           <p>요약을 불러오는 중...</p>
         </div>
       ) : error ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           <p style={{ color: "#e74c3c" }}>{error}</p>
         </div>
       ) : summary ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           <p>{summary}</p>
         </div>
       ) : (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
 
         <p>
           임차인은 보증금{" "}
