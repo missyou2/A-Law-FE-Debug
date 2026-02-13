@@ -2,8 +2,6 @@ import axios from 'axios';
 import { getKakaoAccessToken } from '../services/kakaoAuth.js';
 import type {
   ContractUploadResponse,
-  AnalysisStatusResponse,
-  ContractAnalysisResult,
   OCRResultResponse,
   ExportImageRequest,
   ExportImageResponse,
@@ -16,8 +14,6 @@ import type {
 // Re-export types for external use
 export type {
   ContractUploadResponse,
-  AnalysisStatusResponse,
-  ContractAnalysisResult,
   OCRResultResponse,
   ExportImageRequest,
   ExportImageResponse,
@@ -86,30 +82,7 @@ export const uploadContract = async (file: File): Promise<ContractUploadResponse
 };
 
 /**
- * 2. 분석 상태 조회 (폴링용)
- * GET /api/v1/contracts/{id}/analyses
- */
-export const getAnalysisStatus = async (
-  contractId: string
-): Promise<AnalysisStatusResponse> => {
-  const response = await apiClient.get(`/contracts/${contractId}/analyses`);
-  return response.data;
-};
-
-/**
- * 3. AI 분석 결과 조회
- * GET /api/v1/contracts/{id}/analyses
- * 분석 완료 후 (status === "SUCCESS") 호출
- */
-export const getAnalysisResult = async (
-  contractId: string
-): Promise<ContractAnalysisResult> => {
-  const response = await apiClient.get(`/contracts/${contractId}/analyses`);
-  return response.data;
-};
-
-/**
- * 4. 계약서 간단 요약 생성
+ * 2. 계약서 간단 요약 생성 (on-demand)
  * POST /api/v1/contracts/{id}/summaries
  */
 export const generateSummary = async (
@@ -120,7 +93,7 @@ export const generateSummary = async (
 };
 
 /**
- * 5. 특정 문장 쉬운 말로 설명
+ * 3. 특정 문장 쉬운 말로 설명
  * POST /api/v1/contracts/{id}/easy-explanation
  */
 export const generateEasyExplanation = async (
@@ -138,7 +111,7 @@ export const generateEasyExplanation = async (
 };
 
 /**
- * 6. OCR 결과 조회
+ * 4. OCR 결과 조회
  * GET /api/v1/contracts/{id}/image
  */
 export const getOCRResult = async (
@@ -149,7 +122,7 @@ export const getOCRResult = async (
 };
 
 /**
- * 7. 이미지/PDF 내보내기
+ * 5. 이미지/PDF 내보내기
  * POST /api/v1/contracts/{id}/text
  */
 export const exportToImage = async (
@@ -161,7 +134,7 @@ export const exportToImage = async (
 };
 
 /**
- * 8. PDF/이미지 → 텍스트 변환 (업로드)
+ * 6. PDF/이미지 → 텍스트 변환 (업로드)
  * POST /api/v1/contracts/{id}/text
  */
 export const convertFileToText = async (
@@ -180,7 +153,7 @@ export const convertFileToText = async (
 };
 
 /**
- * 9. 위험 요소 분석
+ * 7. 위험 요소 분석
  * GET /api/v1/contracts/{id}/risks
  */
 export const getRiskAnalysis = async (
@@ -190,43 +163,3 @@ export const getRiskAnalysis = async (
   return response.data;
 };
 
-// ============================================
-// 유틸리티 함수
-// ============================================
-
-/**
- * 폴링 헬퍼 함수 - 분석 완료까지 대기
- * RabbitMQ 비동기 처리 완료를 폴링으로 확인
- */
-export const waitForAnalysisComplete = async (
-  contractId: string,
-  maxAttempts: number = 30,
-  interval: number = 2000,
-  onProgress?: (progress: number) => void
-): Promise<void> => {
-  for (let i = 0; i < maxAttempts; i++) {
-    const result = await getAnalysisStatus(contractId);
-
-    // 진행률 콜백 호출
-    if (onProgress && result.progress !== undefined) {
-      onProgress(result.progress);
-    }
-
-    // 성공 시 종료
-    if (result.status === 'SUCCESS') {
-      return;
-    }
-
-    // 실패 시 에러 throw
-    if (result.status === 'FAILED') {
-      throw new Error('계약서 분석에 실패했습니다.');
-    }
-
-    // 마지막 시도가 아니면 대기
-    if (i < maxAttempts - 1) {
-      await new Promise(resolve => setTimeout(resolve, interval));
-    }
-  }
-
-  throw new Error('분석 시간이 초과되었습니다.');
-};
