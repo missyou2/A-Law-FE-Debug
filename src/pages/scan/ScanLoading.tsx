@@ -1,15 +1,19 @@
 import '../../App.css'
 import './scan.css'
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import LoadingIcon from '../../assets/icons/loading.png'
+import LoadingTips from './loadingTips.js'
+
+const getRandomTip = () => LoadingTips[Math.floor(Math.random() * LoadingTips.length)];
 
 const ScanLoading = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const capturedImageData = location.state?.capturedImageData;
+  const tip = useMemo(() => getRandomTip(), []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -29,7 +33,7 @@ const ScanLoading = () => {
       <div className="loading-area">
         <img src={LoadingIcon} className="spinner-img" alt="loading" />
         <p className="loading-text">
-            선거와 국민투표의 공정한 관리 및 정당에 관한 사무를 처리하기 위하여 선거관리위원회를 둔다. 누구든지 체포 또는 구속을 당한 때에는 적부의 심사를 법원에 청구할 권리를 가진다.
+            {tip}
         </p>
       </div>
 
