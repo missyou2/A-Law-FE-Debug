@@ -11,10 +11,6 @@ import type {
   EasyExplanationRequest,
   EasyExplanationResponse,
   ContractRiskResponse,
-  ChatMessage,
-  ChatRequest,
-  ChatResponse,
-  ChatHistory,
 } from '../types/contract.js';
 
 // Re-export types for external use
@@ -29,10 +25,6 @@ export type {
   EasyExplanationRequest,
   EasyExplanationResponse,
   ContractRiskResponse,
-  ChatMessage,
-  ChatRequest,
-  ChatResponse,
-  ChatHistory,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -195,35 +187,6 @@ export const getRiskAnalysis = async (
   contractId: string
 ): Promise<ContractRiskResponse> => {
   const response = await apiClient.get(`/contracts/${contractId}/risks`);
-  return response.data;
-};
-
-/**
- * 10. 챗봇 질문하기
- * POST /api/chat/{contractId}
- */
-export const sendChatMessage = async (
-  contractId: string,
-  message: string,
-  history?: ChatMessage[]
-): Promise<ChatResponse> => {
-  const requestBody: ChatRequest = {
-    message,
-    ...(history && { history }),
-  };
-
-  const response = await apiClient.post(`/chat/${contractId}`, requestBody);
-  return response.data;
-};
-
-/**
- * 11. 챗봇 대화 내역 조회
- * GET /api/chat/{contractId}
- */
-export const getChatHistory = async (
-  contractId: string
-): Promise<ChatHistory> => {
-  const response = await apiClient.get(`/chat/${contractId}`);
   return response.data;
 };
 
