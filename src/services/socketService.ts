@@ -32,8 +32,10 @@ export interface ContractData {
 /** 독소 조항 */
 export interface ToxicTerm {
   index: number;
-  is_toxic: boolean;
-  toxic_category: string;
+  content: string;
+  toxic_level: number;       // 0: 안전, 1: 주의, 2: 위험
+  toxic_category: string;    // 위험 분류 (toxic_level 0이면 빈 문자열)
+  toxic_reason: string;      // RAG 기반 위험 사유 (toxic_level 0이면 빈 문자열)
 }
 
 /** 위험 분석 (risk_complete) */
@@ -71,7 +73,7 @@ export interface AnalysisCallbacks {
 // WebSocket 서비스
 // ============================================
 
-const WS_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const WS_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'; // https://api.a-law.site로 교체 필요
 const SOCKJS_ENDPOINT = `${WS_BASE_URL}/ws`;
 
 /**
