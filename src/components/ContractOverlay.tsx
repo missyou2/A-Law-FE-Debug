@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import "../pages/contract/contractCarousel.css";
-import { generateEasyExplanation } from "../services/contractApi.js";
+import { generateEasyExplanation } from "../api/contractApi.js";
 import type { EasyExplanationResponse } from "../types/contract.js";
 
 type Props = {

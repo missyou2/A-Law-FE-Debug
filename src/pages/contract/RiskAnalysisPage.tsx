@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getRiskAnalysis } from "../../services/contractApi.js";
+import { getRiskAnalysis } from "../../api/contractApi.js";
 import type { RiskItem } from "../../types/contract.js";
 
 interface Props {

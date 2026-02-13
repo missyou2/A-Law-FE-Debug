@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getKakaoAccessToken } from './kakaoAuth.js';
+import { getKakaoAccessToken } from '../services/kakaoAuth.js';
 import type {
   ContractUploadResponse,
   AnalysisStatusResponse,
