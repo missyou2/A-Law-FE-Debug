@@ -11,6 +11,14 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const fetchRiskAnalysis = async () => {
@@ -33,13 +41,30 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
     fetchRiskAnalysis();
   }, [contractId]);
 
+  if (initialLoading) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div className="ai-loading-container">
+          <div className="ai-loading-icon">🛡️</div>
+          <p className="ai-loading-text">AI가 위험 요소를 분석하고 있어요</p>
+          <p className="ai-loading-subtext">분쟁 가능성이 있는 조항을 검토하는 중입니다...</p>
+          <div className="ai-loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-container">
       <h2 className="page-title">위험 요소 분석</h2>
       <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
 
       {!contractId ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           <p style={{ color: "#999", fontStyle: "italic" }}>계약서 ID가 필요합니다.</p>
         </div>
       ) : isLoading ? (
@@ -47,11 +72,11 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
           <p>위험 분석을 불러오는 중...</p>
         </div>
       ) : error ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           <p style={{ color: "#e74c3c" }}>{error}</p>
         </div>
       ) : risks.length > 0 ? (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
           {risks.map((risk, idx) => (
             <div key={idx} style={{ marginBottom: "20px", padding: "15px", border: "1px solid #e0e0e0", borderRadius: "8px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -84,7 +109,7 @@ function RiskAnalysisPage({ onSelect, contractId }: Props) {
           ))}
         </div>
       ) : (
-        <div className="doc-box">
+        <div className="doc-box ai-content-fadein">
 
         <p>
           월 차임 <strong>2회 연속 연체 시 즉시 해지</strong>는 
