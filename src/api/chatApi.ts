@@ -1,6 +1,8 @@
 import { getKakaoAccessToken } from '../services/kakaoAuth.js';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
+// Chat endpoint lives at /api/chat (no /v1 prefix), so derive the origin from the contract base URL
+const _contractBase = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
+const CHAT_BASE_URL = _contractBase.replace(/\/api\/v1$/, '/api');
 
 // ============================================
 // 타입 정의
@@ -26,7 +28,7 @@ interface ChatSSECallbacks {
 
 /**
  * SSE 기반 챗봇 메시지 전송
- * POST /api/v1/chat/{contractId}  (Accept: text/event-stream)
+ * POST /api/chat/{contractId}  (Accept: text/event-stream)
  *
  * 서버가 토큰 단위로 스트리밍 응답을 보내면,
  * onChunk 콜백으로 실시간 전달합니다.
@@ -43,7 +45,7 @@ export const sendChatMessageSSE = (
 
   const token = getKakaoAccessToken();
 
-  fetch(`${BASE_URL}/chat/${contractId}`, {
+  fetch(`${CHAT_BASE_URL}/chat/${contractId}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

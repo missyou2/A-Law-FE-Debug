@@ -76,7 +76,7 @@ function App(){
         <Route path="/capturedResult" element={<Page><CapturedResult /></Page>} />
 
         {/* Scan Failed Page */}
-        <Route path="/fail" element={<Page><FailedPage /></Page>} />
+        <Route path="/scan/failed" element={<Page><FailedPage /></Page>} />
 
         {/* Scan Loading Page */}
         <Route path="/loading" element={<Page><LoadingPage /></Page>} />
