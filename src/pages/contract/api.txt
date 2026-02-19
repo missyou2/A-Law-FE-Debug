@@ -1,0 +1,319 @@
+1) POST /api/v1/contracts
+## 흐름
+
+- 프론트에서 text로변환된 계약서를 보내줌
+- 백엔드에서 id를 만들고 rabbitMQ에 메세지(job- 계약서 파일 경로 또는 job id)을 넣음 비동기로 AI서버에게 요청을 보냄
+- AI분석 워커가 rabbitMQ의 큐를 구독(consume)하고 있다가 메세지를 받으면 계약서를 분석
+- 분석이 끝나면 결과를 다시 rabbitMQ의 결과 큐에 넣는다.
+- 백엔드는 결과 큐를 구독하고 있다가, 해당 Job ID의 결과가 오면 DB에 저장하거나 프론트에 푸시(WebSocket, SSE, webhook 등)한다.
+
+### request (FormData)
+
+```python
+file: <File> // PDF, PNG, JPG 등의 계약서 파일
+```
+
+---
+
+### response (201 created)
+
+```python
+{
+"job_id": "JOB-20260127-001",
+"contract_id": 102,
+"status": "queued",
+"created_at": "2026-01-27T14:30:00Z"
+}
+```
+
+2) GET /api/v1/contracts/{id}/analyses
+## 흐름 (분석 상태 조회 + 결과 통합)
+
+- 프론트에서 폴링(2초 간격)으로 분석 진행 상태를 확인
+- status가 "PROCESSING"이면 progress만 반환
+- status가 "SUCCESS"이면 analysis_result를 포함하여 반환
+- status가 "FAILED"이면 에러 정보 반환
+
+### request
+
+```python
+Path Parameter: {id} = contract_id (예: 102)
+```
+
+---
+
+### response (200 OK) - 진행중
+
+```python
+{
+"contract_id": 102,
+"job_id": "JOB-20260127-001",
+"status": "PROCESSING",
+"progress": 45,
+"updated_at": "2026-01-27T14:30:30Z"
+}
+```
+
+### response (200) - 완료 (analysis_result 포함)
+
+```python
+{
+"contract_id": 102,
+"job_id": "JOB-20260127-001",
+"status": "SUCCESS",
+"progress": 100,
+"analysis_result": {
+"summary": "본 계약은 2026년 1월부터 12월까지 유지되는 IT 유지보수 계약입니다.",
+"risk_score": 75,
+"clauses": [
+{
+"clause_no": "제 3조",
+"content": "계약 기간은 2026년 1월 1일부터 2026년 12월 31일까지로 한다.",
+"risk_level": "LOW"
+},
+{
+"clause_no": "제 12조",
+"content": "지연 일수당 배상금은 0.3%로 설정한다.",
+"risk_level": "HIGH"
+}
+],
+"metadata": {
+"total_pages": 5,
+"analysis_duration_ms": 12500,
+"ai_model_version": "v2.1.0"
+}
+},
+"completed_at": "2026-01-27T14:32:00Z"
+}
+```
+
+### response (200) - 실패
+
+```python
+{
+"contract_id": 102,
+"job_id": "JOB-20260127-001",
+"status": "FAILED",
+"progress": 0,
+"updated_at": "2026-01-27T14:31:00Z"
+}
+```
+
+3) GET /api/v1/contracts/{id}/image
+## OCR 결과 조회 - 계약서 이미지에서 추출한 텍스트를 반환
+
+### request
+
+```python
+Path Parameter: {id} = contract_id (예: 102)
+```
+
+---
+
+### response (200 OK)
+
+```python
+{
+  "contract_id": 102,
+  "status": "completed",
+  "transcription_result": {
+    "raw_text": "제 1조 (목적) 본 계약은 갑과 을 사이의...",
+    "confidence_score": 0.98,
+    "page_count": 3
+  },
+  "updated_at": "2026-01-08T13:00:00Z"
+}
+```
+
+4) POST /api/v1/contracts/{id}/text
+## 분석 결과를 이미지/PDF로 내보내기
+
+### request
+
+```python
+{
+  "target_resource": "analysis_report", // summary, risk, 또는 전체 report
+  "format": "png",
+  "style_options": {
+    "theme": "dark",
+    "include_watermark": true
+  }
+}
+```
+
+---
+
+### response (201 Created)
+
+```python
+{
+  "export_id": "EXP-IMAGE-442",
+  "contract_id": 102,
+  "target": "analysis_report",
+  "file_url": "https://s3.ap-northeast-2.amazonaws.com/exports/102_report_v1.png",
+  "format": "png",
+  "expires_at": "2026-01-15T13:00:00Z" // 보안을 위한 링크 만료 시간
+}
+```
+
+5) POST /api/v1/contracts/{id}/summaries
+## AI 요약 생성
+
+### request
+
+```python
+Path Parameter: {id} = contract_id (예: 102)
+```
+
+---
+
+### response (201 Created)
+
+```python
+{
+  "contract_id": 102,
+  "summary_id": 55,
+  "summary_content": "본 계약은 2026년 1월부터 12월까지 유지되는 IT 유지보수 계약입니다. 월 용역비는 500만 원이며, 분기별 검수를 거쳐 지급됩니다.",
+  "extracted_keywords": ["유지보수", "500만원", "분기검수"],
+  "created_at": "2026-01-08T12:00:00Z"
+}
+```
+
+6) POST /api/v1/contracts/{id}/easy-explanation
+## 특정 문장을 쉬운 말로 설명
+
+### request
+
+```python
+{
+  "original_sentence": "본 계약상 갑의 귀책사유로 인하여 계약이 해지될 경우 을은 기 수행한 용역에 대한 대가를 일할 계산하여 청구한다.",
+  "selection_range": { "start": 1205, "end": 1280 }
+}
+```
+
+---
+
+### response (200 OK)
+
+```python
+{
+  "explanation_id": "EXP-772",
+  "contract_id": 102,
+  "original_text": "본 계약상 갑의 귀책사유로 인하여 계약이 해지될 경우 을은 기 수행한 용역에 대한 대가를 일할 계산하여 청구한다.",
+  "easy_translation": "회사의 잘못으로 계약이 끝나더라도, 지금까지 일한 날짜만큼 계산해서 돈을 받을 수 있다는 뜻입니다.",
+  "legal_term_guide": [
+    { "term": "귀책사유", "meaning": "책임을 물을 수 있는 잘못된 원인" },
+    { "term": "일할 계산", "meaning": "날짜 수에 따라 비례해서 계산함" }
+  ]
+}
+```
+
+7) GET /api/v1/contracts/{id}/risks
+## 위험 요소 분석
+
+### request
+
+```python
+Path Parameter: {id} = contract_id (예: 102)
+```
+
+---
+
+### response (200 OK)
+
+```python
+{
+  "contract_id": 102,
+  "risk_analysis_id": 89,
+  "total_risk_score": 82,
+  "risk_level": "CAUTION",
+  "risk_items": [
+    {
+      "clause_no": "제 12조",
+      "title": "지체상금 독소 조항",
+      "description": "지연 일수당 배상금이 업계 표준(0.05%)보다 높은 0.3%로 설정되어 있습니다.",
+      "severity": "HIGH",
+      "sources": "출처 [근거 문장]",
+      "alternative_text": "0.05%~0.1% 사이로 협의를 권장합니다."
+    },
+    ...
+  ],
+  "analyzed_at": "2026-01-08T12:05:00Z"
+}
+```
+
+8) POST /api/chat/{contractId}
+## 챗봇 질문하기
+
+### 흐름
+
+```
+사용자 질문 → 프론트엔드 → 백엔드 → AI(GPT) → 답변 생성 → 백엔드 → 프론트엔드 → 화면 표시
+                          ↑
+                    계약서 내용 + 대화 히스토리 포함
+```
+
+1. 사용자가 질문 입력
+2. 프론트엔드가 백엔드로 요청 (message + history)
+3. 백엔드: contractId로 계약서 찾기 → 계약서 내용 + 질문 + 히스토리를 AI에게 전달
+4. AI가 답변 생성 → 답변을 DB에 저장 (선택)
+5. 프론트엔드가 화면에 표시
+
+### request
+
+```python
+{
+"message": "이 계약서에서 월세는 얼마인가요?",
+"history": [
+{
+"role": "user",
+"content": "안녕하세요"
+},
+{
+"role": "assistant",
+"content": "안녕하세요! 계약서를 이해하기 쉽게 도와드릴게요"
+}
+]
+}
+```
+
+---
+
+### response (200 OK)
+
+```python
+{
+"response": "이 계약서에 따르면 월 차임은 120만원입니다. 매월 5일까지 임대인의 계좌로 입금하셔야 합니다.",
+"conversationId": "507f1f77bcf86cd799439011"
+}
+```
+
+9) GET /api/chat/{contractId}
+## 챗봇 대화 내역 조회
+
+### request
+
+```python
+Path Parameter: {contractId} (예: 102)
+```
+
+---
+
+### response (200 OK)
+
+```python
+{
+"messages": [
+{
+"role": "user",
+"content": "이 계약서에서 월세는 얼마인가요?"
+},
+{
+"role": "assistant",
+"content": "이 계약서에 따르면 월 차임은 120만원입니다."
+}
+],
+"conversationId": "507f1f77bcf86cd799439011"
+}
+```
+

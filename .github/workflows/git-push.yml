@@ -22,7 +22,7 @@ jobs:
         with:
           source-directory: 'output'
           destination-github-username: missyou2
-          destination-repository-name: a-law-fe-0210
+          destination-repository-name: A-Law-FE-Debug
           user-email: ${{ secrets.EMAIL }}
           commit-message: ${{ github.event.commits[0].message }}
           target-branch: main

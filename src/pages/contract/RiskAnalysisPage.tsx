@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { RiskAnalysis, ToxicTerm } from "../../services/socketService.js";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 
 // ============================================
-// Mock 데이터 — 백엔드 WebSocket 연동 시 제거
+// Mock 데이터 — 백엔드 연동 시 제거
 // ============================================
 const mockRiskAnalysis: RiskAnalysis = {
   toxic_terms: [
@@ -50,13 +50,21 @@ const getRiskLevel = (score: number) => {
   return { label: "안전", color: "#27ae60", bg: "#eafaf1" };
 };
 
-function RiskAnalysisPage(_props: Props) {
-  // TODO: WebSocket(socketService)에서 risk_complete 메시지 수신 시 상태 업데이트
-  const riskData: RiskAnalysis = mockRiskAnalysis;
-  const level = getRiskLevel(riskData.risk_score);
-  const dangerCount = riskData.toxic_terms.filter(t => t.toxic_level > 0).length;
-
+function RiskAnalysisPage({ onSelect, contractId }: Props) {
+  const [riskData, setRiskData] = useState<RiskAnalysis | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
   const [expandedSet, setExpandedSet] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    // TODO: 실제 API 연동 시 getRiskAnalysis(contractId) 호출로 교체
+    const timer = setTimeout(() => {
+      setRiskData(mockRiskAnalysis);
+      setInitialLoading(false);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleToggle = (term: ToxicTerm) => {
     setExpandedSet(prev => {
@@ -69,6 +77,62 @@ function RiskAnalysisPage(_props: Props) {
       return next;
     });
   };
+
+  if (initialLoading) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div className="ai-loading-container">
+          <div className="ai-loading-icon">🛡️</div>
+          <p className="ai-loading-text">AI가 위험 요소를 분석하고 있어요</p>
+          <p className="ai-loading-subtext">분쟁 가능성이 있는 조항을 검토하는 중입니다...</p>
+          <div className="ai-loading-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div className="doc-box">
+          <p>위험 분석을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div className="doc-box ai-content-fadein">
+          <p style={{ color: "#e74c3c" }}>{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!riskData) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div className="doc-box ai-content-fadein">
+          <p style={{ color: "#999", fontStyle: "italic" }}>데이터가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const level = getRiskLevel(riskData.risk_score);
+  const dangerCount = riskData.toxic_terms.filter(t => t.toxic_level > 0).length;
 
   return (
     <div className="page-container">
@@ -119,7 +183,12 @@ function RiskAnalysisPage(_props: Props) {
           return (
             <div
               key={idx}
-              onClick={() => handleToggle(term)}
+              onClick={() => {
+                handleToggle(term);
+                if (term.toxic_category) {
+                  onSelect(term.toxic_category);
+                }
+              }}
               style={{
                 padding: "14px",
                 marginBottom: idx < riskData.toxic_terms.length - 1 ? "10px" : 0,
@@ -157,7 +226,7 @@ function RiskAnalysisPage(_props: Props) {
                 </p>
               )}
 
-              {/* 펼침 영역: content + toxic_reason */}
+              {/* 펼침 영역: toxic_reason */}
               {isExpanded && term.toxic_reason && (
                 <div style={{
                   marginTop: "10px",
