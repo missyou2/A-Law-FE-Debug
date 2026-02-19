@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { sendChatMessage, type ChatMessage } from "../../services/contractApi.js";
+import { sendChatMessageSSE } from "../../api/chatApi.js";
+import type { ChatMessage } from "../../api/chatApi.js";
 
 interface Props {
   onClose: () => void;
@@ -51,18 +52,27 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const send = async (text: string) => {
+  const abortRef = useRef<AbortController | null>(null);
+
+  // 컴포넌트 언마운트 시 진행 중인 스트림 중단
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
+
+  const send = (text: string) => {
     if (!text.trim()) return;
+
+    // 이전 스트림이 있으면 중단
+    abortRef.current?.abort();
 
     setMessages(prev => [
       ...prev,
       { role: "user", text, typing: undefined },
-      { role: "bot", text: "입력 중...", typing: true }
+      { role: "bot", text: "", typing: true }
     ]);
 
     setInput("");
 
-    // contractId가 없으면 더미 응답 사용
     if (!contractId) {
       setTimeout(() => {
         setMessages(prev => {
@@ -77,37 +87,45 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
       return;
     }
 
-    try {
-      // 대화 히스토리를 ChatMessage 형식으로 변환
-      const history: ChatMessage[] = messages
-        .filter(m => !m.typing)
-        .map(m => ({
-          role: m.role === "user" ? "user" : "assistant",
-          content: m.text
-        }));
+    // 대화 히스토리를 ChatMessage 형식으로 변환
+    const history: ChatMessage[] = messages
+      .filter(m => !m.typing)
+      .map(m => ({
+        role: m.role === "user" ? "user" : "assistant",
+        content: m.text
+      }));
 
-      // API 호출
-      const result = await sendChatMessage(contractId, text, history);
-
-      setMessages(prev => {
-        const filtered = prev.filter(m => !m.typing);
-        return [...filtered, {
-          role: "bot",
-          text: result.response,
-          typing: undefined
-        }];
-      });
-    } catch (error) {
-      console.error("챗봇 응답 실패:", error);
-      setMessages(prev => {
-        const filtered = prev.filter(m => !m.typing);
-        return [...filtered, {
-          role: "bot",
-          text: "죄송합니다. 응답을 생성하는데 실패했습니다. 다시 시도해주세요.",
-          typing: undefined
-        }];
-      });
-    }
+    // SSE 스트리밍 호출
+    abortRef.current = sendChatMessageSSE(contractId, text, history, {
+      onChunk: (chunk) => {
+        setMessages(prev => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          if (last && last.typing) {
+            last.text += chunk;
+          }
+          return updated;
+        });
+      },
+      onDone: () => {
+        setMessages(prev =>
+          prev.map(m => m.typing ? { ...m, typing: undefined } : m)
+        );
+        abortRef.current = null;
+      },
+      onError: (error) => {
+        console.error("챗봇 응답 실패:", error);
+        setMessages(prev => {
+          const filtered = prev.filter(m => !m.typing);
+          return [...filtered, {
+            role: "bot",
+            text: "죄송합니다. 응답을 생성하는데 실패했습니다. 다시 시도해주세요.",
+            typing: undefined
+          }];
+        });
+        abortRef.current = null;
+      },
+    });
   };
 
   return (

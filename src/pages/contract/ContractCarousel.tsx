@@ -453,7 +453,7 @@ function ContractCarousel() {
 
           <div className="carousel-page">
             <div style={pageStyle(2)}>
-              <RiskAnalysisPage onSelect={handleHighlightClick} contractId={contractId} />
+              <RiskAnalysisPage contractId={contractId} />
             </div>
           </div>
         </div>

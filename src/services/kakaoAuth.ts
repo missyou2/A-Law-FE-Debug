@@ -202,7 +202,7 @@ export const dummyLogin = (): Promise<KakaoUserInfo> => {
     const dummyUser: KakaoUserInfo = {
       id: 12345678,
       nickname: '테스트 사용자',
-      profileImage: undefined,
+      // profileImage: undefined,
       email: 'test@example.com',
     };
 

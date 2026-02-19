@@ -5,7 +5,8 @@ import { useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import LoadingIcon from '../../assets/icons/loading.png'
-import LoadingTips from './loadingTips.js'
+import LoadingTips from './LoadingTips.js'
+import { uploadContractImage } from '../../api/contractApi.js';
 
 const getRandomTip = () => LoadingTips[Math.floor(Math.random() * LoadingTips.length)];
 
@@ -16,11 +17,40 @@ const ScanLoading = () => {
   const tip = useMemo(() => getRandomTip(), []);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigate('/contract/view', { state: { capturedImageData }, replace: true });
-    }, 5000);
+    if (!capturedImageData) return;
 
-    return () => clearTimeout(timer);
+    let cancelled = false;
+
+    const processOCR = async () => {
+      try {
+        const ocrResult = await uploadContractImage(capturedImageData);
+
+        if (cancelled) return;
+
+        if (ocrResult.status === 'ocr_complete') {
+          navigate('/contract/view', {
+            state: {
+              capturedImageData,
+              taskId: ocrResult.task_id,
+              contractId: ocrResult.contract_id,
+              ocrText: ocrResult.ocr_data.full_text,
+            },
+            replace: true,
+          });
+        } else {
+          navigate('/scan/failed', { replace: true });
+        }
+      } catch (error) {
+        console.error('OCR 업로드 실패:', error);
+        if (!cancelled) {
+          navigate('/scan/failed', { replace: true });
+        }
+      }
+    };
+
+    processOCR();
+
+    return () => { cancelled = true; };
   }, [navigate, capturedImageData]);
 
   return (

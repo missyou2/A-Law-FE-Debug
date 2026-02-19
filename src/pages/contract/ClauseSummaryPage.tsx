@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { generateSummary } from "../../services/contractApi.js";
+import { generateSummary } from "../../api/contractApi.js";
 
 interface Props {
   onSelect: (text: string) => void;

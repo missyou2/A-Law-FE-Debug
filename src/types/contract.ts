@@ -4,7 +4,23 @@
 // ============================================
 
 /**
- * 1. 계약서 업로드 및 분석 요청
+ * 1-a. 계약서 이미지 업로드 → OCR 결과 응답
+ * POST /api/v1/contracts
+ * 동기 응답: OCR 텍스트 + task_id (이후 비동기 분석은 WebSocket으로 수신)
+ */
+export interface ContractOCRResponse {
+  status: "ocr_complete" | "ocr_failed";
+  task_id: string;
+  user_id: number;
+  contract_id: number;
+  ocr_data: {
+    full_text: string;
+  };
+  message: string;
+}
+
+/**
+ * 1-b. 계약서 업로드 및 분석 요청 (파일 업로드용)
  * POST /api/v1/contracts
  * RabbitMQ 비동기 처리: 파일 업로드 → 백엔드 → RabbitMQ → AI 워커
  */
