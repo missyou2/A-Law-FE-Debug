@@ -19,6 +19,10 @@ import TermsPage from './pages/mypage/TermsPage.js';
 import PrivacyPage from './pages/mypage/PrivacyPage.js';
 import SupportPage from './pages/mypage/SupportPage.js';
 
+// Debug
+import OcrOverlay from './pages/debug/OcrOverlay.js';
+
+
 function App(){
   const navigate = useNavigate();
   const location = useLocation();
@@ -99,6 +103,9 @@ function App(){
         <Route path="/terms" element={<Page><TermsPage /></Page>} />
         <Route path="/privacy" element={<Page><PrivacyPage /></Page>} />
         <Route path="/support" element={<Page><SupportPage /></Page>} />
+
+        {/* (Debug) OCR Overlay Test Page — http://localhost:5173/debug/ocr */}
+        <Route path="/debug/ocr" element={<OcrOverlay />} />
       </Routes>
     </AnimatePresence>
   );
