@@ -1,0 +1,180 @@
+.wrapper {
+  min-height: 100vh;
+  background: #f3f4f6;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  box-sizing: border-box;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+}
+
+.header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  padding: 24px 20px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 6px 0;
+}
+
+.header p {
+  font-size: 13px;
+  margin: 0;
+  opacity: 0.88;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 14px 20px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btnPrimary {
+  padding: 8px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: opacity 0.15s;
+  display: inline-block;
+}
+
+.btnPrimary:hover {
+  opacity: 0.85;
+}
+
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.statusOk {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.statusErr {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #fbe9e7;
+  color: #c62828;
+}
+
+.statusLoading {
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.viewer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+  background: #d1d5db;
+  min-height: 500px;
+  overflow: auto;
+}
+
+.placeholder {
+  color: #9ca3af;
+  padding: 120px 0;
+  font-size: 14px;
+}
+
+.imageWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.imageWrapper img {
+  max-width: 100%;
+  display: block;
+}
+
+.wordOverlay {
+  position: absolute;
+  color: transparent;
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1;
+  user-select: text;
+}
+
+.wordOverlay::selection {
+  background: rgba(0, 100, 255, 0.3);
+  color: transparent;
+}
+
+.wordOverlayDebug {
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  background: rgba(255, 255, 0, 0.08);
+}
+
+.infoPanel {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 14px 20px;
+  background: #f8f9fa;
+}
+
+.infoCard {
+  padding: 10px 12px;
+}
+
+.infoLabel {
+  font-size: 11px;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.infoValue {
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 4px;
+  color: #1f2937;
+}
+
+.infoTextValue {
+  font-size: 12px;
+  font-weight: 400;
+  margin-top: 4px;
+  color: #374151;
+  max-height: 60px;
+  overflow: auto;
+  line-height: 1.5;
+}
