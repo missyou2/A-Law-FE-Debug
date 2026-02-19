@@ -158,36 +158,36 @@ export const getOCRResult = async (
   return response.data;
 };
 
-/**
- * 5. 이미지/PDF 내보내기
- * POST /api/v1/contracts/{id}/text
- */
-export const exportToImage = async (
-  contractId: string,
-  request: ExportImageRequest
-): Promise<ExportImageResponse> => {
-  const response = await apiClient.post(`/contracts/${contractId}/text`, request);
-  return response.data;
-};
+// /**
+//  * 5. 이미지/PDF 내보내기
+//  * POST /api/v1/contracts/{id}/text
+//  */
+// export const exportToImage = async (
+//   contractId: string,
+//   request: ExportImageRequest
+// ): Promise<ExportImageResponse> => {
+//   const response = await apiClient.post(`/contracts/${contractId}/text`, request);
+//   return response.data;
+// };
 
-/**
- * 6. PDF/이미지 → 텍스트 변환 (업로드)
- * POST /api/v1/contracts/{id}/text
- */
-export const convertFileToText = async (
-  contractId: string,
-  uploadedFile: File
-): Promise<{ textContent: string }> => {
-  const formData = new FormData();
-  formData.append('uploadedFile', uploadedFile);
+// /**
+//  * 6. PDF/이미지 → 텍스트 변환 (업로드)
+//  * POST /api/v1/contracts/{id}/text
+//  */
+// export const convertFileToText = async (
+//   contractId: string,
+//   uploadedFile: File
+// ): Promise<{ textContent: string }> => {
+//   const formData = new FormData();
+//   formData.append('uploadedFile', uploadedFile);
 
-  const response = await apiClient.post(`/contracts/${contractId}/text`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
-  return response.data;
-};
+//   const response = await apiClient.post(`/contracts/${contractId}/text`, formData, {
+//     headers: {
+//       'Content-Type': 'multipart/form-data',
+//     },
+//   });
+//   return response.data;
+// };
 
 /**
  * 7. 위험 요소 분석
