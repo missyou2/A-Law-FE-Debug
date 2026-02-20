@@ -117,23 +117,25 @@ export const saveKakaoSession = (accessToken: string, userInfo: KakaoUserInfo): 
 /**
  * 카카오 로그아웃
  */
+const clearAllCookies = () => {
+  Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
+  Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
+  Cookies.remove('access_token', { path: '/' });
+  Cookies.remove('refresh_token', { path: '/' });
+  console.log('✅ 쿠키가 삭제되었습니다.');
+};
+
 export const logoutKakao = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!window.Kakao || !window.Kakao.Auth.getAccessToken()) {
-      // 이미 로그아웃 상태 - 쿠키만 삭제
-      Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
-      Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
-      console.log('✅ 쿠키가 삭제되었습니다.');
+      clearAllCookies();
       resolve();
       return;
     }
 
     window.Kakao.Auth.logout(() => {
       console.log('카카오 로그아웃 성공');
-      // 쿠키 삭제
-      Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
-      Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
-      console.log('✅ 쿠키가 삭제되었습니다.');
+      clearAllCookies();
       resolve();
     });
   });

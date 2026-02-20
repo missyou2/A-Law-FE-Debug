@@ -239,7 +239,6 @@ const MyPage = () => {
   const user = useMemo(
     () => ({
       nickname: kakaoUser?.nickname || '사용자',
-      note: kakaoUser ? '카카오톡 계정으로 로그인되었습니다.' : '로그인 상태(더미)입니다.',
       profileImage: kakaoUser?.profileImage,
     }),
     [kakaoUser]
@@ -366,7 +365,7 @@ const MyPage = () => {
           </div>
 
           <div style={styles.title}>{user.nickname} 님</div>
-          <div style={styles.desc}>{user.note}</div>
+          <div style={styles.desc}>카카오톡 계정으로 로그인되었습니다.</div>
 
           <button
             style={styles.secondaryBtn}
