@@ -1,4 +1,5 @@
 import React, { useRef, useState } from "react";
+import ChatbotIcon from "../../assets/icons/chatbot.png";
 
 interface Props {
   onClick: () => void;
@@ -87,15 +88,13 @@ function ChatbotFloatingButton({ onClick }: Props) {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        color: "white",
-        fontSize: 26,
         cursor: "pointer",
         zIndex: 9999,
         userSelect: "none",
         touchAction: "none",
       }}
     >
-      🤖
+      <img src={ChatbotIcon} alt="chatbot" style={{ width: 32, height: 32 }} />
     </div>
   );
 }
