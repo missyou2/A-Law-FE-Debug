@@ -122,6 +122,7 @@ const clearAllCookies = () => {
   Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
   Cookies.remove('access_token', { path: '/' });
   Cookies.remove('refresh_token', { path: '/' });
+  Cookies.remove('is_logged_in', { path: '/' });
   console.log('✅ 쿠키가 삭제되었습니다.');
 };
 
@@ -156,10 +157,10 @@ export const getKakaoUser = (): KakaoUserInfo | null => {
 };
 
 /**
- * 로그인 상태 확인 (백엔드가 발급한 access_token 또는 refresh_token 쿠키 기준)
+ * 로그인 상태 확인 (백엔드가 발급한 is_logged_in 쿠키 기준)
  */
 export const isKakaoLoggedIn = (): boolean => {
-  return !!Cookies.get('access_token') || !!Cookies.get('refresh_token');
+  return Cookies.get('is_logged_in') === 'true';
 };
 
 /**
