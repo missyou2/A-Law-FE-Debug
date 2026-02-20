@@ -15,9 +15,14 @@ import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePag
 import MyContracts from './pages/MyContracts.js';
 
 import MyPage from './pages/mypage/MyPage.js';
+import KakaoCallback from './pages/KakaoCallback.js';
 import TermsPage from './pages/mypage/TermsPage.js';
 import PrivacyPage from './pages/mypage/PrivacyPage.js';
 import SupportPage from './pages/mypage/SupportPage.js';
+
+// Debug
+import OcrOverlay from './pages/debug/OcrOverlay.js';
+
 
 function App(){
   const navigate = useNavigate();
@@ -72,7 +77,7 @@ function App(){
         <Route path="/capturedResult" element={<Page><CapturedResult /></Page>} />
 
         {/* Scan Failed Page */}
-        <Route path="/fail" element={<Page><FailedPage /></Page>} />
+        <Route path="/scan/failed" element={<Page><FailedPage /></Page>} />
 
         {/* Scan Loading Page */}
         <Route path="/loading" element={<Page><LoadingPage /></Page>} />
@@ -95,10 +100,16 @@ function App(){
         {/* Contract carousel saved page */}
         <Route path="/MyContracts" element={<MyContracts />} />
 
+        {/* Kakao OAuth Callback */}
+        <Route path="/oauth/callback" element={<KakaoCallback />} />
+
         {/* Static Page Router */}
         <Route path="/terms" element={<Page><TermsPage /></Page>} />
         <Route path="/privacy" element={<Page><PrivacyPage /></Page>} />
         <Route path="/support" element={<Page><SupportPage /></Page>} />
+
+        {/* (Debug) OCR Overlay Test Page — http://localhost:5173/debug/ocr */}
+        <Route path="/debug/ocr" element={<OcrOverlay />} />
       </Routes>
     </AnimatePresence>
   );

@@ -9,14 +9,24 @@
  * 동기 응답: OCR 텍스트 + task_id (이후 비동기 분석은 WebSocket으로 수신)
  */
 export interface ContractOCRResponse {
-  status: "ocr_complete" | "ocr_failed";
-  task_id: string;
-  user_id: number;
-  contract_id: number;
-  ocr_data: {
-    full_text: string;
-  };
-  message: string;
+  success: boolean;
+  processing_time: number;
+  image_width: number;
+  image_height: number;
+  full_text: string;
+  markdown: string;
+  words: Array<{
+    text: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    confidence: number;
+  }>;
+  task_id?: string;
+  user_id?: number;
+  contract_id?: number;
+  message?: string;
 }
 
 /**

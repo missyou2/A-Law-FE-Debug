@@ -27,13 +27,13 @@ const ScanLoading = () => {
 
         if (cancelled) return;
 
-        if (ocrResult.status === 'ocr_complete') {
+        if (ocrResult.success) {
           navigate('/contract/view', {
             state: {
               capturedImageData,
               taskId: ocrResult.task_id,
               contractId: ocrResult.contract_id,
-              ocrText: ocrResult.ocr_data.full_text,
+              ocrText: ocrResult.full_text,
             },
             replace: true,
           });

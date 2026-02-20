@@ -84,53 +84,29 @@ export const initKakao = async (): Promise<void> => {
 };
 
 /**
- * 카카오 로그인
- * @returns Promise<KakaoUserInfo>
+ * 카카오 로그인 (SDK v2 — 리다이렉트 방식)
+ * 로그인 후 /oauth/callback 으로 리다이렉트됨
  */
-export const loginWithKakao = (): Promise<KakaoUserInfo> => {
-  return new Promise((resolve, reject) => {
-    if (!window.Kakao) {
-      reject(new Error('Kakao SDK not loaded'));
-      return;
-    }
+export const loginWithKakao = (): void => {
+  if (!window.Kakao) {
+    console.error('Kakao SDK not loaded');
+    return;
+  }
 
-    console.log('🔵 카카오 로그인 팝업 호출 시작...');
+  console.log('🔵 카카오 로그인 리다이렉트 시작...');
 
-    window.Kakao.Auth.login({
-      success: (authObj: any) => {
-        console.log('✅ 카카오 로그인 성공:', authObj);
-
-        // 사용자 정보 가져오기
-        window.Kakao.API.request({
-          url: '/v2/user/me',
-          success: (response: any) => {
-            const userInfo: KakaoUserInfo = {
-              id: response.id,
-              nickname: response.kakao_account?.profile?.nickname || '사용자',
-              profileImage: response.kakao_account?.profile?.profile_image_url,
-              email: response.kakao_account?.email,
-            };
-
-            // 쿠키에 저장
-            Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(userInfo), COOKIE_OPTIONS);
-            Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, authObj.access_token, COOKIE_OPTIONS);
-
-            console.log('✅ 토큰과 사용자 정보가 쿠키에 저장되었습니다.');
-
-            resolve(userInfo);
-          },
-          fail: (error: any) => {
-            console.error('사용자 정보 가져오기 실패:', error);
-            reject(error);
-          },
-        });
-      },
-      fail: (error: any) => {
-        console.error('카카오 로그인 실패:', error);
-        reject(error);
-      },
-    });
+  window.Kakao.Auth.authorize({
+    redirectUri: `${window.location.origin}/oauth/callback`,
   });
+};
+
+/**
+ * 카카오 액세스 토큰 및 사용자 정보 저장 (콜백 페이지에서 호출)
+ */
+export const saveKakaoSession = (accessToken: string, userInfo: KakaoUserInfo): void => {
+  Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(userInfo), COOKIE_OPTIONS);
+  Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, accessToken, COOKIE_OPTIONS);
+  console.log('✅ 토큰과 사용자 정보가 쿠키에 저장되었습니다.');
 };
 
 /**
@@ -194,23 +170,23 @@ export interface KakaoUserInfo {
   email?: string;
 }
 
-/**
- * 더미 로그인 (백엔드 구축 전 테스트용)
- */
-export const dummyLogin = (): Promise<KakaoUserInfo> => {
-  return new Promise((resolve) => {
-    const dummyUser: KakaoUserInfo = {
-      id: 12345678,
-      nickname: '테스트 사용자',
-      // profileImage: undefined,
-      email: 'test@example.com',
-    };
-
-    // 쿠키에 저장
-    Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(dummyUser), COOKIE_OPTIONS);
-    Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, 'dummy_access_token_for_testing', COOKIE_OPTIONS);
-
-    console.log('✅ 더미 로그인 완료:', dummyUser);
-    resolve(dummyUser);
-  });
-};
+// /**
+//  * 더미 로그인 (백엔드 구축 전 테스트용)
+//  */
+// export const dummyLogin = (): Promise<KakaoUserInfo> => {
+//   return new Promise((resolve) => {
+//     const dummyUser: KakaoUserInfo = {
+//       id: 12345678,
+//       nickname: '테스트 사용자',
+//       // profileImage: undefined,
+//       email: 'test@example.com',
+//     };
+//
+//     // 쿠키에 저장
+//     Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(dummyUser), COOKIE_OPTIONS);
+//     Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, 'dummy_access_token_for_testing', COOKIE_OPTIONS);
+//
+//     console.log('✅ 더미 로그인 완료:', dummyUser);
+//     resolve(dummyUser);
+//   });
+// };

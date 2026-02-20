@@ -34,15 +34,7 @@ function RiskAnalysisPage({ contractId }: Props) {
   const [riskData, setRiskData] = useState<ContractRiskResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [initialLoading, setInitialLoading] = useState(true);
   const [expandedSet, setExpandedSet] = useState<Set<number>>(new Set());
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setInitialLoading(false);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     const fetchRiskAnalysis = async () => {
@@ -77,7 +69,7 @@ function RiskAnalysisPage({ contractId }: Props) {
     });
   };
 
-  if (initialLoading) {
+  if (isLoading) {
     return (
       <div className="page-container">
         <h2 className="page-title">위험 요소 분석</h2>
@@ -89,18 +81,6 @@ function RiskAnalysisPage({ contractId }: Props) {
           <div className="ai-loading-dots">
             <span></span><span></span><span></span>
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="page-container">
-        <h2 className="page-title">위험 요소 분석</h2>
-        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
-        <div className="doc-box">
-          <p>위험 분석을 불러오는 중...</p>
         </div>
       </div>
     );

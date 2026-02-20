@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
@@ -18,15 +18,15 @@ const pages = [
 
 function ContractCarousel() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const locationState = location.state as { contractId?: number; capturedImageData?: string; ocrText?: string } | undefined;
+  const contractId = locationState?.contractId != null ? String(locationState.contractId) : undefined;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
   const [chatbotOpen, setChatbotOpen] = useState(false);
-
-  // TODO: 실제 계약서 ID를 URL 파라미터나 상태로부터 가져오기
-  // 예: const { contractId } = useParams();
-  const contractId = "contract_123"; // 임시 하드코딩
 
   const touchStartX = useRef<number | null>(null);
   const touchStartTime = useRef<number | null>(null);
@@ -418,7 +418,7 @@ function ContractCarousel() {
           style={{ fontSize: 15, color: "#111", cursor: "pointer" }}
           onClick={() => {
             haptic();
-            navigate("/contract/save");
+            navigate("/contract/save", { state: { contractId: locationState?.contractId } });
           }}
         >
           다음 →
@@ -447,13 +447,13 @@ function ContractCarousel() {
 
           <div className="carousel-page">
             <div style={pageStyle(1)}>
-              <ClauseSummaryPage onSelect={handleHighlightClick} contractId={contractId} />
+              <ClauseSummaryPage onSelect={handleHighlightClick} {...(contractId ? { contractId } : {})} />
             </div>
           </div>
 
           <div className="carousel-page">
             <div style={pageStyle(2)}>
-              <RiskAnalysisPage contractId={contractId} />
+              <RiskAnalysisPage {...(contractId ? { contractId } : {})} />
             </div>
           </div>
         </div>
@@ -465,7 +465,7 @@ function ContractCarousel() {
         <ContractOverlay
           selectedText={selectedText}
           onClose={handleOverlayClose}
-          contractId={contractId}
+          {...(contractId ? { contractId } : {})}
         />
       )}
 
@@ -474,7 +474,7 @@ function ContractCarousel() {
       )}
 
       {chatbotOpen && (
-        <ChatbotPanel onClose={() => setChatbotOpen(false)} contractId={contractId} />
+        <ChatbotPanel onClose={() => setChatbotOpen(false)} {...(contractId ? { contractId } : {})} />
       )}
     </div>
   );
