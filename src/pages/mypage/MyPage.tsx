@@ -250,7 +250,7 @@ const MyPage = () => {
 
     try {
       await loginWithKakao();
-      // loginWithKakao()는 백엔드로 리다이렉트하므로 이후 코드는 실행되지 않음
+      // 리다이렉트 방식이므로 이후 코드는 실행되지 않음
     } catch (error) {
       console.error('카카오 로그인 실패:', error);
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
