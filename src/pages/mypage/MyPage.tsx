@@ -6,7 +6,6 @@ import UserIcon from '../../assets/icons/user.png';
 import {
   initKakao,
   loginWithKakao,
-  dummyLogin,
   logoutKakao,
   getKakaoUser,
   isKakaoLoggedIn,
@@ -248,23 +247,11 @@ const MyPage = () => {
     [kakaoUser]
   );
 
-  const handleKakaoLogin = async () => {
+  const handleKakaoLogin = () => {
     if (isAuthLoading) return;
     setIsAuthLoading(true);
-
-    try {
-      // TODO: 백엔드 구축 후 loginWithKakao()로 변경
-      const userInfo = await dummyLogin();
-      setKakaoUser(userInfo);
-      setIsLoggedIn(true);
-      console.log('카카오 로그인 성공:', userInfo);
-    } catch (error) {
-      console.error('카카오 로그인 실패:', error);
-      const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-      alert(`로그인에 실패했습니다.\n\n오류: ${errorMessage}\n\n다시 시도해주세요.`);
-    } finally {
-      setIsAuthLoading(false);
-    }
+    // SDK v2: 페이지 리다이렉트 방식 — /oauth/callback 에서 로그인 완료 처리
+    loginWithKakao();
   };
 
   const handleLogout = async () => {

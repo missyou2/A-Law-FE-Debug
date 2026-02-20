@@ -15,6 +15,7 @@ import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePag
 import MyContracts from './pages/MyContracts.js';
 
 import MyPage from './pages/mypage/MyPage.js';
+import KakaoCallback from './pages/KakaoCallback.js';
 import TermsPage from './pages/mypage/TermsPage.js';
 import PrivacyPage from './pages/mypage/PrivacyPage.js';
 import SupportPage from './pages/mypage/SupportPage.js';
@@ -98,6 +99,9 @@ function App(){
 
         {/* Contract carousel saved page */}
         <Route path="/MyContracts" element={<MyContracts />} />
+
+        {/* Kakao OAuth Callback */}
+        <Route path="/oauth/callback" element={<KakaoCallback />} />
 
         {/* Static Page Router */}
         <Route path="/terms" element={<Page><TermsPage /></Page>} />
