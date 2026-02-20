@@ -107,3 +107,33 @@
 @keyframes rotate_image {
   100% { transform: rotate(360deg); }
 }
+
+/* ScanFailed: reduce title gap so error block sits closer */
+.scan-container--failed .scan-title {
+  margin-bottom: 24px;
+}
+
+.scan-error-reason {
+  width: 100%;
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
+}
+
+.scan-error-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #e05757;
+  margin: 0 0 8px 0;
+}
+
+.scan-error-description {
+  font-size: 14px;
+  color: #555;
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-line;
+}

@@ -154,10 +154,10 @@ export const getKakaoUser = (): KakaoUserInfo | null => {
 };
 
 /**
- * 로그인 상태 확인
+ * 로그인 상태 확인 (백엔드가 발급한 access_token 또는 refresh_token 쿠키 기준)
  */
 export const isKakaoLoggedIn = (): boolean => {
-  return !!Cookies.get(COOKIE_KEYS.ACCESS_TOKEN);
+  return !!Cookies.get('access_token') || !!Cookies.get('refresh_token');
 };
 
 /**
