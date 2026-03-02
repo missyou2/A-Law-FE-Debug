@@ -1,0 +1,178 @@
+.ms-container {
+  background-color: #F1F2F6;
+  min-height: 100vh;
+  padding: 24px 20px;
+  margin: 0;
+}
+
+.ms-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.ms-header-menu-icon {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.ms-header-user-icon {
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+}
+
+.ms-main-features-container {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.ms-scan-contract {
+  flex-grow: 1;
+  background-image: linear-gradient(to bottom right, #21D8FC, #5865B9);
+  color: white;
+  padding: 40px 20px 90px 20px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(143, 143, 143, 0.8);
+  cursor: pointer;
+}
+
+.ms-scan-title {
+  font-size: 46px;
+  font-weight: 750;
+  text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.4);
+  margin-bottom: 3px;
+  line-height: 1.2;
+  text-align: left;
+  font-family: Paperlogy, sans-serif;
+}
+
+.ms-scan-icon-box {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
+}
+
+.ms-scan-icon-box img {
+  width: 48px;
+  height: 48px;
+}
+
+.ms-voice-chat {
+  width: 100px;
+  background-color: white;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 10px rgba(143, 143, 143, 0.8);
+  font-size: 40px;
+  cursor: pointer;
+  min-height: 160px;
+  transition: all 0.2s ease;
+}
+
+.ms-voice-chat.recording {
+  background-color: #FF4B4B;
+  transform: scale(0.95);
+  box-shadow: 0 0 15px rgba(255, 75, 75, 0.5);
+}
+
+.ms-voice-chat img {
+  width: 52px;
+  height: 52px;
+}
+
+.ms-voice-chat.recording img {
+  filter: brightness(0) invert(1);
+}
+
+.ms-chatbot-button {
+  background-image: linear-gradient(to bottom right, #21D8FC, #5865B9);
+  color: white;
+  padding: 25px;
+  border-radius: 17px;
+  font-size: 30px;
+  font-weight: 600;
+  text-shadow: 0px 2px 3px rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 10px rgba(143, 143, 143, 0.8);
+  cursor: pointer;
+  font-family: Paperlogy, sans-serif;
+}
+
+.ms-chatbot-button img {
+  width: 60px;
+  height: 60px;
+  filter: drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.4));
+}
+
+.ms-section-title {
+  font-size: 26px;
+  font-weight: 750;
+  color: #000000ff;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.ms-recent-contracts-box {
+  background-color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 5px 20px;
+  margin-top: 15px;
+  overflow: hidden;
+}
+
+.ms-contract-item {
+  display: flex;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 2px solid #eee;
+  color: #333;
+  cursor: pointer;
+}
+
+.ms-contract-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 6px;
+}
+
+.ms-contract-details {
+  flex-grow: 1;
+}
+
+.ms-contract-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 3px;
+  text-align: left;
+}
+
+.ms-contract-date {
+  font-size: 16px;
+  color: #888;
+  text-align: left;
+  font-weight: 500;
+}
+
+.ms-view-button {
+  font-size: 15px;
+  color: #999;
+  display: flex;
+  align-items: center;
+}
