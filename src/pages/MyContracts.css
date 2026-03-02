@@ -10,11 +10,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 35px;
 }
 
 .mc-title {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
   color: #1a1a1a;
   margin: 0;
