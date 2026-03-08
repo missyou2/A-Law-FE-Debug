@@ -12,11 +12,11 @@ const ScanPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (!isKakaoLoggedIn()) {
-      navigate('/mypage', { replace: true });
-    }
-  }, [navigate]);
+  // useEffect(() => {
+  //   if (!isKakaoLoggedIn()) {
+  //     navigate('/mypage', { replace: true });
+  //   }
+  // }, [navigate]);
 
   const handleAlbumClick = () => {
     fileInputRef.current?.click();
@@ -46,7 +46,7 @@ const ScanPage = () => {
         className="btn-base btn-capture hover-scale-effect"
         onClick={() => navigate('/camera')}
       >
-        <img src={CameraIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
+        <img src={CameraIcon} />
         지금 바로 촬영하기
       </div>
 
@@ -62,7 +62,7 @@ const ScanPage = () => {
         className="btn-base btn-album"
         onClick={handleAlbumClick}
       >
-        <img src={AlbumIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
+        <img src={AlbumIcon} />
         앨범에서 불러오기
       </div>
 

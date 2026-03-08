@@ -1,0 +1,118 @@
+.mc-container {
+  background-color: #F1F2F6;
+  min-height: 100vh;
+  padding: 36px 20px 100px 20px;
+  margin: 0;
+}
+
+/* ── Title row ── */
+.mc-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 35px;
+}
+
+.mc-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.mc-title--delete {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e05757;
+  cursor: pointer;
+}
+
+.mc-title--delete.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.mc-edit-btn {
+  font-size: 16px;
+  font-weight: 600;
+  color: #5865B9;
+  cursor: pointer;
+}
+
+/* ── Contracts list card ── */
+.mc-contracts-box {
+  background-color: white;
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.07);
+  padding: 0 20px;
+  overflow: hidden;
+  min-height: 200px;
+}
+
+/* ── Contract item ── */
+.mc-contract-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.mc-contract-item:last-child {
+  border-bottom: none;
+}
+
+.mc-contract-item:active {
+  opacity: 0.6;
+}
+
+.mc-icon-wrapper {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mc-contract-png {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.mc-checkbox-png {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.mc-contract-details {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.mc-contract-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-contract-date {
+  font-size: 13px;
+  color: #aaa;
+  font-weight: 500;
+}
+
+/* ── Empty state ── */
+.mc-empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #ccc;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.6;
+}

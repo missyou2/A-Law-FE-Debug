@@ -1,5 +1,6 @@
 import '../../App.css'
 import './scan.css'
+import './ScanFailed.css'
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import AlbumIcon from '../../assets/icons/album.png';
@@ -45,7 +46,7 @@ const ScanPage = () => {
         className="btn-base btn-capture hover-scale-effect"
         onClick={() => { alert('카메라 실행') }}
       >
-        <img src={CameraIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
+        <img src={CameraIcon} />
         다시 촬영하기
       </div>
 
@@ -54,7 +55,7 @@ const ScanPage = () => {
         className="btn-base btn-album"
         onClick={() => { alert('앨범 열기') }}
       >
-        <img src={AlbumIcon} style={{width:'30px', height:'30px', filter: 'drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.3))'}}/>
+        <img src={AlbumIcon} />
         앨범에서 불러오기
       </div>
 

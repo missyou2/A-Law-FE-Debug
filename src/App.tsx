@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-
+import BottomNav from './components/BottomNav.js';
 import MainScreen from "./pages/MainScreen.js";
 import ScanPage from "./pages/scan/ScanPage.js";
 import FailedPage from './pages/scan/ScanFailed.js';
@@ -23,6 +23,8 @@ import SupportPage from './pages/mypage/SupportPage.js';
 // Debug
 import OcrOverlay from './pages/debug/OcrOverlay.js';
 
+
+const BOTTOM_NAV_ROUTES = ['/', '/mycontracts', '/mypage'];
 
 function App(){
   const navigate = useNavigate();
@@ -54,7 +56,10 @@ function App(){
     </motion.div>
   );
 
+  const showNav = BOTTOM_NAV_ROUTES.includes(location.pathname);
+
   return(
+    <>
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Main Page */}
@@ -98,7 +103,7 @@ function App(){
         <Route path="/mypage" element={<Page><MyPage /></Page>} />
 
         {/* Contract carousel saved page */}
-        <Route path="/MyContracts" element={<MyContracts />} />
+        <Route path="/mycontracts" element={<MyContracts />} />
 
         {/* Kakao OAuth Callback */}
         <Route path="/oauth/callback" element={<KakaoCallback />} />
@@ -112,6 +117,8 @@ function App(){
         <Route path="/debug/ocr" element={<OcrOverlay />} />
       </Routes>
     </AnimatePresence>
+    {showNav && <BottomNav />}
+    </>
   );
 }
 
