@@ -10,52 +10,6 @@ import { getContractList, addBookmark, removeBookmark } from '../api/contractApi
 import type { ContractListItem } from '../api/contractApi.js';
 
 
-const USE_MOCK = false;
-// ── Mock data (FE 테스트용) ─────────────────────────────────────
-const MOCK_CONTRACTS: ContractListItem[] = [
-  {
-    contractId: 1,
-    title: '원룸 전세 계약서',
-    bookmark: true,
-    contractType: '임대차계약서',
-    status: '분석 완료',
-    createdAt: '2024-03-15T10:00:00.000Z',
-  },
-  {
-    contractId: 2,
-    title: '투룸 월세 계약서',
-    bookmark: false,
-    contractType: '임대차계약서',
-    status: '분석 완료',
-    createdAt: '2024-05-20T14:30:00.000Z',
-  },
-  {
-    contractId: 3,
-    title: '오피스텔 임대차 계약서',
-    bookmark: false,
-    contractType: '임대차계약서',
-    status: '분석 대기',
-    createdAt: '2024-07-10T09:15:00.000Z',
-  },
-  {
-    contractId: 4,
-    title: '상가 임대 계약서',
-    bookmark: true,
-    contractType: '임대차계약서',
-    status: '분석 완료',
-    createdAt: '2024-09-03T16:45:00.000Z',
-  },
-  {
-    contractId: 5,
-    title: '아파트 전세 계약서',
-    bookmark: false,
-    contractType: '임대차계약서',
-    status: '분석 대기',
-    createdAt: '2025-01-22T11:00:00.000Z',
-  },
-];
-// ──────────────────────────────────────────────────────────────
-
 const formatDate = (isoString: string): string => {
   const d = new Date(isoString);
   const yyyy = d.getFullYear();
@@ -76,12 +30,8 @@ const MyContracts = () => {
     const fetchContracts = async () => {
       setLoading(true);
       try {
-        if (USE_MOCK) {
-          setContracts(MOCK_CONTRACTS);
-        } else {
-          const data = await getContractList();
-          setContracts(data);
-        }
+        const data = await getContractList();
+        setContracts(data);
       } catch (error) {
         console.error("데이터 로딩 실패:", error);
       } finally {
@@ -128,15 +78,10 @@ const MyContracts = () => {
     setBookmarkLoading(prev => new Set(prev).add(item.contractId));
 
     try {
-      if (USE_MOCK) {
-        // FE 테스트: API 호출 없이 상태만 업데이트
-        await new Promise(resolve => setTimeout(resolve, 300));
+      if (item.bookmark) {
+        await removeBookmark(item.contractId);
       } else {
-        if (item.bookmark) {
-          await removeBookmark(item.contractId);
-        } else {
-          await addBookmark(item.contractId);
-        }
+        await addBookmark(item.contractId);
       }
     } catch (error) {
       // 실패 시 롤백
