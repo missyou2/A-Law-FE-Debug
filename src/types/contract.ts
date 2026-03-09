@@ -127,14 +127,12 @@ export interface AnalysisSSECallbacks {
  * GET /api/v1/contracts
  */
 export interface ContractListItem {
-  id: number;
+  contractId: number;
   title: string;
-  date: string;
-  is_bookmarked: boolean;
-}
-
-export interface ContractListResponse {
-  contracts: ContractListItem[];
+  bookmark: boolean;
+  contractType: string;
+  status: string;
+  createdAt: string; // ISO 8601 (e.g. "2026-03-09T07:09:05.386Z")
 }
 
 /**

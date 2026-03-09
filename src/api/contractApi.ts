@@ -87,8 +87,8 @@ const dataURLtoBlob = (dataURL: string): Blob => {
  * GET /api/v1/contracts
  */
 export const getContractList = async (): Promise<ContractListItem[]> => {
-  const response = await apiClient.get<{ contracts: ContractListItem[] }>('/contracts');
-  return response.data.contracts;
+  const response = await apiClient.get<ContractListItem[]>('/contracts');
+  return response.data;
 };
 
 /**

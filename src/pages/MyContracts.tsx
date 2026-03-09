@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './MyContracts.css';
-import { useNavigate } from 'react-router-dom';
 import docsImportant from '../assets/icons/docs-important.png';
 import docsNormal from '../assets/icons/docs-normal.png';
 import checkSelected from '../assets/icons/check-selected.png';
@@ -10,20 +9,62 @@ import checkUnselected from '../assets/icons/check-unselected.png';
 import { getContractList, addBookmark, removeBookmark } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
-// ── Mock data (FE 테스트용) ─────────────────────────────────────
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true' || true;
 
+const USE_MOCK = false;
+// ── Mock data (FE 테스트용) ─────────────────────────────────────
 const MOCK_CONTRACTS: ContractListItem[] = [
-  { id: 1, title: '원룸 전세 계약서', date: '2024-03-15', is_bookmarked: true },
-  { id: 2, title: '투룸 월세 계약서', date: '2024-05-20', is_bookmarked: false },
-  { id: 3, title: '오피스텔 임대차 계약서', date: '2024-07-10', is_bookmarked: false },
-  { id: 4, title: '상가 임대 계약서', date: '2024-09-03', is_bookmarked: true },
-  { id: 5, title: '아파트 전세 계약서', date: '2025-01-22', is_bookmarked: false },
+  {
+    contractId: 1,
+    title: '원룸 전세 계약서',
+    bookmark: true,
+    contractType: '임대차계약서',
+    status: '분석 완료',
+    createdAt: '2024-03-15T10:00:00.000Z',
+  },
+  {
+    contractId: 2,
+    title: '투룸 월세 계약서',
+    bookmark: false,
+    contractType: '임대차계약서',
+    status: '분석 완료',
+    createdAt: '2024-05-20T14:30:00.000Z',
+  },
+  {
+    contractId: 3,
+    title: '오피스텔 임대차 계약서',
+    bookmark: false,
+    contractType: '임대차계약서',
+    status: '분석 대기',
+    createdAt: '2024-07-10T09:15:00.000Z',
+  },
+  {
+    contractId: 4,
+    title: '상가 임대 계약서',
+    bookmark: true,
+    contractType: '임대차계약서',
+    status: '분석 완료',
+    createdAt: '2024-09-03T16:45:00.000Z',
+  },
+  {
+    contractId: 5,
+    title: '아파트 전세 계약서',
+    bookmark: false,
+    contractType: '임대차계약서',
+    status: '분석 대기',
+    createdAt: '2025-01-22T11:00:00.000Z',
+  },
 ];
 // ──────────────────────────────────────────────────────────────
 
+const formatDate = (isoString: string): string => {
+  const d = new Date(isoString);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const MyContracts = () => {
-  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -36,7 +77,6 @@ const MyContracts = () => {
       setLoading(true);
       try {
         if (USE_MOCK) {
-          // FE 테스트: 목 데이터 사용
           setContracts(MOCK_CONTRACTS);
         } else {
           const data = await getContractList();
@@ -67,7 +107,7 @@ const MyContracts = () => {
     try {
       setLoading(true);
       // TODO: 계약서 삭제 API 연동
-      setContracts(prev => prev.filter(c => !selectedIds.includes(c.id)));
+      setContracts(prev => prev.filter(c => !selectedIds.includes(c.contractId)));
       setSelectedIds([]);
       setIsEditing(false);
     } catch (error) {
@@ -79,35 +119,35 @@ const MyContracts = () => {
 
   const handleBookmarkToggle = async (e: React.MouseEvent, item: ContractListItem) => {
     e.stopPropagation();
-    if (bookmarkLoading.has(item.id)) return;
+    if (bookmarkLoading.has(item.contractId)) return;
 
     // 낙관적 업데이트
     setContracts(prev =>
-      prev.map(c => c.id === item.id ? { ...c, is_bookmarked: !c.is_bookmarked } : c)
+      prev.map(c => c.contractId === item.contractId ? { ...c, bookmark: !c.bookmark } : c)
     );
-    setBookmarkLoading(prev => new Set(prev).add(item.id));
+    setBookmarkLoading(prev => new Set(prev).add(item.contractId));
 
     try {
       if (USE_MOCK) {
         // FE 테스트: API 호출 없이 상태만 업데이트
         await new Promise(resolve => setTimeout(resolve, 300));
       } else {
-        if (item.is_bookmarked) {
-          await removeBookmark(item.id);
+        if (item.bookmark) {
+          await removeBookmark(item.contractId);
         } else {
-          await addBookmark(item.id);
+          await addBookmark(item.contractId);
         }
       }
     } catch (error) {
       // 실패 시 롤백
       setContracts(prev =>
-        prev.map(c => c.id === item.id ? { ...c, is_bookmarked: item.is_bookmarked } : c)
+        prev.map(c => c.contractId === item.contractId ? { ...c, bookmark: item.bookmark } : c)
       );
       alert("즐겨찾기 처리 중 오류가 발생했습니다.");
     } finally {
       setBookmarkLoading(prev => {
         const next = new Set(prev);
-        next.delete(item.id);
+        next.delete(item.contractId);
         return next;
       });
     }
@@ -143,20 +183,20 @@ const MyContracts = () => {
         ) : (
           contracts.map((item) => (
             <div
-              key={item.id}
+              key={item.contractId}
               className="mc-contract-item"
-              onClick={() => isEditing && toggleSelect(item.id)}
+              onClick={() => isEditing && toggleSelect(item.contractId)}
             >
               <div className="mc-icon-wrapper">
                 {isEditing ? (
                   <img
-                    src={selectedIds.includes(item.id) ? checkSelected : checkUnselected}
+                    src={selectedIds.includes(item.contractId) ? checkSelected : checkUnselected}
                     alt="checkbox"
                     className="mc-checkbox-png"
                   />
                 ) : (
                   <img
-                    src={item.is_bookmarked ? docsImportant : docsNormal}
+                    src={item.bookmark ? docsImportant : docsNormal}
                     alt="contract icon"
                     className="mc-contract-png"
                   />
@@ -165,17 +205,17 @@ const MyContracts = () => {
 
               <div className="mc-contract-details">
                 <div className="mc-contract-title">{item.title}</div>
-                <div className="mc-contract-date">{item.date}</div>
+                <div className="mc-contract-date">{formatDate(item.createdAt)}</div>
               </div>
 
               {/* 즐겨찾기 버튼 (편집 모드에서는 숨김) */}
               {!isEditing && (
                 <button
-                  className={`mc-bookmark-btn${item.is_bookmarked ? ' active' : ''}${bookmarkLoading.has(item.id) ? ' loading' : ''}`}
+                  className={`mc-bookmark-btn${item.bookmark ? ' active' : ''}${bookmarkLoading.has(item.contractId) ? ' loading' : ''}`}
                   onClick={(e) => handleBookmarkToggle(e, item)}
-                  aria-label={item.is_bookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                  aria-label={item.bookmark ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                 >
-                  {item.is_bookmarked ? '★' : '☆'}
+                  {item.bookmark ? '★' : '☆'}
                 </button>
               )}
             </div>
