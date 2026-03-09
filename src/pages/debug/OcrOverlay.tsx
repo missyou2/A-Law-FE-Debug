@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./OcrOverlay.module.css";
 
-const API_BASE = "http://localhost:8001/api/contracts";
+const API_URL = ""; // TODO: 백엔드 주소 설정 (예: /test/ocr)
 
 interface OcrWord {
   text: string;
@@ -13,10 +13,11 @@ interface OcrWord {
 
 interface OcrData {
   words: OcrWord[];
-  full_text: string;
-  processing_time: number;
-  image_width: number;
-  image_height: number;
+  fullText: string;
+  processingTime: number;
+  imageWidth: number;
+  imageHeight: number;
+  imageUrl?: string;
 }
 
 type StatusType = "ok" | "err" | "loading" | "idle";
@@ -29,6 +30,7 @@ interface StatusState {
 export default function OcrOverlay() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState("");
   const [ocrData, setOcrData] = useState<OcrData | null>(null);
   const [status, setStatus] = useState<StatusState>({ message: "", type: "idle" });
   const [debugMode, setDebugMode] = useState(false);
@@ -39,6 +41,7 @@ export default function OcrOverlay() {
     const f = e.target.files?.[0];
     if (!f) return;
     setCurrentFile(f);
+    setFileName(f.name);
     setOcrData(null);
 
     const reader = new FileReader();
@@ -76,16 +79,13 @@ export default function OcrOverlay() {
       setStatus({ message: "먼저 이미지를 선택하세요", type: "err" });
       return;
     }
-    setStatus({ message: "OCR 처리 중... (Upstage API 호출)", type: "loading" });
+    setStatus({ message: "OCR 처리 중...", type: "loading" });
 
     try {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-      const res = await fetch(
-        `${API_BASE}/ocr/full?structurize=false&include_overlay=true`,
-        { method: "POST", body: formData }
-      );
+      const res = await fetch(API_URL, { method: "POST", body: formData });
       if (!res.ok) throw new Error("HTTP " + res.status + ": " + (await res.text()));
 
       const data: OcrData = await res.json();
@@ -94,7 +94,7 @@ export default function OcrOverlay() {
       setOcrData(data);
       const wordCount = data.words?.length ?? 0;
       setStatus({
-        message: `OCR 완료! ${wordCount}개 단어 감지 (${data.processing_time}초)`,
+        message: `OCR 완료! ${wordCount}개 단어 감지 (${data.processingTime}초)`,
         type: "ok",
       });
     } catch (err: unknown) {
@@ -104,12 +104,12 @@ export default function OcrOverlay() {
     }
   }, [currentFile]);
 
-const statusClassName: Record<StatusType, string> = {
-  ok: styles.statusOk ?? "",
-  err: styles.statusErr ?? "",
-  loading: styles.statusLoading ?? "",
-  idle: "",
-};
+  const statusClassName: Record<StatusType, string> = {
+    ok: styles.statusOk ?? "",
+    err: styles.statusErr ?? "",
+    loading: styles.statusLoading ?? "",
+    idle: "",
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -123,21 +123,23 @@ const statusClassName: Record<StatusType, string> = {
 
         {/* Controls */}
         <div className={styles.controls}>
-          <label className={styles.btnPrimary}>
+          <label className={styles.btn}>
             이미지 선택
             <input
               type="file"
-              accept="image/*"
+              accept="image/*,application/pdf"
               style={{ display: "none" }}
               onChange={handleFileChange}
             />
           </label>
 
-          <button onClick={handleOcr} className={styles.btnPrimary}>
+          {fileName && <span className={styles.fileName}>{fileName}</span>}
+
+          <button onClick={handleOcr} className={styles.btn}>
             OCR 실행
           </button>
 
-          <label className={styles.checkLabel}>
+          <label className={styles.debugLabel}>
             <input
               type="checkbox"
               checked={debugMode}
@@ -165,19 +167,20 @@ const statusClassName: Record<StatusType, string> = {
               />
 
               {/* Word overlays */}
-              {ocrData?.words && imgSize.w > 0 &&
+              {ocrData?.words && imgSize.h > 0 &&
                 ocrData.words.map((word, i) => {
-                  const left = (word.x / 100) * imgSize.w;
-                  const top = (word.y / 100) * imgSize.h;
-                  const w = (word.width / 100) * imgSize.w;
-                  const h = (word.height / 100) * imgSize.h;
-                  const fontSize = Math.max(h * 0.85, 8);
-
+                  const fontSize = Math.max((word.height / 100) * imgSize.h * 0.85, 8);
                   return (
                     <span
                       key={i}
                       className={`${styles.wordOverlay} ${debugMode ? styles.wordOverlayDebug : ""}`}
-                      style={{ left, top, width: w, height: h, fontSize }}
+                      style={{
+                        left: `${word.x}%`,
+                        top: `${word.y}%`,
+                        width: `${word.width}%`,
+                        height: `${word.height}%`,
+                        fontSize,
+                      }}
                     >
                       {word.text}
                     </span>
@@ -194,13 +197,13 @@ const statusClassName: Record<StatusType, string> = {
         {/* Info Panel */}
         {ocrData && (
           <div className={styles.infoPanel}>
-            <InfoCard label="이미지 크기" value={`${ocrData.image_width} x ${ocrData.image_height}`} />
-            <InfoCard label="처리 시간" value={`${ocrData.processing_time}초`} />
+            <InfoCard label="이미지 크기" value={`${ocrData.imageWidth} x ${ocrData.imageHeight}`} />
+            <InfoCard label="처리 시간" value={`${ocrData.processingTime}초`} />
             <InfoCard label="단어 수" value={`${ocrData.words?.length ?? 0}개`} />
             <div className={styles.infoCard}>
               <div className={styles.infoLabel}>전체 텍스트</div>
               <div className={styles.infoTextValue}>
-                {(ocrData.full_text || "").substring(0, 300)}
+                {(ocrData.fullText || "").substring(0, 300)}
               </div>
             </div>
           </div>
