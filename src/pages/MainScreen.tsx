@@ -24,8 +24,6 @@ interface Contract {
     isImportant: boolean;
 }
 
-const API_URL = "http://localhost:4000/contracts";
-
 interface RecentContractItemProps {
     title: string;
     date: string;
