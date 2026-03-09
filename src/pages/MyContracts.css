@@ -107,6 +107,32 @@
   font-weight: 500;
 }
 
+/* ── Bookmark button ── */
+.mc-bookmark-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #ccc;
+  cursor: pointer;
+  padding: 4px 6px;
+  flex-shrink: 0;
+  transition: color 0.15s ease, transform 0.1s ease;
+  line-height: 1;
+}
+
+.mc-bookmark-btn.active {
+  color: #F5C518;
+}
+
+.mc-bookmark-btn.loading {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.mc-bookmark-btn:active {
+  transform: scale(0.85);
+}
+
 /* ── Empty state ── */
 .mc-empty-state {
   text-align: center;

@@ -123,6 +123,21 @@ export interface AnalysisSSECallbacks {
 }
 
 /**
+ * 계약서 목록 조회
+ * GET /api/v1/contracts
+ */
+export interface ContractListItem {
+  id: number;
+  title: string;
+  date: string;
+  is_bookmarked: boolean;
+}
+
+export interface ContractListResponse {
+  contracts: ContractListItem[];
+}
+
+/**
  * 5번. 특정 문장 쉬운 말로 설명
  * POST /api/v1/contracts/{id}/easy-explanation
  */
