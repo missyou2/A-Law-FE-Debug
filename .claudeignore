@@ -1,8 +1,0 @@
-node_modules/
-venv/
-build/
-
-.env
-local.yaml
-package-lock.json
-package.json
