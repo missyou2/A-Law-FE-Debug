@@ -1,6 +1,5 @@
 import React, { type FC, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import '../App.css';
 import './MainScreen.css';
 
@@ -17,14 +16,21 @@ import { FaChevronRight } from 'react-icons/fa';
 // Chatbot
 import ChatbotPanel from './contract/ChatbotPanel.js';
 
-interface Contract {
-    id: number;
-    title: string;
-    date: string;
-    isImportant: boolean;
-}
+import { getContractList } from '../api/contractApi.js';
+import type { ContractListItem } from '../api/contractApi.js';
 
-const API_URL = "http://localhost:4000/contracts";
+const USE_MOCK = false;
+
+const MOCK_CONTRACTS: ContractListItem[] = [
+  { contractId: 1, title: '원룸 전세 계약서', bookmark: true,  contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-03-15T10:00:00.000Z' },
+  { contractId: 2, title: '투룸 월세 계약서', bookmark: false, contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-05-20T14:30:00.000Z' },
+  { contractId: 3, title: '오피스텔 임대차 계약서', bookmark: false, contractType: '임대차계약서', status: '분석 대기', createdAt: '2024-07-10T09:15:00.000Z' },
+];
+
+const formatDate = (isoString: string): string => {
+  const d = new Date(isoString);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 interface RecentContractItemProps {
     title: string;
@@ -56,13 +62,17 @@ interface MainScreenProps {
 const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
   const navigate = useNavigate();
 
-  const [contracts, setContracts] = useState<Contract[]>([]);
+  const [contracts, setContracts] = useState<ContractListItem[]>([]);
 
   useEffect(() => {
     const fetchContracts = async () => {
       try {
-        const response = await axios.get(API_URL);
-        setContracts(response.data);
+        if (USE_MOCK) {
+          setContracts(MOCK_CONTRACTS);
+        } else {
+          const data = await getContractList();
+          setContracts(data);
+        }
       } catch (error) {
         console.error("데이터 로딩 실패:", error);
       }
@@ -175,10 +185,10 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
         ) : (
           contracts.map((contract) => (
             <RecentContractItem
-              key={contract.id}
+              key={contract.contractId}
               title={contract.title}
-              date={contract.date}
-              isImportant={contract.isImportant}
+              date={formatDate(contract.createdAt)}
+              isImportant={contract.bookmark}
             />
           ))
         )}

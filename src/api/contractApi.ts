@@ -8,6 +8,7 @@ import type {
   EasyExplanationRequest,
   EasyExplanationResponse,
   AnalysisSSECallbacks,
+  ContractListItem,
 } from '../types/contract.js';
 
 // Re-export types for external use
@@ -19,6 +20,7 @@ export type {
   EasyExplanationRequest,
   EasyExplanationResponse,
   AnalysisSSECallbacks,
+  ContractListItem,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -79,6 +81,31 @@ const dataURLtoBlob = (dataURL: string): Blob => {
 // ============================================
 // API 함수들
 // ============================================
+
+/**
+ * 계약서 목록 조회
+ * GET /api/v1/contracts
+ */
+export const getContractList = async (): Promise<ContractListItem[]> => {
+  const response = await apiClient.get<ContractListItem[]>('/contracts');
+  return response.data;
+};
+
+/**
+ * 북마크 추가 (즐겨찾기)
+ * PATCH /api/v1/contracts/{id}/bookmark
+ */
+export const addBookmark = async (contractId: number): Promise<void> => {
+  await apiClient.patch(`/contracts/${contractId}/bookmark`);
+};
+
+/**
+ * 북마크 삭제 (즐겨찾기 해제)
+ * DELETE /api/v1/contracts/{id}/bookmark
+ */
+export const removeBookmark = async (contractId: number): Promise<void> => {
+  await apiClient.delete(`/contracts/${contractId}/bookmark`);
+};
 
 /**
  * 1번. 카메라 촬영 이미지 → OCR 업로드

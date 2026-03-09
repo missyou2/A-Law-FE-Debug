@@ -123,6 +123,19 @@ export interface AnalysisSSECallbacks {
 }
 
 /**
+ * 계약서 목록 조회
+ * GET /api/v1/contracts
+ */
+export interface ContractListItem {
+  contractId: number;
+  title: string;
+  bookmark: boolean;
+  contractType: string;
+  status: string;
+  createdAt: string; // ISO 8601 (e.g. "2026-03-09T07:09:05.386Z")
+}
+
+/**
  * 5번. 특정 문장 쉬운 말로 설명
  * POST /api/v1/contracts/{id}/easy-explanation
  */

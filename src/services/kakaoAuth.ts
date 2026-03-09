@@ -11,7 +11,7 @@ declare global {
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_APP_KEY;
 
 // API 기본 URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://localhost:3000/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
 const isSecureUrl = (url: string) => url.startsWith('https://') || url.startsWith('/');
 
 // 쿠키 키 상수
@@ -191,23 +191,42 @@ export interface KakaoUserInfo {
   email?: string;
 }
 
-// /**
-//  * 더미 로그인 (백엔드 구축 전 테스트용)
-//  */
-// export const dummyLogin = (): Promise<KakaoUserInfo> => {
-//   return new Promise((resolve) => {
-//     const dummyUser: KakaoUserInfo = {
-//       id: 12345678,
-//       nickname: '테스트 사용자',
-//       // profileImage: undefined,
-//       email: 'test@example.com',
-//     };
-//
-//     // 쿠키에 저장
-//     Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(dummyUser), COOKIE_OPTIONS);
-//     Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, 'dummy_access_token_for_testing', COOKIE_OPTIONS);
-//
-//     console.log('✅ 더미 로그인 완료:', dummyUser);
-//     resolve(dummyUser);
-//   });
-// };
+/**
+ * 개발용 강제 로그인
+ * POST /api/v1/auth/dev
+ * 응답의 data 필드(토큰)를 쿠키에 직접 저장해 로그인 상태를 만든다.
+ */
+export const devLogin = async (): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/auth/dev`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Dev login failed: ${response.status}`);
+  }
+
+  const body = await response.json() as {
+    success: boolean;
+    data?: string | null; // access token (없으면 서버가 세션 쿠키로 처리)
+    message?: string;
+  };
+
+  if (!body.success) {
+    throw new Error(`Dev login error: ${body.message ?? 'server returned success=false'}`);
+  }
+
+  // 서버가 토큰을 body.data로 내려준 경우 → Bearer 헤더용으로 쿠키에 저장
+  // 없는 경우 → 서버가 이미 HttpOnly 세션 쿠키를 Set-Cookie로 심어 준 것이므로 그대로 진행
+  if (body.data) {
+    Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, body.data, COOKIE_OPTIONS);
+  }
+
+  Cookies.set('is_logged_in', 'true', COOKIE_OPTIONS);
+
+  // 개발용 유저 정보 (getKakaoUser()가 null 반환하지 않도록)
+  const devUser: KakaoUserInfo = { id: 0, nickname: '개발 테스트 사용자' };
+  Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(devUser), COOKIE_OPTIONS);
+
+  console.log('✅ Dev login 완료.', body.data ? `token: ${body.data.substring(0, 12)}...` : '(세션 쿠키 방식)');
+};
