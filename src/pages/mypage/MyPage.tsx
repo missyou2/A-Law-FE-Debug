@@ -9,6 +9,7 @@ import {
   logoutKakao,
   getKakaoUser,
   isKakaoLoggedIn,
+  devLogin,
   type KakaoUserInfo,
 } from '../../services/kakaoAuth.js';
 
@@ -260,6 +261,22 @@ const MyPage = () => {
     }
   };
 
+  const handleDevLogin = async () => {
+    if (isAuthLoading) return;
+    setIsAuthLoading(true);
+    try {
+      await devLogin();
+      const user = getKakaoUser();
+      setKakaoUser(user);
+      setIsLoggedIn(true);
+    } catch (error) {
+      console.error('Dev 로그인 실패:', error);
+      alert('개발 로그인 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     if (isAuthLoading) return;
     setIsAuthLoading(true);
@@ -336,6 +353,25 @@ const MyPage = () => {
             <div style={styles.spinnerWrap}>
               <div style={styles.spinner} />
             </div>
+          )}
+
+          {/* 개발 환경에서만 표시되는 강제 로그인 버튼 */}
+          {import.meta.env.DEV && (
+            <button
+              style={{
+                marginTop: '12px',
+                padding: '10px 20px',
+                background: 'none',
+                border: '1px dashed #aaa',
+                borderRadius: '8px',
+                color: '#888',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+              onClick={handleDevLogin}
+            >
+              [DEV] 강제 로그인 (auth/dev)
+            </button>
           )}
 
           <div style={styles.hint}>
