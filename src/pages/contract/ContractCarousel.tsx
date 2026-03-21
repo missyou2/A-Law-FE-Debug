@@ -5,7 +5,7 @@ import type { AnalysisSummaryEvent, AnalysisRiskEvent } from "../../types/contra
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
 import ClauseSummaryPage from "./ClauseSummaryPage.js";
-import RiskAnalysisPage from "./RiskAnalysisPage.js";
+import RiskAnalysisPage, { MOCK_RISK_DATA } from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
 
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
@@ -462,7 +462,7 @@ function ContractCarousel() {
 
           <div className="carousel-page">
             <div style={pageStyle(2)}>
-              <RiskAnalysisPage riskData={riskData} />
+              <RiskAnalysisPage riskData={riskData ?? MOCK_RISK_DATA} />
             </div>
           </div>
         </div>
