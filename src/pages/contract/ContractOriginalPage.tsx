@@ -1,41 +1,69 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
+import type { OcrWord } from '../../types/contract.js';
 
 interface LocationState {
     capturedImageData?: string;
     taskId?: string;
     contractId?: number;
     ocrText?: string;
+    ocrWords?: OcrWord[];
 }
 
 interface Props {
   onSelect: (text: string) => void;
 }
 
+const PAGE_PADDING = 18; // matches .page-container padding
+
 const styles = {
     imageContainer: {
-        width: '100%',
-        maxWidth: '600px',
-        border: '3px solid #007bff',
-        borderRadius: '10px',
+        position: 'relative' as const,
+        // bleed out of page-container's 18px padding to fill full width
+        marginLeft: -PAGE_PADDING,
+        marginRight: -PAGE_PADDING,
+        width: `calc(100% + ${PAGE_PADDING * 2}px)`,
         overflow: 'hidden',
-        boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-        marginTop: '20px'
     } as const,
     image: {
         width: '100%',
-        align: '0 auto',
         display: 'block',
     } as const,
 }
 
 function ContractOriginalPage({ onSelect }: Props) {
   const [mode, setMode] = useState<"image" | "text">("image");
+  const [debugMode, setDebugMode] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
 
   const location = useLocation();
   const state = location.state as LocationState | undefined;
   const capturedImageData = state?.capturedImageData || null;
   const ocrText = state?.ocrText || null;
+  const ocrWords = state?.ocrWords ?? [];
+
+  const handleImageLoad = useCallback(() => {
+    if (imgRef.current) {
+      setImgSize({
+        w: imgRef.current.clientWidth,
+        h: imgRef.current.clientHeight,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (imgRef.current) {
+        setImgSize({
+          w: imgRef.current.clientWidth,
+          h: imgRef.current.clientHeight,
+        });
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   return (
     <div className="page-container">
@@ -44,9 +72,30 @@ function ContractOriginalPage({ onSelect }: Props) {
         style={{
           display: "flex",
           justifyContent: "flex-end",
+          alignItems: "center",
+          gap: "12px",
           marginBottom: "10px"
         }}
       >
+        {mode === "image" && (
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "13px",
+              color: "#555",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={debugMode}
+              onChange={(e) => setDebugMode(e.target.checked)}
+            />
+            박스 표시 (디버그)
+          </label>
+        )}
         <button
           className="switch-btn"
           onClick={() => setMode(mode === "image" ? "text" : "image")}
@@ -56,37 +105,67 @@ function ContractOriginalPage({ onSelect }: Props) {
       </div>
 
       {mode === "image" && (
-    // capturedImageData가 존재하면 실제 이미지와 완료 메시지를 표시
-    capturedImageData ? (
-        <>
-            <div style={styles.imageContainer}>
-                <img
-                    src={capturedImageData}
-                    alt="Captured Document"
-                    style={styles.image}
-                />
-            </div>
-        </>
-    ) : (
-        <div
+        capturedImageData ? (
+          <div style={styles.imageContainer}>
+            <img
+              ref={imgRef}
+              src={capturedImageData}
+              alt="Captured Document"
+              style={styles.image}
+              onLoad={handleImageLoad}
+            />
+
+            {/* Word overlays */}
+            {ocrWords.length > 0 && imgSize.h > 0 &&
+              ocrWords.map((word, i) => {
+                const fontSize = Math.max((word.height / 100) * imgSize.h * 0.85, 8);
+                return (
+                  <span
+                    key={i}
+                    style={{
+                      position: "absolute",
+                      left: `${word.x}%`,
+                      top: `${word.y}%`,
+                      width: `${word.width}%`,
+                      height: `${word.height}%`,
+                      fontSize,
+                      color: "transparent",
+                      cursor: "text",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      lineHeight: 1,
+                      userSelect: "text",
+                      ...(debugMode && {
+                        border: "1px solid rgba(255, 0, 0, 0.5)",
+                        background: "rgba(255, 255, 0, 0.1)",
+                      }),
+                    }}
+                  >
+                    {word.text}
+                  </span>
+                );
+              })}
+          </div>
+        ) : (
+          <div
             style={{
-                width: "100%",
-                height: "480px",
-                borderRadius: "14px",
-                background: "#e1e1e1",
-                border: "1px solid #ccc",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                color: "#777",
-                fontSize: "15px",
-                userSelect: "none"
+              width: "100%",
+              height: "480px",
+              borderRadius: "14px",
+              background: "#e1e1e1",
+              border: "1px solid #ccc",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              color: "#777",
+              fontSize: "15px",
+              userSelect: "none"
             }}
-        >
+          >
             (이미지 캡쳐 대기 또는 안내 메시지 영역)
-        </div>
-    )
-)}
+          </div>
+        )
+      )}
 
       {mode === "text" && (
         <>

@@ -35,6 +35,7 @@ const ScanLoading = () => {
           taskId: ocrResult.task_id,
           contractId: ocrResult.contract_id,
           ocrText: ocrResult.ocr_data?.full_text ?? '',
+          ocrWords: ocrResult.ocr_data?.words ?? [],
           summaryData,
           riskData,
         },

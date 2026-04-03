@@ -7,6 +7,7 @@ import type {
   ExportImageResponse,
   EasyExplanationRequest,
   EasyExplanationResponse,
+  OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
 } from '../types/contract.js';
@@ -19,6 +20,7 @@ export type {
   ExportImageResponse,
   EasyExplanationRequest,
   EasyExplanationResponse,
+  OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
 };
@@ -164,6 +166,18 @@ export const generateEasyExplanation = async (
   };
 
   const response = await apiClient.post(`/contracts/${contractId}/easy-explanation`, requestBody);
+  return response.data;
+};
+
+/**
+ * OCR 오버레이 — 선택 문장 쉬운 말로 설명
+ * POST /api/v1/contracts/easy-explanation
+ */
+export const getOcrEasyExplanation = async (
+  contractId: number,
+  sentence: string,
+): Promise<OcrEasyExplanationResponse> => {
+  const response = await apiClient.post('/contracts/easy-explanation', { contractId, sentence });
   return response.data;
 };
 

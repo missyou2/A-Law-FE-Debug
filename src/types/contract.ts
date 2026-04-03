@@ -4,6 +4,18 @@
 // ============================================
 
 /**
+ * OCR 단어 단위 바운딩박스 (이미지 오버레이용)
+ * x, y, width, height 는 이미지 기준 % 단위
+ */
+export interface OcrWord {
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
  * 1번. 계약서 이미지 업로드 → OCR 결과 응답
  * POST /api/v1/contracts
  */
@@ -13,7 +25,7 @@ export interface ContractOCRResponse {
   user_id?: number;
   contract_id?: number;
   s3_key?: string;
-  ocr_data: { full_text: string } | null;
+  ocr_data: { full_text: string; words?: OcrWord[] } | null;
   message?: string;
   error_code?: string;
 }
@@ -133,6 +145,21 @@ export interface ContractListItem {
   contractType: string;
   status: string;
   createdAt: string; // ISO 8601 (e.g. "2026-03-09T07:09:05.386Z")
+}
+
+/**
+ * OCR 오버레이 — 선택 문장 쉬운 말로 설명
+ * POST /api/v1/contracts/easy-explanation
+ */
+export interface OcrEasyExplanationRequest {
+  contractId: number;
+  sentence: string;
+}
+
+export interface OcrEasyExplanationResponse {
+  sentence: string;
+  easy_explanation: string;
+  examples: string[];
 }
 
 /**
