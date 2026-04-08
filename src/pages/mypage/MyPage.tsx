@@ -269,6 +269,7 @@ const MyPage = () => {
       const user = getKakaoUser();
       setKakaoUser(user);
       setIsLoggedIn(true);
+      navigate('/terms-agree');
     } catch (error) {
       console.error('Dev 로그인 실패:', error);
       alert('개발 로그인 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
@@ -422,6 +423,16 @@ const MyPage = () => {
       )}
 
       <div style={styles.menuBox}>
+        <div
+          style={styles.menuItem}
+          onClick={() => navigate('/recordings')}
+          onMouseDown={pressStyle}
+          onMouseUp={releaseStyle}
+          onMouseLeave={releaseStyle}
+        >
+          녹음 목록 <span style={styles.menuRight}>›</span>
+        </div>
+
         <div
           style={styles.menuItem}
           onClick={() => navigate('/terms')}

@@ -39,6 +39,187 @@
   cursor: pointer;
 }
 
+/* ── Filter bar ── */
+.mc-filter-bar {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mc-sort-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mc-sort-btn {
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #E0E0E0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.mc-sort-btn.active {
+  border-color: #5865B9;
+  background: #5865B9;
+  color: #fff;
+}
+
+.mc-reset-btn {
+  margin-left: auto;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #E0E0E0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e05757;
+  cursor: pointer;
+}
+
+.mc-date-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-date-input {
+  flex: 1;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1.5px solid #E0E0E0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  outline: none;
+  cursor: pointer;
+}
+
+.mc-date-input:focus {
+  border-color: #5865B9;
+}
+
+.mc-date-sep {
+  font-size: 14px;
+  font-weight: 700;
+  color: #aaa;
+  flex-shrink: 0;
+}
+
+/* ── Custom Calendar ── */
+.mc-calendar {
+  font-family: inherit !important;
+  border: none !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  overflow: hidden;
+  padding: 8px !important;
+}
+
+.mc-calendar .react-datepicker__header {
+  background: #fff !important;
+  border-bottom: 1px solid #f0f0f0 !important;
+  padding: 12px 0 8px !important;
+}
+
+.mc-calendar .react-datepicker__current-month {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #111 !important;
+  margin-bottom: 8px;
+}
+
+.mc-calendar .react-datepicker__navigation {
+  top: 14px !important;
+}
+
+.mc-calendar .react-datepicker__navigation-icon::before {
+  border-color: #5865B9 !important;
+}
+
+.mc-calendar .react-datepicker__day-name {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #aaa !important;
+  width: 34px !important;
+  line-height: 34px !important;
+}
+
+.mc-calendar .react-datepicker__day {
+  width: 34px !important;
+  height: 34px !important;
+  line-height: 34px !important;
+  border-radius: 10px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #333 !important;
+  margin: 2px !important;
+}
+
+.mc-calendar .react-datepicker__day:hover {
+  background: #EEEDF9 !important;
+  color: #5865B9 !important;
+}
+
+.mc-calendar .react-datepicker__day--selected,
+.mc-calendar .react-datepicker__day--range-start,
+.mc-calendar .react-datepicker__day--range-end {
+  background: #5865B9 !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+}
+
+.mc-calendar .react-datepicker__day--in-range {
+  background: #EEEDF9 !important;
+  color: #5865B9 !important;
+  border-radius: 0 !important;
+}
+
+.mc-calendar .react-datepicker__day--range-start {
+  border-radius: 10px 0 0 10px !important;
+}
+
+.mc-calendar .react-datepicker__day--range-end {
+  border-radius: 0 10px 10px 0 !important;
+}
+
+.mc-calendar .react-datepicker__day--range-start.react-datepicker__day--range-end {
+  border-radius: 10px !important;
+}
+
+.mc-calendar .react-datepicker__day--in-selecting-range {
+  background: #EEEDF9 !important;
+  color: #5865B9 !important;
+}
+
+.mc-calendar .react-datepicker__day--keyboard-selected {
+  background: #EEEDF9 !important;
+  color: #5865B9 !important;
+}
+
+.mc-calendar .react-datepicker__day--outside-month {
+  color: #ccc !important;
+}
+
+.mc-calendar .react-datepicker__day--disabled {
+  color: #ddd !important;
+  cursor: default !important;
+}
+
+.mc-calendar .react-datepicker__close-icon::after {
+  background-color: #5865B9 !important;
+  border-radius: 50% !important;
+  font-size: 12px !important;
+}
+
 /* ── Contracts list card ── */
 .mc-contracts-box {
   background-color: white;
