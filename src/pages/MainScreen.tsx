@@ -7,8 +7,6 @@ import './MainScreen.css';
 import ScanIcon from '../assets/icons/scan-icon.png';
 import MicIcon from '../assets/icons/mic.png';
 import ChatbotIcon from '../assets/icons/chatbot.png';
-import DocsNormalIcon from '../assets/icons/docs-normal.png';
-import DocsImportantIcon from '../assets/icons/docs-important.png';
 
 // Icon (react icon)
 import { FaChevronRight } from 'react-icons/fa';
@@ -19,12 +17,12 @@ import ChatbotPanel from './contract/ChatbotPanel.js';
 import { getContractList } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
-const USE_MOCK = false;
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 const MOCK_CONTRACTS: ContractListItem[] = [
   { contractId: 1, title: '원룸 전세 계약서', bookmark: true,  contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-03-15T10:00:00.000Z' },
   { contractId: 2, title: '투룸 월세 계약서', bookmark: false, contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-05-20T14:30:00.000Z' },
-  { contractId: 3, title: '오피스텔 임대차 계약서', bookmark: false, contractType: '임대차계약서', status: '분석 대기', createdAt: '2024-07-10T09:15:00.000Z' },
+  { contractId: 3, title: '오피스텔 임대차 계약서', bookmark: false, contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-07-10T09:15:00.000Z' },
 ];
 
 const formatDate = (isoString: string): string => {
@@ -36,16 +34,20 @@ interface RecentContractItemProps {
     title: string;
     date: string;
     isImportant: boolean;
+    contractType: string;
 }
 
-const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImportant }) => {
-  const iconSrc = isImportant ? DocsImportantIcon : DocsNormalIcon;
-
+const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImportant, contractType }) => {
   return (
     <div className="ms-contract-item">
-      <img src={iconSrc} className="ms-contract-icon" />
       <div className="ms-contract-details">
-        <div className="ms-contract-title">{title}</div>
+        <div className="ms-contract-title">
+          {isImportant && <span className="ms-star">★</span>}
+          {title}
+        </div>
+        <div className="ms-contract-meta">
+          <span className="ms-contract-type-badge">{contractType}</span>
+        </div>
         <div className="ms-contract-date">{date}</div>
       </div>
       <div className="ms-view-button">
@@ -57,9 +59,11 @@ const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImport
 
 interface MainScreenProps {
     onScanClick: () => void;
+    onChatbotOpen?: () => void;
+    onChatbotClose?: () => void;
 }
 
-const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
+const MainScreen: FC<MainScreenProps> = ({ onScanClick, onChatbotOpen, onChatbotClose }) => {
   const navigate = useNavigate();
 
   const [contracts, setContracts] = useState<ContractListItem[]>([]);
@@ -99,6 +103,14 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
 
   // 챗봇 패널 표시 상태
   const [showChatbot, setShowChatbot] = useState(false);
+  const showChatbotRef = useRef(false);
+  useEffect(() => { showChatbotRef.current = showChatbot; }, [showChatbot]);
+  useEffect(() => {
+    return () => {
+      if (showChatbotRef.current) onChatbotClose?.();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 앱 진입 시 마이크 권한 미리 획득
   useEffect(() => {
@@ -242,7 +254,7 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
           <div>
             <div className="ms-scan-title">내 계약서</div>
             <div className="ms-scan-title">스캔하기</div>
-            <div className="ms-scan-subtitle">AI가 즉시 분석해 드립니다.</div>
+            <div className="ms-scan-subtitle">계약서 사진 하나면 분석 끝</div>
           </div>
           <div className="ms-scan-icon-box">
             <img src={ScanIcon} />
@@ -265,7 +277,7 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
       </div>
 
       {/* 챗봇과 대화하기 */}
-      <div className="ms-chatbot-button" onClick={() => setShowChatbot(true)}>
+      <div className="ms-chatbot-button" onClick={() => { setShowChatbot(true); onChatbotOpen?.(); }}>
         <img src={ChatbotIcon} />
         <div className="ms-chatbot-button-text">
           <span className="ms-chatbot-main-text">챗봇과 대화하기</span>
@@ -293,13 +305,14 @@ const MainScreen: FC<MainScreenProps> = ({onScanClick}) => {
               title={contract.title}
               date={formatDate(contract.createdAt)}
               isImportant={contract.bookmark}
+              contractType={contract.contractType}
             />
           ))
         )}
       </div>
 
       {/* Chatbot Panel */}
-      {showChatbot && <ChatbotPanel onClose={() => setShowChatbot(false)} />}
+      {showChatbot && <ChatbotPanel onClose={() => { setShowChatbot(false); onChatbotClose?.(); }} />}
 
       {/* 저장 여부 확인 모달 */}
       {showSaveModal && (

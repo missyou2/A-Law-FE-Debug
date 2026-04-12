@@ -17,39 +17,10 @@ const styles = {
   container: {
     backgroundColor: '#F1F2F6',
     minHeight: '100vh',
-    padding: '24px 20px',
+    padding: 'calc(env(safe-area-inset-top) + 72px) 20px 24px 20px',
     margin: '0',
     display: 'flex',
     flexDirection: 'column',
-  } as const,
-
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '18px',
-    color: '#111',
-  } as const,
-  headerLeft: {
-    width: '46px',
-    height: '46px',
-    borderRadius: '14px',
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.08)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    cursor: 'pointer',
-    userSelect: 'none',
-  } as const,
-  headerTitle: {
-    fontSize: '22px',
-    fontWeight: '800',
-    letterSpacing: '-0.2px',
-  } as const,
-  headerRightSpacer: {
-    width: '46px',
-    height: '46px',
   } as const,
 
   card: {
@@ -308,21 +279,7 @@ const MyPage = () => {
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
 
-      <div style={styles.header}>
-        <div
-          style={styles.headerLeft}
-          onClick={() => navigate(-1)}
-          onMouseDown={pressStyle}
-          onMouseUp={releaseStyle}
-          onMouseLeave={releaseStyle}
-        >
-          ←
-        </div>
-        <div style={styles.headerTitle}>마이페이지</div>
-        <div style={styles.headerRightSpacer} />
-      </div>
-
-      {!isLoggedIn ? (
+{!isLoggedIn ? (
         <div style={styles.card}>
           <div style={styles.userIconWrap}>
             <img src={UserIcon} style={styles.userIcon} />

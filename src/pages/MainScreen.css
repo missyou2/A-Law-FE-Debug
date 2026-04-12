@@ -1,17 +1,29 @@
 .ms-container {
   background-color: #F1F2F6;
   min-height: 100vh;
-  padding: 36px 20px 100px 20px;
+  padding: calc(env(safe-area-inset-top) + 72px) 20px 40px 20px;
   margin: 0;
 }
 
 /* ── Greeting ── */
+@keyframes ms-greeting-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .ms-greeting {
   font-size: 22px;
   font-weight: 700;
   color: #1a1a1a;
   line-height: 1.5;
   margin-bottom: 28px;
+  animation: ms-greeting-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .ms-greeting em {
@@ -207,13 +219,6 @@
   opacity: 0.6;
 }
 
-.ms-contract-icon {
-  width: 38px;
-  height: 38px;
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
 .ms-contract-details {
   flex-grow: 1;
   min-width: 0;
@@ -222,16 +227,41 @@
 .ms-contract-title {
   font-size: 16px;
   font-weight: 700;
-  margin-bottom: 3px;
+  margin-bottom: 5px;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.ms-star {
+  color: #F5C518;
+  margin-right: 5px;
+  font-size: 15px;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.ms-contract-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ms-contract-type-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #5865B9;
+  background-color: #EEF0FB;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+
 .ms-contract-date {
-  font-size: 13px;
-  color: #aaa;
+  font-size: 12px;
+  color: #bbb;
   text-align: left;
   font-weight: 500;
 }

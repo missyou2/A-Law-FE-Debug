@@ -38,7 +38,7 @@ const ScanPage = () => {
     <div className="scan-container">
       {/* 1. 상단 문구 */}
       <h1 className="scan-title">
-        안녕하세요,<br/>어떤 방법으로<br/>계약서를 가져올까요?
+        어떤 방법으로<br/>계약서를 가져올까요?<br/>
       </h1>
 
       {/* 2. 지금 바로 촬영하기 버튼 */}

@@ -4,14 +4,19 @@ import { ko } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../App.css';
 import './MyContracts.css';
-import docsImportant from '../assets/icons/docs-important.png';
-import docsNormal from '../assets/icons/docs-normal.png';
 import checkSelected from '../assets/icons/check-selected.png';
 import checkUnselected from '../assets/icons/check-unselected.png';
 
 import { getContractList, addBookmark, removeBookmark } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
+const MOCK_CONTRACTS: ContractListItem[] = [
+  { contractId: 1, title: '원룸 전세 계약서',       bookmark: true,  contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-03-15T10:00:00.000Z' },
+  { contractId: 2, title: '투룸 월세 계약서',        bookmark: false, contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-05-20T14:30:00.000Z' },
+  { contractId: 3, title: '오피스텔 임대차 계약서',  bookmark: false, contractType: '임대차계약서', status: '분석 완료', createdAt: '2024-07-10T09:15:00.000Z' },
+];
 
 const formatDate = (isoString: string): string => {
   const d = new Date(isoString);
@@ -38,8 +43,12 @@ const MyContracts = () => {
     const fetchContracts = async () => {
       setLoading(true);
       try {
-        const data = await getContractList();
-        setContracts(data.sort((a, b) => (b.bookmark ? 1 : 0) - (a.bookmark ? 1 : 0)));
+        if (USE_MOCK) {
+          setContracts(MOCK_CONTRACTS);
+        } else {
+          const data = await getContractList();
+          setContracts(data.sort((a, b) => (b.bookmark ? 1 : 0) - (a.bookmark ? 1 : 0)));
+        }
       } catch (error) {
         console.error("데이터 로딩 실패:", error);
       } finally {
@@ -176,11 +185,11 @@ const MyContracts = () => {
           <div className="mc-date-row">
             <DatePicker
               selected={dateFrom}
-              onChange={date => setDateFrom(date)}
+              onChange={(date: Date | Date[] | null) => setDateFrom(date as Date | null)}
               selectsStart
               startDate={dateFrom}
               endDate={dateTo}
-              maxDate={dateTo ?? undefined}
+              {...(dateTo ? { maxDate: dateTo } : {})}
               dateFormat="yyyy.MM.dd"
               placeholderText="시작일"
               locale={ko}
@@ -191,11 +200,11 @@ const MyContracts = () => {
             <span className="mc-date-sep">~</span>
             <DatePicker
               selected={dateTo}
-              onChange={date => setDateTo(date)}
+              onChange={(date: Date | Date[] | null) => setDateTo(date as Date | null)}
               selectsEnd
               startDate={dateFrom}
               endDate={dateTo}
-              minDate={dateFrom ?? undefined}
+              {...(dateFrom ? { minDate: dateFrom } : {})}
               dateFormat="yyyy.MM.dd"
               placeholderText="종료일"
               locale={ko}
@@ -220,24 +229,24 @@ const MyContracts = () => {
               className="mc-contract-item"
               onClick={() => isEditing && toggleSelect(item.contractId)}
             >
-              <div className="mc-icon-wrapper">
-                {isEditing ? (
+              {isEditing && (
+                <div className="mc-icon-wrapper">
                   <img
                     src={selectedIds.includes(item.contractId) ? checkSelected : checkUnselected}
                     alt="checkbox"
                     className="mc-checkbox-png"
                   />
-                ) : (
-                  <img
-                    src={item.bookmark ? docsImportant : docsNormal}
-                    alt="contract icon"
-                    className="mc-contract-png"
-                  />
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="mc-contract-details">
-                <div className="mc-contract-title">{item.title}</div>
+                <div className="mc-contract-title">
+                  {item.bookmark && <span className="mc-star">★</span>}
+                  {item.title}
+                </div>
+                <div className="mc-contract-meta">
+                  <span className="mc-contract-type-badge">{item.contractType}</span>
+                </div>
                 <div className="mc-contract-date">{formatDate(item.createdAt)}</div>
               </div>
 
