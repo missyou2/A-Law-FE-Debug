@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./OcrOverlay.module.css";
-import { getOcrEasyExplanation } from "../../api/contractApi.js";
+import { apiClient, getOcrEasyExplanation } from "../../api/contractApi.js";
 import type { OcrEasyExplanationResponse } from "../../api/contractApi.js";
 
-const API_URL = "/api/v1/contracts/ocr";
+const OCR_PATH = "/contracts/ocr"; // relative to apiClient baseURL (https://api.a-law.site/api/v1)
 
 interface OcrWord {
   text: string;
@@ -185,10 +185,11 @@ export default function OcrOverlay() {
       const formData = new FormData();
       formData.append("file", compressed, currentFile.name.replace(/\.[^.]+$/, ".jpg"));
 
-      const res = await fetch(API_URL, { method: "POST", body: formData });
-      if (!res.ok) throw new Error("HTTP " + res.status + ": " + (await res.text()));
+      const res = await apiClient.post<OcrData>(OCR_PATH, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      const data: OcrData = await res.json();
+      const data: OcrData = res.data;
       console.log("OCR 응답:", data);
 
       setOcrData(data);

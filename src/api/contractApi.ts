@@ -32,7 +32,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/ap
 const SSE_ORIGIN = BASE_URL.replace(/\/api\/v1$/, '');
 
 // Axios 인스턴스 생성
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
