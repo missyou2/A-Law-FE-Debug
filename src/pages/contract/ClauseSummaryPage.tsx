@@ -1,3 +1,5 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import type { SummaryResultEvent } from "../../types/contract.js";
 
 interface Props {
@@ -30,9 +32,20 @@ function ClauseSummaryPage({ onSelect: _onSelect, summaryData }: Props) {
         <p style={{ fontWeight: 600, marginBottom: "12px" }}>{title}</p>
 
         {/* 요약 본문 */}
-        <p style={{ fontSize: "13px", lineHeight: "1.7", color: "#333", marginBottom: "16px" }}>
-          {summaryText}
-        </p>
+        <div style={{ fontSize: "13px", lineHeight: "1.7", color: "#333", marginBottom: "16px" }}>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              p: ({ children }) => <p style={{ margin: "0 0 8px" }}>{children}</p>,
+              strong: ({ children }) => <strong style={{ color: "#222" }}>{children}</strong>,
+              ul: ({ children }) => <ul style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ul>,
+              ol: ({ children }) => <ol style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ol>,
+              li: ({ children }) => <li style={{ marginBottom: "4px" }}>{children}</li>,
+            }}
+          >
+            {summaryText}
+          </ReactMarkdown>
+        </div>
 
         {/* 주요 용어 */}
         {keyTerms.length > 0 && (
