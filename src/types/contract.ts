@@ -22,6 +22,7 @@ export interface OcrWord {
 export interface ContractOCRResponse {
   status: 'ocr_complete' | 'ocr_failed' | 'error' | 'fail';
   task_id?: string;
+  jobId?: string;
   user_id?: number;
   contract_id?: number;
   s3_key?: string;
@@ -69,68 +70,47 @@ export interface ExportImageResponse {
 
 /**
  * 4번. 계약서 분석 SSE 이벤트 타입
- * GET /api/analysis/subscribe?s3Key={s3Key}
+ * GET /api/v1/contracts/analysis/{jobId}/stream
  *
- * 이벤트 종류:
- *   summary_complete  - 요약 분석 완료
- *   risk_complete     - 리스크 분석 완료
- *   analysis_complete - 전체 분석 완료 (구독 종료 시그널)
- *   analysis_failed   - 분석 실패
+ * 이벤트 순서:
+ *   connection        - 연결 확인
+ *   summary_result    - 요약 정보 (title, summaryText, keyTerms)
+ *   analysis_result   - 리스크 분석 (totalClauses, riskCount, cautionCount, safetyCount, clauseResults)
+ *   analysis_complete - 완료 신호 (status, jobId, processingTimeMs)
+ *   error             - 실패 시
  */
-export interface AnalysisSummaryEvent {
-  status: 'summary_complete';
-  task_id: string;
-  contract_data: {
-    contract_type: string;
-    lessor: {
-      name: string;
-      resident_id: string;
-      address: string;
-      phone: string;
-    };
-    lessee: {
-      name: string;
-      resident_id: string;
-      address: string;
-      phone: string;
-    };
-    terms: Record<string, unknown>;
-    special_terms: Array<{
-      index: number;
-      content: string;
-    }>;
-  };
-  completed_at: string;
+export interface SummaryResultEvent {
+  title: string;
+  summaryText: string;
+  keyTerms: string[];
 }
 
-export interface AnalysisRiskEvent {
-  status: 'risk_complete';
-  task_id: string;
-  risk_analysis: {
-    toxic_terms: Array<{
-      index: number;
-      content: string;
-      toxic_level: 0 | 1 | 2; // 0=안전(하), 1=주의(중), 2=경고(상)
-      toxic_category: string;
-      toxic_reason: string;
-    }>;
-    risk_score: number;
-  };
+export interface ClauseResult {
+  clauseId: number;
+  content: string;
+  riskLevel: 'risk' | 'caution' | 'safety';
+  reason: string;
+  category?: string;
 }
 
-export interface AnalysisFailedEvent {
-  status: 'summary_failed' | 'risk_failed';
-  task_id: string;
-  error_code: string;
-  message: string;
+export interface AnalysisResultEvent {
+  totalClauses: number;
+  riskCount: number;
+  cautionCount: number;
+  safetyCount: number;
+  clauseResults: ClauseResult[];
+}
+
+export interface AnalysisCompleteEvent {
+  status: string;
+  jobId: string;
+  processingTimeMs: number;
 }
 
 export interface AnalysisSSECallbacks {
-  onSummaryComplete: (data: AnalysisSummaryEvent) => void;
-  onRiskComplete: (data: AnalysisRiskEvent) => void;
-  onComplete: () => void;
-  onSummaryFailed: (data: AnalysisFailedEvent) => void;
-  onRiskFailed: (data: AnalysisFailedEvent) => void;
+  onSummaryResult: (data: SummaryResultEvent) => void;
+  onAnalysisResult: (data: AnalysisResultEvent) => void;
+  onComplete: (data: AnalysisCompleteEvent) => void;
   onError: (error: Event) => void;
 }
 

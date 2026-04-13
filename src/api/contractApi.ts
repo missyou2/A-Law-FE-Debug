@@ -28,8 +28,6 @@ export type {
 // API Base URL - 환경변수로 관리하는 것을 권장
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
-// SSE 엔드포인트용 origin (ex: https://api.a-law.site)
-const SSE_ORIGIN = BASE_URL.replace(/\/api\/v1$/, '');
 
 // Axios 인스턴스 생성
 export const apiClient = axios.create({
@@ -182,48 +180,38 @@ export const getOcrEasyExplanation = async (
 };
 
 /**
- * 4번. 계약서 분석 SSE 구독 (인증 불필요)
- * GET /api/analysis/subscribe?s3Key={s3Key}
+ * 4번. 계약서 분석 SSE 구독
+ * GET /api/v1/contracts/analysis/{jobId}/stream
  *
- * 이벤트 종류:
- *   summary_complete  - 요약 분석 완료
- *   risk_complete     - 리스크 분석 완료
- *   analysis_complete - 전체 분석 완료 → 자동으로 구독 종료
- *   analysis_failed   - 분석 실패 → 자동으로 구독 종료
+ * 이벤트 순서:
+ *   connection        - 연결 확인
+ *   summary_result    - 요약 정보
+ *   analysis_result   - 리스크 분석
+ *   analysis_complete - 완료 신호 → 자동으로 구독 종료
+ *   error             - 실패 시 → 자동으로 구독 종료
  *
  * @returns EventSource — 호출측에서 .close()로 구독을 직접 종료할 수 있음
  */
 export const subscribeAnalysisSSE = (
-  s3Key: string,
+  jobId: string,
   callbacks: AnalysisSSECallbacks,
 ): EventSource => {
-  const url = `${SSE_ORIGIN}/api/analysis/subscribe?s3Key=${encodeURIComponent(s3Key)}`;
-  const eventSource = new EventSource(url);
+  const url = `${BASE_URL}/contracts/analysis/${encodeURIComponent(jobId)}/stream`;
+  const eventSource = new EventSource(url, { withCredentials: true });
 
-  eventSource.addEventListener('summary_complete', (e) => {
+  eventSource.addEventListener('summary_result', (e) => {
     const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onSummaryComplete(data);
+    callbacks.onSummaryResult(data);
   });
 
-  eventSource.addEventListener('risk_complete', (e) => {
+  eventSource.addEventListener('analysis_result', (e) => {
     const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onRiskComplete(data);
+    callbacks.onAnalysisResult(data);
   });
 
-  eventSource.addEventListener('analysis_complete', () => {
-    callbacks.onComplete();
-    eventSource.close();
-  });
-
-  eventSource.addEventListener('summary_failed', (e) => {
+  eventSource.addEventListener('analysis_complete', (e) => {
     const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onSummaryFailed(data);
-    eventSource.close();
-  });
-
-  eventSource.addEventListener('risk_failed', (e) => {
-    const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onRiskFailed(data);
+    callbacks.onComplete(data);
     eventSource.close();
   });
 

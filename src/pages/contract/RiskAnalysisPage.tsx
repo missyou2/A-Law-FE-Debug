@@ -1,59 +1,58 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { AnalysisRiskEvent } from "../../types/contract.js";
+import type { AnalysisResultEvent } from "../../types/contract.js";
 
-export const MOCK_RISK_DATA: AnalysisRiskEvent = {
-  status: "risk_complete",
-  task_id: "mock-001",
-  risk_analysis: {
-    risk_score: 75,
-    toxic_terms: [
-      {
-        index: 1,
-        content: "임차인은 퇴실시 청소비 20만원 있음.",
-        toxic_level: 2,
-        toxic_category: "임차인에게 불리한 조항",
-        toxic_reason: "퇴실 시 청소비를 임차인에게 일방적으로 부담시키는 조항은 공정거래위원회의 불공정약관 기준에 해당할 수 있습니다.",
-      },
-      {
-        index: 2,
-        content: "보증금은 퇴실 후 30일 이내 반환한다.",
-        toxic_level: 1,
-        toxic_category: "보증금 반환 지연 위험",
-        toxic_reason: "법적으로는 즉시 반환이 원칙이나, 30일 유예는 임차인에게 불리할 수 있습니다.",
-      },
-      {
-        index: 3,
-        content: "애완동물사육금지 및 건물내 금연",
-        toxic_level: 0,
-        toxic_category: "일반 관리 규정",
-        toxic_reason: "일반적인 임대차 계약에 포함되는 표준 조항입니다.",
-      },
-    ],
-  },
+export const MOCK_RISK_DATA: AnalysisResultEvent = {
+  totalClauses: 3,
+  riskCount: 1,
+  cautionCount: 1,
+  safetyCount: 1,
+  clauseResults: [
+    {
+      clauseId: 1,
+      content: "임차인은 퇴실시 청소비 20만원 있음.",
+      riskLevel: "risk",
+      category: "임차인에게 불리한 조항",
+      reason: "퇴실 시 청소비를 임차인에게 일방적으로 부담시키는 조항은 공정거래위원회의 불공정약관 기준에 해당할 수 있습니다.",
+    },
+    {
+      clauseId: 2,
+      content: "보증금은 퇴실 후 30일 이내 반환한다.",
+      riskLevel: "caution",
+      category: "보증금 반환 지연 위험",
+      reason: "법적으로는 즉시 반환이 원칙이나, 30일 유예는 임차인에게 불리할 수 있습니다.",
+    },
+    {
+      clauseId: 3,
+      content: "애완동물사육금지 및 건물내 금연",
+      riskLevel: "safety",
+      category: "일반 관리 규정",
+      reason: "일반적인 임대차 계약에 포함되는 표준 조항입니다.",
+    },
+  ],
 };
 
 interface Props {
-  riskData: AnalysisRiskEvent | null;
+  riskData: AnalysisResultEvent | null;
 }
 
-/** toxic_level → 등급/색상 매핑 (0=안전, 1=주의, 2=위험) */
-const getLevelStyle = (toxicLevel: 0 | 1 | 2) => {
-  switch (toxicLevel) {
-    case 2:
+/** riskLevel → 등급/색상 매핑 */
+const getLevelStyle = (riskLevel: 'risk' | 'caution' | 'safety') => {
+  switch (riskLevel) {
+    case 'risk':
       return { label: "위험", color: "#e74c3c", bg: "#fdecea", border: "#f0d0d0" };
-    case 1:
+    case 'caution':
       return { label: "주의", color: "#f39c12", bg: "#fef9e7", border: "#f5e6c8" };
-    case 0:
+    case 'safety':
       return { label: "안전", color: "#27ae60", bg: "#eafaf1", border: "#c8e6d0" };
   }
 };
 
-/** risk_score → 전체 등급 매핑 */
-const getOverallStyle = (score: number) => {
-  if (score >= 70) return { label: "위험", color: "#e74c3c", bg: "#fdecea", border: "#f0d0d0", gauge: "#e74c3c" };
-  if (score >= 40) return { label: "주의", color: "#f39c12", bg: "#fef9e7", border: "#f5e6c8", gauge: "#f39c12" };
-  return { label: "안전", color: "#27ae60", bg: "#eafaf1", border: "#c8e6d0", gauge: "#27ae60" };
+/** riskCount 기준 전체 등급 매핑 */
+const getOverallStyle = (riskCount: number, cautionCount: number) => {
+  if (riskCount > 0) return { label: "위험", color: "#e74c3c", bg: "#fdecea", border: "#f0d0d0" };
+  if (cautionCount > 0) return { label: "주의", color: "#f39c12", bg: "#fef9e7", border: "#f5e6c8" };
+  return { label: "안전", color: "#27ae60", bg: "#eafaf1", border: "#c8e6d0" };
 };
 
 /** 스켈레톤 UI */
@@ -116,17 +115,19 @@ function RiskAnalysisPage({ riskData }: Props) {
     );
   }
 
-  const { risk_analysis } = riskData;
-  const overall = getOverallStyle(risk_analysis.risk_score);
-  const dangerCount = risk_analysis.toxic_terms.filter(t => t.toxic_level > 0).length;
-  const sortedTerms = [...risk_analysis.toxic_terms].sort((a, b) => b.toxic_level - a.toxic_level);
+  const { riskCount, cautionCount, safetyCount, clauseResults } = riskData;
+  const overall = getOverallStyle(riskCount, cautionCount);
+  const sortedClauses = [...clauseResults].sort((a, b) => {
+    const order = { risk: 0, caution: 1, safety: 2 };
+    return order[a.riskLevel] - order[b.riskLevel];
+  });
 
   return (
     <div className="page-container">
       <h2 className="page-title">위험 요소 분석</h2>
       <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
 
-      {/* 위험도 점수 */}
+      {/* 전체 등급 요약 */}
       <div style={{
         padding: "14px 18px",
         borderRadius: "12px",
@@ -135,51 +136,32 @@ function RiskAnalysisPage({ riskData }: Props) {
         marginBottom: "16px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "10px" }}>
-          <span style={{ fontSize: "28px", fontWeight: 700, color: overall.color }}>
-            {risk_analysis.risk_score}
+          <span style={{
+            display: "inline-block",
+            padding: "2px 10px",
+            borderRadius: "6px",
+            fontSize: "13px",
+            fontWeight: 600,
+            color: "#fff",
+            background: overall.color,
+          }}>
+            {overall.label}
           </span>
-          <div>
-            <span style={{
-              display: "inline-block",
-              padding: "2px 10px",
-              borderRadius: "6px",
-              fontSize: "13px",
-              fontWeight: 600,
-              color: "#fff",
-              background: overall.color,
-            }}>
-              {overall.label}
-            </span>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#555" }}>
-              총 {dangerCount}개의 위험 조항이 발견되었습니다.
-            </p>
-          </div>
-        </div>
-
-        {/* 게이지 바 */}
-        <div style={{ height: "6px", borderRadius: "99px", background: "#00000015" }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${risk_analysis.risk_score}%` }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            style={{
-              height: "100%",
-              borderRadius: "99px",
-              background: overall.gauge,
-            }}
-          />
+          <p style={{ margin: 0, fontSize: "13px", color: "#555" }}>
+            위험 {riskCount}개 · 주의 {cautionCount}개 · 안전 {safetyCount}개
+          </p>
         </div>
       </div>
 
       {/* 조항 목록 */}
       <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-        {sortedTerms.map((term, idx) => {
-          const style = getLevelStyle(term.toxic_level);
+        {sortedClauses.map((clause, idx) => {
+          const style = getLevelStyle(clause.riskLevel);
           const isExpanded = expandedSet.has(idx);
 
           return (
             <div
-              key={idx}
+              key={clause.clauseId}
               onClick={() => handleToggle(idx)}
               style={{
                 padding: "16px",
@@ -191,7 +173,7 @@ function RiskAnalysisPage({ riskData }: Props) {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
                 <span style={{ fontSize: "14px", fontWeight: 600, flex: 1, lineHeight: "1.5" }}>
-                  {term.content}
+                  {clause.content}
                 </span>
                 <span style={{
                   padding: "3px 10px",
@@ -207,9 +189,9 @@ function RiskAnalysisPage({ riskData }: Props) {
                 </span>
               </div>
 
-              {term.toxic_category && (
+              {clause.category && (
                 <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#888" }}>
-                  {term.toxic_category}
+                  {clause.category}
                 </p>
               )}
 
@@ -224,7 +206,7 @@ function RiskAnalysisPage({ riskData }: Props) {
               </div>
 
               <AnimatePresence initial={false}>
-                {isExpanded && term.toxic_reason && (
+                {isExpanded && clause.reason && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
@@ -243,7 +225,7 @@ function RiskAnalysisPage({ riskData }: Props) {
                       color: "#333",
                     }}>
                       <strong style={{ fontSize: "13px", color: "#555" }}>분석 사유</strong>
-                      <p style={{ margin: "6px 0 0" }}>{term.toxic_reason}</p>
+                      <p style={{ margin: "6px 0 0" }}>{clause.reason}</p>
                     </div>
                   </motion.div>
                 )}

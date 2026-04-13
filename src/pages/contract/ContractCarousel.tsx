@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import type { AnalysisSummaryEvent, AnalysisRiskEvent } from "../../types/contract.js";
+import type { SummaryResultEvent, AnalysisResultEvent } from "../../types/contract.js";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
@@ -24,8 +24,8 @@ function ContractCarousel() {
     contractId?: number;
     capturedImageData?: string;
     ocrText?: string;
-    summaryData?: AnalysisSummaryEvent;
-    riskData?: AnalysisRiskEvent;
+    summaryData?: SummaryResultEvent;
+    riskData?: AnalysisResultEvent;
   } | undefined;
   const contractId = locationState?.contractId != null ? String(locationState.contractId) : undefined;
   const summaryData = locationState?.summaryData ?? null;

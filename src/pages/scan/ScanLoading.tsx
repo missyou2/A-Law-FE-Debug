@@ -8,7 +8,7 @@ import { FaArrowLeft } from 'react-icons/fa';
 import LoadingIcon from '../../assets/icons/loading.png'
 import LoadingTips from './LoadingTips.js'
 import { uploadContractImage, subscribeAnalysisSSE } from '../../api/contractApi.js';
-import type { AnalysisSummaryEvent, AnalysisRiskEvent } from '../../types/contract.js';
+import type { SummaryResultEvent, AnalysisResultEvent } from '../../types/contract.js';
 
 const getRandomTip = () => LoadingTips[Math.floor(Math.random() * LoadingTips.length)];
 
@@ -25,8 +25,8 @@ const ScanLoading = () => {
 
     let eventSource: EventSource | null = null;
 
-    let summaryData: AnalysisSummaryEvent | null = null;
-    let riskData: AnalysisRiskEvent | null = null;
+    let summaryData: SummaryResultEvent | null = null;
+    let riskData: AnalysisResultEvent | null = null;
 
     const goToView = (ocrResult: Awaited<ReturnType<typeof uploadContractImage>>) => {
       navigate('/contract/view', {
@@ -54,19 +54,13 @@ const ScanLoading = () => {
           return;
         }
 
-        // s3_key가 있으면 SSE 구독(4번)으로 분석 완료 대기, 없으면 바로 이동
-        if (ocrResult.s3_key) {
-          eventSource = subscribeAnalysisSSE(ocrResult.s3_key, {
-            onSummaryComplete: (data) => { summaryData = data; },
-            onRiskComplete: (data) => { riskData = data; },
+        // jobId가 있으면 SSE 구독(4번)으로 분석 완료 대기, 없으면 바로 이동
+        if (ocrResult.jobId) {
+          eventSource = subscribeAnalysisSSE(ocrResult.jobId, {
+            onSummaryResult: (data) => { summaryData = data; },
+            onAnalysisResult: (data) => { riskData = data; },
             onComplete: () => {
               if (!cancelled) goToView(ocrResult);
-            },
-            onSummaryFailed: () => {
-              if (!cancelled) goToView(ocrResult); // 요약 실패 시 OCR 결과만으로 이동
-            },
-            onRiskFailed: () => {
-              if (!cancelled) goToView(ocrResult); // 위험 분석 실패 시 OCR 결과만으로 이동
             },
             onError: () => {
               if (!cancelled) goToView(ocrResult); // SSE 연결 실패 시 fallback
