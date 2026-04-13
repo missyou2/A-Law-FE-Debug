@@ -151,6 +151,28 @@ export default function OcrOverlay() {
     setTimeout(() => setShowSheet(false), 250);
   }, []);
 
+  const compressImage = (file: File): Promise<Blob> =>
+    new Promise((resolve, reject) => {
+      const MAX_PX = 2000; // longest edge cap
+      const QUALITY = 0.85;
+      const img = new Image();
+      img.onload = () => {
+        const { naturalWidth: w, naturalHeight: h } = img;
+        const scale = Math.min(1, MAX_PX / Math.max(w, h));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
+        canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error("canvas toBlob failed"))),
+          "image/jpeg",
+          QUALITY
+        );
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+
   const handleOcr = useCallback(async () => {
     if (!currentFile) {
       setStatus({ message: "먼저 이미지를 선택하세요", type: "err" });
@@ -159,8 +181,9 @@ export default function OcrOverlay() {
     setStatus({ message: "OCR 처리 중...", type: "loading" });
 
     try {
+      const compressed = await compressImage(currentFile);
       const formData = new FormData();
-      formData.append("file", currentFile);
+      formData.append("file", compressed, currentFile.name.replace(/\.[^.]+$/, ".jpg"));
 
       const res = await fetch(API_URL, { method: "POST", body: formData });
       if (!res.ok) throw new Error("HTTP " + res.status + ": " + (await res.text()));
