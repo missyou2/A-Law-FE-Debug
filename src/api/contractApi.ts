@@ -78,6 +78,25 @@ const dataURLtoBlob = (dataURL: string): Blob => {
   return new Blob([array], { type: mime });
 };
 
+/** data URL → 최대 2000px / JPEG 0.85 압축 data URL */
+const compressDataURL = (dataURL: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const MAX_PX = 2000;
+    const QUALITY = 0.85;
+    const img = new Image();
+    img.onload = () => {
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, MAX_PX / Math.max(w, h));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(w * scale);
+      canvas.height = Math.round(h * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', QUALITY));
+    };
+    img.onerror = reject;
+    img.src = dataURL;
+  });
+
 // ============================================
 // API 함수들
 // ============================================
@@ -115,9 +134,10 @@ export const removeBookmark = async (contractId: number): Promise<void> => {
 export const uploadContractImage = async (
   capturedImageData: string,
 ): Promise<ContractOCRResponse> => {
-  const blob = dataURLtoBlob(capturedImageData);
+  const compressed = await compressDataURL(capturedImageData);
+  const blob = dataURLtoBlob(compressed);
   const formData = new FormData();
-  formData.append('file', blob, 'contract_capture.png');
+  formData.append('file', blob, 'contract_capture.jpg');
 
   const response = await apiClient.post<ContractOCRResponse>('/contracts', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
