@@ -28,7 +28,7 @@ const ScanPage = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         const dataUrl = reader.result as string;
-        navigate('/contract/view', { state: { capturedImageData: dataUrl } });
+        navigate('/loading', { state: { capturedImageData: dataUrl } });
       };
       reader.readAsDataURL(file);
     }
