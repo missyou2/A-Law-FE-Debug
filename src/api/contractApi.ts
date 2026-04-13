@@ -246,6 +246,10 @@ export const subscribeAnalysisSSE = (
   const url = `${BASE_URL}/contracts/analysis/${encodeURIComponent(jobId)}/stream`;
   const eventSource = new EventSource(url, { withCredentials: true });
 
+  eventSource.addEventListener('connection', () => {
+    console.log('📡 SSE 연결 확인 (connection event)');
+  });
+
   eventSource.addEventListener('summary_result', (e) => {
     const data = JSON.parse((e as MessageEvent).data);
     callbacks.onSummaryResult(data);

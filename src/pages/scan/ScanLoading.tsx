@@ -7,8 +7,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import LoadingIcon from '../../assets/icons/loading.png'
 import LoadingTips from './LoadingTips.js'
-import { uploadContractImage, subscribeAnalysisSSE } from '../../api/contractApi.js';
-import type { SummaryResultEvent, AnalysisResultEvent } from '../../types/contract.js';
+import { uploadContractImage } from '../../api/contractApi.js';
 
 const getRandomTip = () => LoadingTips[Math.floor(Math.random() * LoadingTips.length)];
 
@@ -23,26 +22,6 @@ const ScanLoading = () => {
 
     let cancelled = false;
 
-    let eventSource: EventSource | null = null;
-
-    let summaryData: SummaryResultEvent | null = null;
-    let riskData: AnalysisResultEvent | null = null;
-
-    const goToView = (ocrResult: Awaited<ReturnType<typeof uploadContractImage>>) => {
-      navigate('/contract/view', {
-        state: {
-          capturedImageData,
-          taskId: ocrResult.task_id,
-          contractId: ocrResult.contract_id,
-          ocrText: ocrResult.ocr_data?.full_text ?? undefined,
-          ocrWords: ocrResult.ocr_data?.words ?? [],
-          summaryData,
-          riskData,
-        },
-        replace: true,
-      });
-    };
-
     const processOCR = async () => {
       try {
         const ocrResult = await uploadContractImage(capturedImageData);
@@ -55,21 +34,17 @@ const ScanLoading = () => {
           return;
         }
 
-        // jobId가 있으면 SSE 구독(4번)으로 분석 완료 대기, 없으면 바로 이동
-        if (ocrResult.jobId) {
-          eventSource = subscribeAnalysisSSE(ocrResult.jobId, {
-            onSummaryResult: (data) => { summaryData = data; },
-            onAnalysisResult: (data) => { riskData = data; },
-            onComplete: () => {
-              if (!cancelled) goToView(ocrResult);
-            },
-            onError: () => {
-              if (!cancelled) goToView(ocrResult); // SSE 연결 실패 시 fallback
-            },
-          });
-        } else {
-          goToView(ocrResult);
-        }
+        // OCR 완료 즉시 계약서 뷰로 이동 — SSE(요약/위험 분석)는 ContractCarousel에서 구독
+        navigate('/contract/view', {
+          state: {
+            capturedImageData,
+            contractId: ocrResult.contract_id,
+            ocrText: ocrResult.ocr_data?.full_text,
+            ocrWords: ocrResult.ocr_data?.words ?? [],
+            jobId: ocrResult.jobId,
+          },
+          replace: true,
+        });
       } catch (error: unknown) {
         console.error('OCR 업로드 실패:', error);
         if (!cancelled) {
@@ -94,13 +69,11 @@ const ScanLoading = () => {
 
     return () => {
       cancelled = true;
-      eventSource?.close();
     };
   }, [navigate, capturedImageData]);
 
   return (
     <div className="scan-container">
-      {/* 1. 상단 문구 */}
       <h1 className="scan-title">
         계약서를<br/>읽고 있습니다.
       </h1>
@@ -112,7 +85,6 @@ const ScanLoading = () => {
         </p>
       </div>
 
-      {/* 이전으로 돌아가기 링크 */}
       <div
         className="back-link"
         onClick={() => navigate('/scan')}

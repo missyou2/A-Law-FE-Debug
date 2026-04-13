@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import type { SummaryResultEvent, AnalysisResultEvent } from "../../types/contract.js";
+import { subscribeAnalysisSSE } from "../../api/contractApi.js";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
 import ClauseSummaryPage from "./ClauseSummaryPage.js";
-import RiskAnalysisPage, { MOCK_RISK_DATA } from "./RiskAnalysisPage.js";
+import RiskAnalysisPage from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
 
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
@@ -24,12 +25,34 @@ function ContractCarousel() {
     contractId?: number;
     capturedImageData?: string;
     ocrText?: string;
-    summaryData?: SummaryResultEvent;
-    riskData?: AnalysisResultEvent;
+    jobId?: string;
   } | undefined;
   const contractId = locationState?.contractId != null ? String(locationState.contractId) : undefined;
-  const summaryData = locationState?.summaryData ?? null;
-  const riskData = locationState?.riskData ?? null;
+
+  const [summaryData, setSummaryData] = useState<SummaryResultEvent | null>(null);
+  const [riskData, setRiskData] = useState<AnalysisResultEvent | null>(null);
+
+  // SSE 구독 — OCR 완료 직후 페이지 진입 시 요약/위험 분석을 백그라운드로 수신
+  useEffect(() => {
+    const jobId = locationState?.jobId;
+    if (!jobId) return;
+
+    console.log('📡 SSE 구독 시작, jobId:', jobId);
+    const eventSource = subscribeAnalysisSSE(jobId, {
+      onSummaryResult: (data) => {
+        console.log('📋 SSE summary_result 수신');
+        setSummaryData(data);
+      },
+      onAnalysisResult: (data) => {
+        console.log('🔍 SSE analysis_result 수신');
+        setRiskData(data);
+      },
+      onComplete: () => console.log('✅ SSE analysis_complete'),
+      onError: (err) => console.warn('❌ SSE 오류', err),
+    });
+
+    return () => eventSource.close();
+  }, [locationState?.jobId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
@@ -462,7 +485,7 @@ function ContractCarousel() {
 
           <div className="carousel-page">
             <div style={pageStyle(2)}>
-              <RiskAnalysisPage riskData={riskData ?? MOCK_RISK_DATA} />
+              <RiskAnalysisPage riskData={riskData} />
             </div>
           </div>
         </div>
