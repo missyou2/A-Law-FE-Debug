@@ -16,6 +16,15 @@ interface Props {
 
 const PAGE_PADDING = 18; // matches .page-container padding
 
+/** 백엔드 OCR 텍스트는 "| HTML content |\n| --- |\n| text |" 형식의 마크다운 파이프 테이블.
+ *  파이프 래퍼와 구분선을 제거하여 내부 HTML만 추출한다. */
+const stripMarkdownPipes = (text: string): string =>
+  text
+    .split('\n')
+    .filter(line => !/^\|\s*[-:]+\s*\|/.test(line))   // "| --- |" 구분선 제거
+    .map(line => line.replace(/^\|\s*/, '').replace(/\s*\|$/, ''))  // 앞뒤 파이프 제거
+    .join('\n');
+
 const styles = {
     imageContainer: {
         position: 'relative' as const,
@@ -174,17 +183,10 @@ function ContractOriginalPage({ onSelect }: Props) {
 
           <div className="doc-box">
             {ocrText ? (
-              ocrText
-                .split("\n\n")
-                .map((paragraph: string, i: number) => (
-                  <p
-                    key={i}
-                    onClick={() => onSelect(paragraph)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    {paragraph}
-                  </p>
-                ))
+              <div
+                dangerouslySetInnerHTML={{ __html: stripMarkdownPipes(ocrText) }}
+                style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
+              />
             ) : (
               <p style={{ color: "#999" }}>OCR 결과가 없습니다.</p>
             )}
