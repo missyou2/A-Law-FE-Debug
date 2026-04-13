@@ -141,7 +141,7 @@ export const uploadContractImage = async (
   formData.append('file', blob, 'contract_capture.jpg');
 
   // 실제 응답 구조: { code, success, data: { contract_id, full_text, job_id, words, ... } }
-  const response = await apiClient.post<{
+  type OcrApiResponse = {
     success: boolean;
     data: {
       contract_id?: number;
@@ -150,11 +150,17 @@ export const uploadContractImage = async (
       words?: OcrWord[];
       image_url?: string;
     } | null;
-  }>('/contracts', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+  };
+
+  const response = await apiClient.post<OcrApiResponse>('/contracts/ocr', formData, {
+    // FormData requires no Content-Type override — browser sets multipart boundary automatically
+    transformRequest: (data: FormData, headers: Record<string, string>) => {
+      delete headers['Content-Type'];
+      return data;
+    },
   });
 
-  const raw = response.data;
+  const raw: OcrApiResponse = response.data;
   const inner = raw.data;
 
   return {
