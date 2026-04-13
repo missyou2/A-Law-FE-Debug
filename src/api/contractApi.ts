@@ -10,6 +10,7 @@ import type {
   OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
+  OcrWord,
 } from '../types/contract.js';
 
 // Re-export types for external use
@@ -139,11 +140,31 @@ export const uploadContractImage = async (
   const formData = new FormData();
   formData.append('file', blob, 'contract_capture.jpg');
 
-  const response = await apiClient.post<ContractOCRResponse>('/contracts', formData, {
+  // 실제 응답 구조: { code, success, data: { contract_id, full_text, job_id, words, ... } }
+  const response = await apiClient.post<{
+    success: boolean;
+    data: {
+      contract_id?: number;
+      full_text?: string;
+      job_id?: string;
+      words?: OcrWord[];
+      image_url?: string;
+    } | null;
+  }>('/contracts', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 
-  return response.data;
+  const raw = response.data;
+  const inner = raw.data;
+
+  return {
+    status: raw.success ? 'ocr_complete' : 'ocr_failed',
+    ...(inner?.contract_id !== undefined && { contract_id: inner.contract_id }),
+    ...(inner?.job_id && { jobId: inner.job_id }),
+    ocr_data: inner?.full_text
+      ? { full_text: inner.full_text, words: inner.words ?? [] }
+      : null,
+  };
 };
 
 /**

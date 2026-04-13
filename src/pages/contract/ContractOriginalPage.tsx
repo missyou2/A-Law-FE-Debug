@@ -40,7 +40,7 @@ function ContractOriginalPage({ onSelect }: Props) {
   const location = useLocation();
   const state = location.state as LocationState | undefined;
   const capturedImageData = state?.capturedImageData || null;
-  const ocrText = state?.ocrText || null;
+  const ocrText = state?.ocrText?.trim() || null;
   const ocrWords = state?.ocrWords ?? [];
 
   const handleImageLoad = useCallback(() => {

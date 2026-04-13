@@ -34,7 +34,7 @@ const ScanLoading = () => {
           capturedImageData,
           taskId: ocrResult.task_id,
           contractId: ocrResult.contract_id,
-          ocrText: ocrResult.ocr_data?.full_text ?? '',
+          ocrText: ocrResult.ocr_data?.full_text ?? undefined,
           ocrWords: ocrResult.ocr_data?.words ?? [],
           summaryData,
           riskData,
@@ -46,6 +46,7 @@ const ScanLoading = () => {
     const processOCR = async () => {
       try {
         const ocrResult = await uploadContractImage(capturedImageData);
+        console.log('📄 OCR 응답:', ocrResult);
 
         if (cancelled) return;
 
