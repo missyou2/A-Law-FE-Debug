@@ -26,13 +26,13 @@ export type {
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 // SSE 엔드포인트용 origin (ex: https://api.a-law.site)
 const SSE_ORIGIN = BASE_URL.replace(/\/api\/v1$/, '');
 
 // Axios 인스턴스 생성
-const apiClient = axios.create({
+export const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json',
