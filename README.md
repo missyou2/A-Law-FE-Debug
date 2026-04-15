@@ -23,39 +23,6 @@
 
 ---
 
-## Architecture
-
-```
-┌──────────────────────────────────────────────────────┐
-│                     Client                           │
-│            React 19 + TypeScript + Vite              │
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │  Contract   │  │   Voice     │  │   Chatbot   │  │
-│  │  Scan & OCR │  │  Recording  │  │    (SSE)    │  │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  │
-└─────────┼────────────────┼────────────────┼─────────┘
-          │                │                │
-          ▼                ▼                ▼
-┌─────────────────────────────────────────────────────┐
-│                   Backend API                        │
-│              Spring Boot (api.a-law.site)            │
-│                                                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │
-│  │  OCR / AI   │  │    Voice    │  │   Chat AI   │  │
-│  │  Analysis   │  │   Storage   │  │   (Stream)  │  │
-│  └──────┬──────┘  └──────┬──────┘  └─────────────┘  │
-└─────────┼────────────────┼────────────────────────── ┘
-          │                │
-          ▼                ▼
-┌──────────────┐   ┌───────────────┐   ┌─────────────┐
-│   AI Model   │   │  File Storage │   │  Kakao OAuth│
-│  (OCR + LLM) │   │     (S3)      │   │    (Auth)   │
-└──────────────┘   └───────────────┘   └─────────────┘
-```
-
----
-
 ## Features
 
 - **Contract Scan & OCR** — Capture with camera or upload from album
@@ -65,6 +32,23 @@
 - **Voice Recording** — Record conversations and link them to specific contracts
 - **Contract Management** — Browse, filter, sort, and bookmark saved contracts
 - **Kakao OAuth2 Login** — Social login with persistent cookie-based session
+
+---
+
+## Architecture
+
+```
+  React + Vite (Frontend)
+         │
+         ▼
+  Spring Boot API (Backend)
+    ├── OCR & AI Analysis
+    ├── Voice Storage (S3)
+    └── Chatbot (SSE)
+         │
+         ▼
+  Kakao OAuth ── AI Model
+```
 
 ---
 
