@@ -35,6 +35,24 @@
 
 ---
 
+## Screenshots
+
+<div align="center">
+
+| Home | Contract Analysis | Risk Analysis |
+|------|------------------|---------------|
+| ![Home](docs/screenshots/home.png) | ![Analysis](docs/screenshots/analysis.png) | ![Risk](docs/screenshots/risk.png) |
+
+| Summary | Chatbot | My Contracts |
+|---------|---------|--------------|
+| ![Summary](docs/screenshots/summary.png) | ![Chatbot](docs/screenshots/chatbot.png) | ![Contracts](docs/screenshots/contracts.png) |
+
+</div>
+
+> 📁 Place screenshot images in `docs/screenshots/`
+
+---
+
 ## Getting Started
 
 ### Requirements
