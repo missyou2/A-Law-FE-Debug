@@ -38,16 +38,24 @@
 ## Architecture
 
 ```
-  React + Vite (Frontend)
-         │
-         ▼
-  Spring Boot API (Backend)
-    ├── OCR & AI Analysis
-    ├── Voice Storage (S3)
-    └── Chatbot (SSE)
-         │
-         ▼
-  Kakao OAuth ── AI Model
+┌─────────────────────────────────────┐
+│         Frontend (React + Vite)     │
+│  Scan │ Analysis │ Chatbot │ Voice  │
+└───────────────────┬─────────────────┘
+                    │  REST / SSE
+                    ▼
+┌─────────────────────────────────────┐
+│       Backend (Spring Boot)         │
+├─────────────┬───────────┬───────────┤
+│  OCR & AI   │   Voice   │  Chatbot  │
+│  Analysis   │  Storage  │  Stream   │
+└──────┬──────┴─────┬─────┴───────────┘
+       │            │
+       ▼            ▼
+┌───────────┐  ┌──────────┐  ┌──────────────┐
+│ AI Model  │  │    S3    │  │ Kakao OAuth2 │
+│ (OCR+LLM) │  │ Storage  │  │    (Auth)    │
+└───────────┘  └──────────┘  └──────────────┘
 ```
 
 ---
