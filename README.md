@@ -35,6 +35,35 @@
 
 ---
 
+## Dependencies
+
+### Runtime
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| react | 19.2.0 | UI framework |
+| react-dom | 19.2.0 | DOM rendering |
+| react-router-dom | 7.10.1 | Client-side routing |
+| axios | 1.13.5 | HTTP client |
+| framer-motion | 12.26.2 | Page transition animations |
+| react-icons | 5.5.0 | Icon library |
+| react-markdown | 10.1.0 | Markdown rendering |
+| remark-gfm | 4.0.1 | GitHub Flavored Markdown support |
+| react-datepicker | 9.1.0 | Date picker for contract filtering |
+| js-cookie | 3.0.5 | Cookie-based auth token management |
+| @stomp/stompjs | 7.3.0 | WebSocket STOMP client |
+| sockjs-client | 1.6.1 | WebSocket fallback |
+
+### Dev
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| typescript | 5.9.3 | Type safety |
+| vite | 7.2.4 | Build tool |
+| eslint | 9.39.1 | Linting |
+
+---
+
 ## Screenshots
 
 > 📖 See all screenshots in the [Demo Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Demo)
@@ -129,3 +158,9 @@ Full development documentation is available in the [GitHub Wiki](https://github.
 | `feat/*` | Feature development |
 | `fix/*` | Bug fixes |
 | `chore/*` | Config, docs, and maintenance |
+
+---
+
+## License
+
+Distributed under the [MIT License](LICENSE).
