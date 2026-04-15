@@ -1,6 +1,21 @@
+<div align="center">
+
+<img src="https://raw.githubusercontent.com/A-Law-Pproject/A-Law-Frontend/main/src/assets/icons/chatbot.png" width="120" alt="A-Law Logo" />
+
 # A-Law Frontend
 
 > AI-powered lease contract analysis — mobile web application
+
+[![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react&logoColor=white&labelColor=20232A)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.3-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-7.2.4-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![React Router](https://img.shields.io/badge/React_Router-7.10.1-CA4245?logo=reactrouter&logoColor=white)](https://reactrouter.com)
+[![Axios](https://img.shields.io/badge/Axios-1.13.5-5A29E4?logo=axios&logoColor=white)](https://axios-http.com)
+[![Framer Motion](https://img.shields.io/badge/Framer_Motion-12.26.2-0055FF?logo=framer&logoColor=white)](https://www.framer.com/motion)
+
+</div>
+
+---
 
 **A-Law** helps everyday users understand complex lease contracts by scanning and automatically analyzing them with AI. Users can photograph a contract, receive a plain-language summary and risk analysis in real time, ask follow-up questions via chatbot, and save voice recordings linked to their contracts.
 
@@ -15,20 +30,6 @@
 - **Voice Recording** — Record conversations and link them to specific contracts
 - **Contract Management** — Browse, filter, sort, and bookmark saved contracts
 - **Kakao OAuth2 Login** — Social login with persistent cookie-based session
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| Framework | React 19 + TypeScript |
-| Build Tool | Vite |
-| Routing | React Router DOM 7 |
-| State Management | Context API |
-| HTTP Client | Axios |
-| Animation | Framer Motion |
-| Authentication | Kakao OAuth2 |
 
 ---
 
