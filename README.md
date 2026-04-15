@@ -37,19 +37,11 @@
 
 ## Screenshots
 
-<div align="center">
+| Home | Contract Analysis | Chatbot |
+|------|------------------|---------|
+| ![Home](docs/screenshots/home.png) | ![Analysis](docs/screenshots/analysis.png) | ![Chatbot](docs/screenshots/chatbot.png) |
 
-| Home | Contract Analysis | Risk Analysis |
-|------|------------------|---------------|
-| ![Home](docs/screenshots/home.png) | ![Analysis](docs/screenshots/analysis.png) | ![Risk](docs/screenshots/risk.png) |
-
-| Summary | Chatbot | My Contracts |
-|---------|---------|--------------|
-| ![Summary](docs/screenshots/summary.png) | ![Chatbot](docs/screenshots/chatbot.png) | ![Contracts](docs/screenshots/contracts.png) |
-
-</div>
-
-> 📁 Place screenshot images in `docs/screenshots/`
+> 📖 Full screenshots available in the [Demo Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Demo)
 
 ---
 
