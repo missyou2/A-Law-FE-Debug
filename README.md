@@ -62,6 +62,15 @@
 | vite | 7.2.4 | Build tool |
 | eslint | 9.39.1 | Linting |
 
+### Plugins
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| @vitejs/plugin-react | 5.1.1 | Vite React integration (Fast Refresh) |
+| eslint-plugin-react-hooks | 7.0.1 | React Hooks lint rules |
+| eslint-plugin-react-refresh | 0.4.24 | React Fast Refresh lint rules |
+| typescript-plugin-css-modules | 5.2.0 | CSS Modules type support |
+
 ---
 
 ## Screenshots
