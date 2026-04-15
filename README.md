@@ -25,13 +25,29 @@
 
 ## Features
 
-- **Contract Scan & OCR** — Capture with camera or upload from album
-- **Real-time AI Analysis** — Summary and risk clause detection streamed via SSE
-- **Plain Language Explanation** — Drag to select any clause for an AI-simplified explanation
-- **Chatbot Consultation** — Ask questions about contract contents in natural language
-- **Voice Recording** — Record conversations and link them to specific contracts
-- **Contract Management** — Browse, filter, sort, and bookmark saved contracts
-- **Kakao OAuth2 Login** — Social login with persistent cookie-based session
+### 📄 Contract Scan & OCR
+Capture a contract with your camera or upload an image from your album. The image is automatically compressed and sent to the server for OCR text extraction.
+
+### 🤖 Real-time AI Analysis
+Once OCR is complete, AI analysis runs in the background via SSE streaming. Results are displayed across 3 tabs as they arrive — no need to wait for full completion.
+- **Original** — Full OCR text with word-level overlay on the captured image
+- **Summary** — AI-generated overview, key terms, and plain-language summary
+- **Risk Analysis** — Each clause rated as Safe / Caution / Risk with detailed reasoning
+
+### 💬 Plain Language Explanation
+Drag to select any clause in the original text tab. An AI explanation panel slides up instantly, breaking down complex legal language into simple terms.
+
+### 🙋 Chatbot Consultation
+Ask any question about the contract in natural language. Responses are streamed token by token via SSE for a smooth chat experience. Conversation history is preserved across sessions via localStorage.
+
+### 🎙️ Voice Recording
+Record contract-related conversations directly from the home screen. After recording, optionally link the audio file to a specific saved contract. All recordings are accessible from My Page.
+
+### 📁 Contract Management
+Browse all saved contracts with filtering by date range and sorting by newest or oldest. Bookmark important contracts for quick access.
+
+### 🔐 Kakao OAuth2 Login
+One-tap social login via Kakao. Auth tokens are stored in cookies with a 7-day expiry and automatically attached to every API request.
 
 ---
 
