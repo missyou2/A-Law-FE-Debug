@@ -115,16 +115,61 @@ npm run build    # production build
 ## Project Structure
 
 ```
-src/
-├── api/            # API call functions (contract, voice, chat)
-├── components/     # Shared components (BottomNav, ContractOverlay)
-├── contexts/       # Global state (RecordingContext)
-├── pages/          # Screen components by route
-│   ├── scan/       # Camera, OCR loading, failure screens
-│   ├── contract/   # Analysis carousel, chatbot, save flow
-│   └── mypage/     # Profile, recordings, terms
-├── services/       # Kakao auth service
-└── types/          # TypeScript type definitions
+A-Law-Frontend/
+├── 📁 public/                          # Static assets
+│   └── 📄 vite.svg
+├── 📁 src/                             # Application source code
+│   ├── 📁 api/                         # API call functions
+│   │   ├── 📄 contractApi.ts           # Contract OCR, analysis, bookmark APIs
+│   │   ├── 📄 voiceApi.ts              # Voice recording upload/fetch/delete APIs
+│   │   └── 📄 chatApi.ts              # Chatbot SSE streaming API
+│   ├── 📁 assets/
+│   │   └── 📁 icons/                   # UI icon images
+│   ├── 📁 components/                  # Shared UI components
+│   │   ├── 📄 BottomNav.tsx            # Bottom navigation bar
+│   │   └── 📄 ContractOverlay.tsx      # Clause explanation bottom sheet
+│   ├── 📁 contexts/                    # Global state management
+│   │   └── 📄 RecordingContext.tsx     # Voice recording state (Context API)
+│   ├── 📁 pages/                       # Screen components by route
+│   │   ├── 📁 scan/                    # Contract scanning flow
+│   │   │   ├── 📄 ScanPage.tsx         # Scan method selection
+│   │   │   ├── 📄 CameraPage.tsx       # Camera capture
+│   │   │   ├── 📄 ScanLoading.tsx      # OCR processing screen
+│   │   │   └── 📄 ScanFailed.tsx       # OCR failure screen
+│   │   ├── 📁 contract/                # Contract analysis flow
+│   │   │   ├── 📄 ContractCarousel.tsx         # 3-tab analysis carousel (main)
+│   │   │   ├── 📄 ContractOriginalPage.tsx     # Original text tab
+│   │   │   ├── 📄 ClauseSummaryPage.tsx        # Summary tab
+│   │   │   ├── 📄 RiskAnalysisPage.tsx         # Risk analysis tab
+│   │   │   ├── 📄 DocumentSavePage.tsx         # Save settings
+│   │   │   ├── 📄 DocumentSavedCompletePage.tsx # Save complete
+│   │   │   ├── 📄 ChatbotPanel.tsx             # Chatbot panel
+│   │   │   └── 📄 ChatbotFloatingButton.tsx    # Chatbot floating button
+│   │   ├── 📁 mypage/                  # My page screens
+│   │   │   ├── 📄 MyPage.tsx           # Profile & login
+│   │   │   ├── 📄 RecordingsPage.tsx   # Voice recording list
+│   │   │   ├── 📄 TermsPage.tsx        # Terms of service
+│   │   │   ├── 📄 PrivacyPage.tsx      # Privacy policy
+│   │   │   └── 📄 SupportPage.tsx      # Customer support
+│   │   ├── 📁 debug/                   # Debug-only screens
+│   │   │   └── 📄 OcrOverlay.tsx       # OCR overlay test page
+│   │   ├── 📄 MainScreen.tsx           # Home screen
+│   │   ├── 📄 MyContracts.tsx          # Contract list
+│   │   ├── 📄 KakaoCallback.tsx        # Kakao OAuth callback
+│   │   └── 📄 TermsAgreePage.tsx       # Terms agreement (first login)
+│   ├── 📁 services/                    # External service integrations
+│   │   ├── 📄 kakaoAuth.ts             # Kakao OAuth2 & cookie management
+│   │   └── 📄 socketService.ts         # WebSocket STOMP client
+│   ├── 📁 types/                       # TypeScript type definitions
+│   │   └── 📄 contract.ts              # Contract, OCR, analysis types
+│   ├── 📄 App.tsx                      # Root component & routing
+│   └── 📄 main.tsx                     # Entry point
+├── 📁 docs/
+│   └── 📁 screenshots/                 # App screenshots
+├── 📄 vite.config.js                   # Vite configuration
+├── 📄 package.json                     # Dependencies & scripts
+├── 📄 tsconfig.json                    # TypeScript configuration
+└── 📄 LICENSE                          # MIT License
 ```
 
 ---
