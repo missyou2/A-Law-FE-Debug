@@ -73,7 +73,7 @@
 
 ---
 
-## Screenshots
+## Demonstration
 
 > 📖 See all screenshots in the [Demo Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Demo)
 
