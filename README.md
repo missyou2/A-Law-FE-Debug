@@ -1,16 +1,122 @@
-# React + Vite
+# A-Law Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> AI-powered lease contract analysis — mobile web application
 
-Currently, two official plugins are available:
+**A-Law** helps everyday users understand complex lease contracts by scanning and automatically analyzing them with AI. Users can photograph a contract, receive a plain-language summary and risk analysis in real time, ask follow-up questions via chatbot, and save voice recordings linked to their contracts.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Contract Scan & OCR** — Capture with camera or upload from album
+- **Real-time AI Analysis** — Summary and risk clause detection streamed via SSE
+- **Plain Language Explanation** — Drag to select any clause for an AI-simplified explanation
+- **Chatbot Consultation** — Ask questions about contract contents in natural language
+- **Voice Recording** — Record conversations and link them to specific contracts
+- **Contract Management** — Browse, filter, sort, and bookmark saved contracts
+- **Kakao OAuth2 Login** — Social login with persistent cookie-based session
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Tech Stack
+
+| Category | Technology |
+|----------|------------|
+| Framework | React 19 + TypeScript |
+| Build Tool | Vite |
+| Routing | React Router DOM 7 |
+| State Management | Context API |
+| HTTP Client | Axios |
+| Animation | Framer Motion |
+| Authentication | Kakao OAuth2 |
+
+---
+
+## Getting Started
+
+### Requirements
+
+- Node.js 18+
+- npm
+
+### Installation
+
+```bash
+git clone https://github.com/A-Law-Pproject/A-Law-Frontend.git
+cd A-Law-Frontend
+npm install
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_API_BASE_URL=https://api.a-law.site/api/v1
+VITE_KAKAO_APP_KEY=your_kakao_app_key
+```
+
+### Run
+
+```bash
+npm run dev      # development server (http://localhost:5173)
+npm run build    # production build
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── api/            # API call functions (contract, voice, chat)
+├── components/     # Shared components (BottomNav, ContractOverlay)
+├── contexts/       # Global state (RecordingContext)
+├── pages/          # Screen components by route
+│   ├── scan/       # Camera, OCR loading, failure screens
+│   ├── contract/   # Analysis carousel, chatbot, save flow
+│   └── mypage/     # Profile, recordings, terms
+├── services/       # Kakao auth service
+└── types/          # TypeScript type definitions
+```
+
+---
+
+## Screen Flow
+
+```
+Home
+ ├── Scan Contract → Camera / Album → OCR Loading → Analysis (3 tabs)
+ │                                                       ├── Original Text
+ │                                                       ├── Summary
+ │                                                       └── Risk Analysis
+ ├── Voice Recording → Save Modal → Link to Contract
+ └── Chatbot Panel
+
+My Contracts → Filter / Sort / Bookmark
+My Page      → Kakao Login / Logout / Recordings
+```
+
+---
+
+## Wiki
+
+Full development documentation is available in the [GitHub Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki):
+
+- [Getting Started](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Getting-Started)
+- [Project Structure](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Project-Structure)
+- [User Flow](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/User-Flow)
+- [API Reference](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/API-Reference)
+- [Authentication](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Authentication)
+- [Voice Recording](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Voice-Recording)
+
+---
+
+## Branch Strategy
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Stable production branch |
+| `feat/*` | Feature development |
+| `fix/*` | Bug fixes |
+| `chore/*` | Config, docs, and maintenance |
