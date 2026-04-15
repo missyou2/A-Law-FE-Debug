@@ -208,6 +208,15 @@ Full development documentation is available in the [GitHub Wiki](https://github.
 
 ---
 
+## Related Repositories
+
+| Repository | Description |
+|------------|-------------|
+| [A-Law-Backend](https://github.com/A-Law-Pproject/A-Law-Backend) | Spring Boot REST API server — OCR processing, AI analysis, voice storage, authentication |
+| [A-Law-AI](https://github.com/A-Law-Pproject/A-Law-AI) | AI model server — contract clause analysis, risk detection, chatbot |
+
+---
+
 ## Branch Strategy
 
 | Branch | Purpose |
