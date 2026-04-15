@@ -54,24 +54,30 @@ One-tap social login via Kakao. Auth tokens are stored in cookies with a 7-day e
 ## Architecture
 
 ```
-┌─────────────────────────────────────┐
-│         Frontend (React + Vite)     │
-│  Scan │ Analysis │ Chatbot │ Voice  │
-└───────────────────┬─────────────────┘
-                    │  REST / SSE
-                    ▼
-┌─────────────────────────────────────┐
-│       Backend (Spring Boot)         │
-├─────────────┬───────────┬───────────┤
-│  OCR & AI   │   Voice   │  Chatbot  │
-│  Analysis   │  Storage  │  Stream   │
-└──────┬──────┴─────┬─────┴───────────┘
-       │            │
-       ▼            ▼
-┌───────────┐  ┌──────────┐  ┌──────────────┐
-│ AI Model  │  │    S3    │  │ Kakao OAuth2 │
-│ (OCR+LLM) │  │ Storage  │  │    (Auth)    │
-└───────────┘  └──────────┘  └──────────────┘
+┌─────────────────────────────────────────┐
+│         Frontend (React + Vite)         │
+│   Scan │ Analysis │ Chatbot │ Voice     │
+└────────────────────┬────────────────────┘
+                     │  REST / SSE
+                     ▼
+┌─────────────────────────────────────────┐
+│        Backend (Spring Boot 3 / Java 21)│
+│  PostgreSQL · MongoDB · Redis · AWS S3  │
+│         RabbitMQ · JWT · Swagger        │
+└──────────────┬──────────────────────────┘
+               │  RabbitMQ
+               ▼
+┌─────────────────────────────────────────┐
+│         AI Server (FastAPI / Python)    │
+│  LangChain · LangGraph · OpenAI · Qdrant│
+│     Celery · Redis · PyMuPDF · OpenCV   │
+└─────────────────────────────────────────┘
+               │
+               ▼
+┌──────────┐  ┌──────────┐  ┌──────────────┐
+│  AWS S3  │  │  Qdrant  │  │ Kakao OAuth2 │
+│ Storage  │  │ Vector DB│  │    (Auth)    │
+└──────────┘  └──────────┘  └──────────────┘
 ```
 
 ---
