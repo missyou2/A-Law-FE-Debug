@@ -37,11 +37,7 @@
 
 ## Screenshots
 
-| Home | Contract Analysis | Chatbot |
-|------|------------------|---------|
-| ![Home](docs/screenshots/home.png) | ![Analysis](docs/screenshots/analysis.png) | ![Chatbot](docs/screenshots/chatbot.png) |
-
-> 📖 Full screenshots available in the [Demo Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Demo)
+> 📖 See all screenshots in the [Demo Wiki](https://github.com/A-Law-Pproject/A-Law-Frontend/wiki/Demo)
 
 ---
 
