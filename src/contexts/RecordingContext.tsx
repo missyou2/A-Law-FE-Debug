@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
+import { uploadVoiceRecordWithContract, uploadVoiceRecord } from '../api/voiceApi.js';
 
 interface RecordingContextValue {
   isRecording: boolean;
@@ -136,18 +137,30 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     setIsRecording(false);
   };
 
-  const handleContractSelect = (contractId: number) => {
-    // TODO: API 연동 — 녹음 파일(audioBlobRef.current)을 contractId와 함께 서버에 전송
-    console.log("연결할 계약서 ID:", contractId, "녹음 파일:", audioBlobRef.current);
-    setSavedContractId(contractId);
+  const handleContractSelect = async (contractId: number) => {
+    const blob = audioBlobRef.current;
+    if (blob) {
+      try {
+        await uploadVoiceRecordWithContract(contractId, blob, finalSeconds);
+        setSavedContractId(contractId);
+      } catch (err) {
+        console.error("녹음 업로드 실패:", err);
+      }
+    }
     setShowContractModal(false);
     setIsRecording(false);
     audioBlobRef.current = null;
   };
 
-  const handleContractSkip = () => {
-    // TODO: API 연동 — 녹음 파일만 단독으로 서버에 전송 (계약서 연결 없음)
-    console.log("계약서 연결 없이 저장:", audioBlobRef.current);
+  const handleContractSkip = async () => {
+    const blob = audioBlobRef.current;
+    if (blob) {
+      try {
+        await uploadVoiceRecord(blob, finalSeconds);
+      } catch (err) {
+        console.error("녹음 업로드 실패:", err);
+      }
+    }
     setShowContractModal(false);
     setIsRecording(false);
     audioBlobRef.current = null;
