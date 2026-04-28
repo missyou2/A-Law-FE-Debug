@@ -256,13 +256,22 @@ export const subscribeAnalysisSSE = (
   });
 
   eventSource.addEventListener('analysis_result', (e) => {
-    const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onAnalysisResult(data);
+    try {
+      const data = JSON.parse((e as MessageEvent).data);
+      callbacks.onAnalysisResult(data);
+    } catch (err) {
+      console.warn('❌ analysis_result 파싱 오류', err, (e as MessageEvent).data);
+    }
   });
 
   eventSource.addEventListener('analysis_complete', (e) => {
-    const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onComplete(data);
+    try {
+      const data = JSON.parse((e as MessageEvent).data);
+      callbacks.onComplete(data);
+    } catch (err) {
+      console.warn('❌ analysis_complete 파싱 오류', err, (e as MessageEvent).data);
+      callbacks.onComplete({ status: 'complete', jobId: jobId, processingTimeMs: 0 });
+    }
     eventSource.close();
   });
 

@@ -44,10 +44,17 @@ function ContractCarousel() {
         setSummaryData(data);
       },
       onAnalysisResult: (data) => {
-        console.log('🔍 SSE analysis_result 수신');
+        console.log('🔍 SSE analysis_result 수신', data);
         setRiskData(data);
       },
-      onComplete: () => console.log('✅ SSE analysis_complete'),
+      onComplete: (data) => {
+        console.log('✅ SSE analysis_complete', data);
+        // Fallback: some backends embed the analysis payload inside the complete event
+        const maybeRisk = data as unknown as Partial<AnalysisResultEvent>;
+        if (maybeRisk.clauseResults) {
+          setRiskData(maybeRisk as AnalysisResultEvent);
+        }
+      },
       onError: (err) => console.warn('❌ SSE 오류', err),
     });
 
