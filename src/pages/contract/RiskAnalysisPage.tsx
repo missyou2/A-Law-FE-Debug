@@ -37,14 +37,16 @@ interface Props {
 }
 
 /** riskLevel → 등급/색상 매핑 */
-const getLevelStyle = (riskLevel: 'risk' | 'caution' | 'safety') => {
-  switch (riskLevel) {
+const getLevelStyle = (riskLevel: string) => {
+  switch (riskLevel?.toLowerCase()) {
     case 'risk':
       return { label: "위험", color: "#e74c3c", bg: "#fdecea", border: "#f0d0d0" };
     case 'caution':
       return { label: "주의", color: "#f39c12", bg: "#fef9e7", border: "#f5e6c8" };
     case 'safety':
       return { label: "안전", color: "#27ae60", bg: "#eafaf1", border: "#c8e6d0" };
+    default:
+      return { label: "기타", color: "#888", bg: "#f5f5f5", border: "#e0e0e0" };
   }
 };
 
@@ -115,11 +117,11 @@ function RiskAnalysisPage({ riskData }: Props) {
     );
   }
 
-  const { riskCount, cautionCount, safetyCount, clauseResults } = riskData;
+  const { riskCount, cautionCount, safetyCount, clauseResults = [] } = riskData;
   const overall = getOverallStyle(riskCount, cautionCount);
   const sortedClauses = [...clauseResults].sort((a, b) => {
-    const order = { risk: 0, caution: 1, safety: 2 };
-    return order[a.riskLevel] - order[b.riskLevel];
+    const order: Record<string, number> = { risk: 0, caution: 1, safety: 2 };
+    return (order[a.riskLevel?.toLowerCase()] ?? 3) - (order[b.riskLevel?.toLowerCase()] ?? 3);
   });
 
   return (

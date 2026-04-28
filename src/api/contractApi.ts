@@ -9,6 +9,7 @@ import type {
   EasyExplanationResponse,
   OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
+  AnalysisResultEvent,
   ContractListItem,
   OcrWord,
 } from '../types/contract.js';
@@ -256,13 +257,37 @@ export const subscribeAnalysisSSE = (
   });
 
   eventSource.addEventListener('analysis_result', (e) => {
-    const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onAnalysisResult(data);
+    try {
+      const raw = JSON.parse((e as MessageEvent).data);
+      console.log('📊 analysis_result raw:', raw);
+      // Normalize snake_case → camelCase (backend may send either)
+      const data: AnalysisResultEvent = {
+        totalClauses: raw.totalClauses ?? raw.total_clauses ?? 0,
+        riskCount:    raw.riskCount    ?? raw.risk_count    ?? 0,
+        cautionCount: raw.cautionCount ?? raw.caution_count ?? 0,
+        safetyCount:  raw.safetyCount  ?? raw.safety_count  ?? 0,
+        clauseResults: (raw.clauseResults ?? raw.clause_results ?? []).map((c: Record<string, unknown>) => ({
+          clauseId:  c.clauseId  ?? c.clause_id,
+          content:   c.content,
+          riskLevel: c.riskLevel ?? c.risk_level,
+          reason:    c.reason,
+          category:  c.category,
+        })),
+      };
+      callbacks.onAnalysisResult(data);
+    } catch (err) {
+      console.warn('❌ analysis_result 파싱 오류', err, (e as MessageEvent).data);
+    }
   });
 
   eventSource.addEventListener('analysis_complete', (e) => {
-    const data = JSON.parse((e as MessageEvent).data);
-    callbacks.onComplete(data);
+    try {
+      const data = JSON.parse((e as MessageEvent).data);
+      callbacks.onComplete(data);
+    } catch (err) {
+      console.warn('❌ analysis_complete 파싱 오류', err, (e as MessageEvent).data);
+      callbacks.onComplete({ status: 'complete', jobId: jobId, processingTimeMs: 0 });
+    }
     eventSource.close();
   });
 
