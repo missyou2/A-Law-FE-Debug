@@ -115,7 +115,7 @@ function RiskAnalysisPage({ riskData }: Props) {
     );
   }
 
-  const { riskCount, cautionCount, safetyCount, clauseResults } = riskData;
+  const { riskCount, cautionCount, safetyCount, clauseResults = [] } = riskData;
   const overall = getOverallStyle(riskCount, cautionCount);
   const sortedClauses = [...clauseResults].sort((a, b) => {
     const order = { risk: 0, caution: 1, safety: 2 };
