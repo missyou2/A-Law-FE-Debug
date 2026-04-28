@@ -31,6 +31,7 @@ function ContractCarousel() {
 
   const [summaryData, setSummaryData] = useState<SummaryResultEvent | null>(null);
   const [riskData, setRiskData] = useState<AnalysisResultEvent | null>(null);
+  const [riskAnalysisDone, setRiskAnalysisDone] = useState(false);
 
   // SSE 구독 — OCR 완료 직후 페이지 진입 시 요약/위험 분석을 백그라운드로 수신
   const analysisResultReceivedRef = useRef(false);
@@ -66,6 +67,7 @@ function ContractCarousel() {
         if (maybeRisk.clauseResults) {
           setRiskData(maybeRisk as AnalysisResultEvent);
         }
+        setRiskAnalysisDone(true);
       },
       onError: (err) => console.warn('❌ SSE 오류', err),
     });
@@ -504,7 +506,7 @@ function ContractCarousel() {
 
           <div className="carousel-page">
             <div style={pageStyle(2)}>
-              <RiskAnalysisPage riskData={riskData} />
+              <RiskAnalysisPage riskData={riskData} analysisDone={riskAnalysisDone} />
             </div>
           </div>
         </div>

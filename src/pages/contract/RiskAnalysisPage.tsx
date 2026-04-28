@@ -34,6 +34,7 @@ export const MOCK_RISK_DATA: AnalysisResultEvent = {
 
 interface Props {
   riskData: AnalysisResultEvent | null;
+  analysisDone?: boolean;
 }
 
 /** riskLevel → 등급/색상 매핑 */
@@ -75,7 +76,7 @@ function SkeletonCard({ width }: { width?: string }) {
   );
 }
 
-function RiskAnalysisPage({ riskData }: Props) {
+function RiskAnalysisPage({ riskData, analysisDone }: Props) {
   const [expandedSet, setExpandedSet] = useState<Set<number>>(new Set());
 
   const handleToggle = (idx: number) => {
@@ -86,6 +87,26 @@ function RiskAnalysisPage({ riskData }: Props) {
       return next;
     });
   };
+
+  /** 분석 완료됐지만 데이터 없음 → 실패 메시지 */
+  if (!riskData && analysisDone) {
+    return (
+      <div className="page-container">
+        <h2 className="page-title">위험 요소 분석</h2>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <div style={{
+          padding: "24px 18px", borderRadius: "12px",
+          background: "#fdecea", border: "1px solid #f0d0d0",
+          textAlign: "center", color: "#c0392b", fontSize: "14px", lineHeight: "1.6",
+        }}>
+          <p style={{ margin: 0, fontWeight: 600 }}>분석 결과를 불러오지 못했습니다.</p>
+          <p style={{ margin: "8px 0 0", fontSize: "13px", color: "#888" }}>
+            서버에서 위험 분석 데이터를 전송하지 않았습니다. 잠시 후 다시 시도해주세요.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   /** 로딩 스켈레톤 */
   if (!riskData) {
