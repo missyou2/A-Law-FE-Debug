@@ -33,9 +33,13 @@ function ContractCarousel() {
   const [riskData, setRiskData] = useState<AnalysisResultEvent | null>(null);
 
   // SSE 구독 — OCR 완료 직후 페이지 진입 시 요약/위험 분석을 백그라운드로 수신
+  const analysisResultReceivedRef = useRef(false);
+
   useEffect(() => {
     const jobId = locationState?.jobId;
     if (!jobId) return;
+
+    analysisResultReceivedRef.current = false;
 
     console.log('📡 SSE 구독 시작, jobId:', jobId);
     const eventSource = subscribeAnalysisSSE(jobId, {
@@ -44,11 +48,19 @@ function ContractCarousel() {
         setSummaryData(data);
       },
       onAnalysisResult: (data) => {
+        analysisResultReceivedRef.current = true;
         console.log('🔍 SSE analysis_result 수신', data);
         setRiskData(data);
       },
       onComplete: (data) => {
-        console.log('✅ SSE analysis_complete', data);
+        console.log(
+          '✅ SSE analysis_complete',
+          data,
+          '| analysis_result 수신 여부:', analysisResultReceivedRef.current,
+        );
+        if (!analysisResultReceivedRef.current) {
+          console.warn('⚠️ analysis_result 이벤트가 수신되지 않았습니다. 백엔드가 해당 이벤트를 전송하는지 확인하세요.');
+        }
         // Fallback: some backends embed the analysis payload inside the complete event
         const maybeRisk = data as unknown as Partial<AnalysisResultEvent>;
         if (maybeRisk.clauseResults) {
