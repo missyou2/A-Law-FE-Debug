@@ -103,6 +103,14 @@ const compressDataURL = (dataURL: string): Promise<string> =>
 // API 함수들
 // ============================================
 
+type ApiSuccessResponse<T = unknown> = {
+  success: boolean;
+  code: string;
+  message: string;
+  data: T;
+  timestamp: string;
+};
+
 /**
  * 계약서 목록 조회
  * GET /api/v1/contracts
@@ -110,6 +118,24 @@ const compressDataURL = (dataURL: string): Promise<string> =>
 export const getContractList = async (): Promise<ContractListItem[]> => {
   const response = await apiClient.get<{ success: boolean; data: ContractListItem[] }>('/contracts');
   return response.data.data;
+};
+
+/**
+ * 계약서 단건 조회
+ * GET /api/v1/contracts/{id}
+ */
+export const getContractById = async (contractId: number): Promise<ApiSuccessResponse<ContractListItem>> => {
+  const response = await apiClient.get<ApiSuccessResponse<ContractListItem>>(`/contracts/${contractId}`);
+  return response.data;
+};
+
+/**
+ * 계약서 삭제
+ * DELETE /api/v1/contracts/{id}
+ */
+export const deleteContract = async (contractId: number): Promise<ApiSuccessResponse<string>> => {
+  const response = await apiClient.delete<ApiSuccessResponse<string>>(`/contracts/${contractId}`);
+  return response.data;
 };
 
 /**

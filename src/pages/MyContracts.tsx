@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -7,7 +8,7 @@ import './MyContracts.css';
 import checkSelected from '../assets/icons/check-selected.png';
 import checkUnselected from '../assets/icons/check-unselected.png';
 
-import { getContractList, addBookmark, removeBookmark } from '../api/contractApi.js';
+import { getContractList, addBookmark, removeBookmark, getContractById, deleteContract } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -30,6 +31,7 @@ type SortOrder = 'default' | 'newest' | 'oldest';
 
 const MyContracts = () => {
 
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [contracts, setContracts] = useState<ContractListItem[]>([]);
@@ -102,7 +104,7 @@ const MyContracts = () => {
     if (selectedIds.length === 0) return;
     try {
       setLoading(true);
-      // TODO: 계약서 삭제 API 연동
+      await Promise.all(selectedIds.map(id => deleteContract(id)));
       setContracts(prev => prev.filter(c => !selectedIds.includes(c.contractId)));
       setSelectedIds([]);
       setIsEditing(false);
@@ -110,6 +112,15 @@ const MyContracts = () => {
       alert("삭제 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleContractClick = async (contractId: number) => {
+    try {
+      const res = await getContractById(contractId);
+      navigate('/contract/view', { state: { contract: res.data } });
+    } catch (error) {
+      console.error("계약서 조회 실패:", error);
     }
   };
 
@@ -227,7 +238,7 @@ const MyContracts = () => {
             <div
               key={item.contractId}
               className="mc-contract-item"
-              onClick={() => isEditing && toggleSelect(item.contractId)}
+              onClick={() => isEditing ? toggleSelect(item.contractId) : handleContractClick(item.contractId)}
             >
               {isEditing && (
                 <div className="mc-icon-wrapper">
