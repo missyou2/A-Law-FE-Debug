@@ -62,6 +62,7 @@ export const sendChatMessage = async (
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
+    credentials: 'include',
     body: JSON.stringify({
       message,
       session_id: sessionId ?? null,
