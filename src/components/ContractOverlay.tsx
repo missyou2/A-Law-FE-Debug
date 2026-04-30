@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import "../pages/contract/contractCarousel.css";
-import { generateEasyExplanation } from "../api/contractApi.js";
-import type { EasyExplanationResponse } from "../types/contract.js";
+import { getOcrEasyExplanation } from "../api/contractApi.js";
 
 type Props = {
   selectedText: string | null;
@@ -21,7 +20,7 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
   const startHeight = useRef(minHeight);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [explanationData, setExplanationData] = useState<EasyExplanationResponse | null>(null);
+  const [explanationData, setExplanationData] = useState<{ original_sentence: string; easy_explanation: string } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>("");
 
@@ -96,7 +95,7 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
       setExplanationData(null);
 
       try {
-        const result = await generateEasyExplanation(contractId, selectedText);
+        const result = await getOcrEasyExplanation(Number(contractId), selectedText);
         setExplanationData(result);
       } catch (err) {
         console.error("설명 생성 실패:", err);
@@ -144,18 +143,7 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
           <p className="sheet-placeholder" style={{ color: "#e74c3c" }}>{error}</p>
         ) : explanationData ? (
           <div className="sheet-explanation">
-            <p className="sheet-easy-translation">{explanationData.easy_translation}</p>
-
-            {explanationData.legal_term_guide && explanationData.legal_term_guide.length > 0 && (
-              <div className="sheet-legal-terms" style={{ marginTop: "16px" }}>
-                <h4 style={{ fontSize: "14px", marginBottom: "8px", color: "#666" }}>법률 용어 설명</h4>
-                {explanationData.legal_term_guide.map((term, index) => (
-                  <div key={index} style={{ marginBottom: "8px", paddingLeft: "8px", borderLeft: "2px solid #3498db" }}>
-                    <strong style={{ color: "#2c3e50" }}>{term.term}</strong>: {term.meaning}
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="sheet-easy-translation">{explanationData.easy_explanation}</p>
           </div>
         ) : (
           <p className="sheet-placeholder">선택한 문구에 대한 설명이 여기에 표시됩니다.</p>

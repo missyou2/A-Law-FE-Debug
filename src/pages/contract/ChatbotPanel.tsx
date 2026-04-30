@@ -1,11 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { sendChatMessageSSE } from "../../api/chatApi.js";
-import type { ChatMessage } from "../../api/chatApi.js";
+import { sendChatMessage } from "../../api/chatApi.js";
 
 interface Props {
   onClose: () => void;
   initialQuestion?: string;
-  contractId?: string; // 계약서 ID
+  contractId?: string;
 }
 
 interface Message {
@@ -15,8 +14,9 @@ interface Message {
 }
 
 const STORAGE_KEY = "contract_chat_history_v2";
+const SESSION_STORAGE_KEY = "contract_chat_session_id";
 
-function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
+function ChatbotPanel({ onClose, initialQuestion }: Props) {
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     return saved
@@ -25,13 +25,18 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
           {
             role: "bot",
             text: "안녕하세요! 계약서를 이해하기 쉽게 도와드릴게요 🙂",
-            typing: undefined
-          }
+            typing: undefined,
+          },
         ];
+  });
+
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    return localStorage.getItem(SESSION_STORAGE_KEY);
   });
 
   const [input, setInput] = useState("");
   const [panelVisible, setPanelVisible] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -49,83 +54,61 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
   }, [messages]);
 
   useEffect(() => {
+    if (sessionId) {
+      localStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const abortRef = useRef<AbortController | null>(null);
+  const send = async (text: string) => {
+    const trimmedText = text.trim();
+    if (!trimmedText || isSending) return;
 
-  // 컴포넌트 언마운트 시 진행 중인 스트림 중단
-  useEffect(() => {
-    return () => abortRef.current?.abort();
-  }, []);
-
-  const send = (text: string) => {
-    if (!text.trim()) return;
-
-    // 이전 스트림이 있으면 중단
-    abortRef.current?.abort();
-
-    setMessages(prev => [
+    setMessages((prev) => [
       ...prev,
-      { role: "user", text, typing: undefined },
-      { role: "bot", text: "", typing: true }
+      { role: "user", text: trimmedText, typing: undefined },
+      { role: "bot", text: "답변을 생성하는 중입니다...", typing: true },
     ]);
 
     setInput("");
+    setIsSending(true);
 
-    if (!contractId) {
-      setTimeout(() => {
-        setMessages(prev => {
-          const filtered = prev.filter(m => !m.typing);
-          return [...filtered, {
+    try {
+      const result = await sendChatMessage(trimmedText, sessionId);
+
+      setSessionId(result.session_id);
+
+      setMessages((prev) => {
+        const filtered = prev.filter((m) => !m.typing);
+        return [
+          ...filtered,
+          {
             role: "bot",
-            text: "계약서 ID가 필요합니다. 계약서를 먼저 업로드해주세요.",
-            typing: undefined
-          }];
-        });
-      }, 500);
-      return;
-    }
+            text: result.answer,
+            typing: undefined,
+          },
+        ];
+      });
+    } catch (error) {
+      console.error("챗봇 응답 실패:", error);
 
-    // 대화 히스토리를 ChatMessage 형식으로 변환
-    const history: ChatMessage[] = messages
-      .filter(m => !m.typing)
-      .map(m => ({
-        role: m.role === "user" ? "user" : "assistant",
-        content: m.text
-      }));
-
-    // SSE 스트리밍 호출
-    abortRef.current = sendChatMessageSSE(contractId, text, history, {
-      onChunk: (chunk) => {
-        setMessages(prev => {
-          const updated = [...prev];
-          const last = updated[updated.length - 1];
-          if (last && last.typing) {
-            last.text += chunk;
-          }
-          return updated;
-        });
-      },
-      onDone: () => {
-        setMessages(prev =>
-          prev.map(m => m.typing ? { ...m, typing: undefined } : m)
-        );
-        abortRef.current = null;
-      },
-      onError: (error) => {
-        console.error("챗봇 응답 실패:", error);
-        setMessages(prev => {
-          const filtered = prev.filter(m => !m.typing);
-          return [...filtered, {
+      setMessages((prev) => {
+        const filtered = prev.filter((m) => !m.typing);
+        return [
+          ...filtered,
+          {
             role: "bot",
             text: "죄송합니다. 응답을 생성하는데 실패했습니다. 다시 시도해주세요.",
-            typing: undefined
-          }];
-        });
-        abortRef.current = null;
-      },
-    });
+            typing: undefined,
+          },
+        ];
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -137,11 +120,11 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
         background: "rgba(0,0,0,0.35)",
         zIndex: 40,
         display: "flex",
-        alignItems: "flex-end"
+        alignItems: "flex-end",
       }}
     >
       <div
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
           height: "70%",
@@ -151,14 +134,14 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
           display: "flex",
           flexDirection: "column",
           transform: panelVisible ? "translateY(0)" : "translateY(100%)",
-          transition: "transform 0.35s ease-out"
+          transition: "transform 0.35s ease-out",
         }}
       >
         <div style={{ fontWeight: 700, marginBottom: 4 }}>
           AI 계약 도우미
         </div>
         <div style={{ fontSize: 12, color: "#666", marginBottom: 12 }}>
-          ※ UI 시연용 챗봇 (추후 LLM 연동 예정)
+          계약서 내용을 바탕으로 궁금한 점을 질문해보세요.
         </div>
 
         <div
@@ -167,7 +150,7 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
             overflowY: "auto",
             display: "flex",
             flexDirection: "column",
-            gap: 8
+            gap: 8,
           }}
         >
           {messages.map((m, i) => (
@@ -185,18 +168,20 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
           {[
             "이 계약서 위험한가요?",
             "보증금 돌려받을 수 있나요?",
-            "임차인에게 불리한 조항은?"
-          ].map(q => (
+            "임차인에게 불리한 조항은?",
+          ].map((q) => (
             <button
               key={q}
               onClick={() => send(q)}
+              disabled={isSending}
               style={{
                 flex: 1,
                 fontSize: 12,
                 padding: "6px 8px",
                 borderRadius: 10,
                 border: "1px solid #ccc",
-                background: "#fff"
+                background: "#fff",
+                opacity: isSending ? 0.6 : 1,
               }}
             >
               {q}
@@ -207,25 +192,33 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
         <div style={{ display: "flex", gap: 8 }}>
           <input
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                send(input);
+              }
+            }}
+            disabled={isSending}
             placeholder="질문을 입력하세요"
             style={{
               flex: 1,
               padding: "8px 10px",
               borderRadius: 10,
               border: "1px solid #d1d5db",
-              fontSize: 13
+              fontSize: 13,
             }}
           />
           <button
             onClick={() => send(input)}
+            disabled={isSending}
             style={{
               padding: "8px 14px",
               borderRadius: 10,
               border: "none",
               background: "#111",
               color: "#fff",
-              fontSize: 13
+              fontSize: 13,
+              opacity: isSending ? 0.6 : 1,
             }}
           >
             전송
@@ -236,11 +229,10 @@ function ChatbotPanel({ onClose, initialQuestion, contractId }: Props) {
   );
 }
 
-// chatbubble & delay
 function ChatBubble({
   role,
   text,
-  typing
+  typing,
 }: {
   role: "user" | "bot";
   text: string;
@@ -265,7 +257,7 @@ function ChatBubble({
         fontStyle: typing ? "italic" : "normal",
         opacity: typing ? 0.6 : 1,
         transform: visible ? "translateY(0)" : "translateY(6px)",
-        transition: "all 0.25s ease-out"
+        transition: "all 0.25s ease-out",
       }}
     >
       {text}
