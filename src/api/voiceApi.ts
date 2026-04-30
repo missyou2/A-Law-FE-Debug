@@ -60,7 +60,7 @@ export const uploadVoiceRecordWithContract = async (
   duration: number,
 ): Promise<VoiceRecordUploadResponse> => {
   const formData = new FormData();
-  formData.append('file', audioBlob, 'recording.webm');
+  formData.append('file', audioBlob, 'recording.mp3');
   formData.append('duration', String(duration));
 
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
@@ -79,7 +79,7 @@ export const uploadVoiceRecord = async (
   duration: number,
 ): Promise<VoiceRecordUploadResponse> => {
   const formData = new FormData();
-  formData.append('file', audioBlob, 'recording.webm');
+  formData.append('file', audioBlob, 'recording.mp3');
   formData.append('duration', String(duration));
 
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(

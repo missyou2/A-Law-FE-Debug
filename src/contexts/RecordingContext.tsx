@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
 import { uploadVoiceRecordWithContract, uploadVoiceRecord } from '../api/voiceApi.js';
+import { convertBlobToMp3 } from '../utils/audioConverter.js';
 
 interface RecordingContextValue {
   isRecording: boolean;
@@ -141,7 +142,8 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     const blob = audioBlobRef.current;
     if (blob) {
       try {
-        await uploadVoiceRecordWithContract(contractId, blob, finalSeconds);
+        const mp3Blob = await convertBlobToMp3(blob);
+        await uploadVoiceRecordWithContract(contractId, mp3Blob, finalSeconds);
         setSavedContractId(contractId);
       } catch (err) {
         console.error("녹음 업로드 실패:", err);
@@ -156,7 +158,8 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     const blob = audioBlobRef.current;
     if (blob) {
       try {
-        await uploadVoiceRecord(blob, finalSeconds);
+        const mp3Blob = await convertBlobToMp3(blob);
+        await uploadVoiceRecord(mp3Blob, finalSeconds);
       } catch (err) {
         console.error("녹음 업로드 실패:", err);
       }
