@@ -61,7 +61,7 @@ export const uploadVoiceRecord = async (
   contractId?: number,
 ): Promise<VoiceRecordUploadResponse> => {
   const formData = new FormData();
-  formData.append('file', audioBlob, 'recording.mp3');
+  formData.append('audio', audioBlob, 'recording.mp3');
   formData.append('duration', String(duration));
   if (contractId !== undefined) {
     formData.append('contractId', String(contractId));
