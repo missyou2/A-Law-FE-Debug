@@ -87,9 +87,14 @@ export interface SummaryResultEvent {
 
 export interface ClauseResult {
   clauseId: number;
-  content: string;
-  riskLevel: 'risk' | 'caution' | 'safety';
-  reason: string;
+  clauseContent: string;
+  clauseTitle: string;
+  riskLevel: string;
+  reasoningSummary: string;
+  recommendation: string;
+  legalReference: string;
+  relatedLaw: string;
+  score: number;
   category?: string;
 }
 

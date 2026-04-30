@@ -10,24 +10,39 @@ export const MOCK_RISK_DATA: AnalysisResultEvent = {
   clauseResults: [
     {
       clauseId: 1,
-      content: "임차인은 퇴실시 청소비 20만원 있음.",
-      riskLevel: "risk",
+      clauseContent: "임차인은 퇴실시 청소비 20만원 있음.",
+      clauseTitle: "임차인에게 불리한 조항",
+      riskLevel: "위험",
       category: "임차인에게 불리한 조항",
-      reason: "퇴실 시 청소비를 임차인에게 일방적으로 부담시키는 조항은 공정거래위원회의 불공정약관 기준에 해당할 수 있습니다.",
+      reasoningSummary: "퇴실 시 청소비를 임차인에게 일방적으로 부담시키는 조항은 공정거래위원회의 불공정약관 기준에 해당할 수 있습니다.",
+      recommendation: "청소비 조항 삭제 또는 상호 협의 조항으로 수정을 권장합니다.",
+      legalReference: "",
+      relatedLaw: "",
+      score: 80,
     },
     {
       clauseId: 2,
-      content: "보증금은 퇴실 후 30일 이내 반환한다.",
-      riskLevel: "caution",
+      clauseContent: "보증금은 퇴실 후 30일 이내 반환한다.",
+      clauseTitle: "보증금 반환 지연 위험",
+      riskLevel: "주의",
       category: "보증금 반환 지연 위험",
-      reason: "법적으로는 즉시 반환이 원칙이나, 30일 유예는 임차인에게 불리할 수 있습니다.",
+      reasoningSummary: "법적으로는 즉시 반환이 원칙이나, 30일 유예는 임차인에게 불리할 수 있습니다.",
+      recommendation: "반환 기한을 단축하거나 지연 시 이자 조항을 추가하는 것을 권장합니다.",
+      legalReference: "",
+      relatedLaw: "",
+      score: 50,
     },
     {
       clauseId: 3,
-      content: "애완동물사육금지 및 건물내 금연",
-      riskLevel: "safety",
+      clauseContent: "애완동물사육금지 및 건물내 금연",
+      clauseTitle: "일반 관리 규정",
+      riskLevel: "안전",
       category: "일반 관리 규정",
-      reason: "일반적인 임대차 계약에 포함되는 표준 조항입니다.",
+      reasoningSummary: "일반적인 임대차 계약에 포함되는 표준 조항입니다.",
+      recommendation: "",
+      legalReference: "",
+      relatedLaw: "",
+      score: 10,
     },
   ],
 };
@@ -39,11 +54,14 @@ interface Props {
 
 /** riskLevel → 등급/색상 매핑 */
 const getLevelStyle = (riskLevel: string) => {
-  switch (riskLevel?.toLowerCase()) {
+  switch (riskLevel) {
+    case '위험':
     case 'risk':
       return { label: "위험", color: "#e74c3c", bg: "#fdecea", border: "#f0d0d0" };
+    case '주의':
     case 'caution':
       return { label: "주의", color: "#f39c12", bg: "#fef9e7", border: "#f5e6c8" };
+    case '안전':
     case 'safety':
       return { label: "안전", color: "#27ae60", bg: "#eafaf1", border: "#c8e6d0" };
     default:
@@ -141,8 +159,8 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
   const { riskCount, cautionCount, safetyCount, clauseResults = [] } = riskData;
   const overall = getOverallStyle(riskCount, cautionCount);
   const sortedClauses = [...clauseResults].sort((a, b) => {
-    const order: Record<string, number> = { risk: 0, caution: 1, safety: 2 };
-    return (order[a.riskLevel?.toLowerCase()] ?? 3) - (order[b.riskLevel?.toLowerCase()] ?? 3);
+    const order: Record<string, number> = { '위험': 0, '주의': 1, '안전': 2, risk: 0, caution: 1, safety: 2 };
+    return (order[a.riskLevel] ?? 3) - (order[b.riskLevel] ?? 3);
   });
 
   return (
@@ -196,7 +214,7 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
                 <span style={{ fontSize: "14px", fontWeight: 600, flex: 1, lineHeight: "1.5" }}>
-                  {clause.content}
+                  {clause.clauseContent}
                 </span>
                 <span style={{
                   padding: "3px 10px",
@@ -229,7 +247,7 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
               </div>
 
               <AnimatePresence initial={false}>
-                {isExpanded && clause.reason && (
+                {isExpanded && (clause.reasoningSummary || clause.recommendation) && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
@@ -247,8 +265,18 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
                       lineHeight: "1.7",
                       color: "#333",
                     }}>
-                      <strong style={{ fontSize: "13px", color: "#555" }}>분석 사유</strong>
-                      <p style={{ margin: "6px 0 0" }}>{clause.reason}</p>
+                      {clause.reasoningSummary && (
+                        <>
+                          <strong style={{ fontSize: "13px", color: "#555" }}>분석 사유</strong>
+                          <p style={{ margin: "6px 0 0" }}>{clause.reasoningSummary}</p>
+                        </>
+                      )}
+                      {clause.recommendation && (
+                        <>
+                          <strong style={{ fontSize: "13px", color: "#555", display: "block", marginTop: "10px" }}>권고사항</strong>
+                          <p style={{ margin: "6px 0 0" }}>{clause.recommendation}</p>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}
