@@ -66,7 +66,6 @@ export const uploadVoiceRecordWithContract = async (
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
     `/contracts/${contractId}/voice-records`,
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return response.data.data;
 };
@@ -86,7 +85,6 @@ export const uploadVoiceRecord = async (
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
     '/voice-records',
     formData,
-    { headers: { 'Content-Type': 'multipart/form-data' } },
   );
   return response.data.data;
 };
