@@ -51,36 +51,21 @@ export interface VoiceRecordListItem {
 // ============================================
 
 /**
- * 녹음 파일 생성 (기존 계약서에 연결)
- * POST /api/v1/contracts/{id}/voice-records
- */
-export const uploadVoiceRecordWithContract = async (
-  contractId: number,
-  audioBlob: Blob,
-  duration: number,
-): Promise<VoiceRecordUploadResponse> => {
-  const formData = new FormData();
-  formData.append('file', audioBlob, 'recording.mp3');
-  formData.append('duration', String(duration));
-
-  const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
-    `/contracts/${contractId}/voice-records`,
-    formData,
-  );
-  return response.data.data;
-};
-
-/**
- * 녹음 파일 생성 (계약서 연결 없음)
+ * 녹음 파일 저장
  * POST /api/v1/voice-records
+ * contractId가 있으면 계약서에 연결, 없으면 voice-only로 저장
  */
 export const uploadVoiceRecord = async (
   audioBlob: Blob,
   duration: number,
+  contractId?: number,
 ): Promise<VoiceRecordUploadResponse> => {
   const formData = new FormData();
   formData.append('file', audioBlob, 'recording.mp3');
   formData.append('duration', String(duration));
+  if (contractId !== undefined) {
+    formData.append('contractId', String(contractId));
+  }
 
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
     '/voice-records',
@@ -88,6 +73,13 @@ export const uploadVoiceRecord = async (
   );
   return response.data.data;
 };
+
+/** @deprecated use uploadVoiceRecord with contractId param */
+export const uploadVoiceRecordWithContract = (
+  contractId: number,
+  audioBlob: Blob,
+  duration: number,
+) => uploadVoiceRecord(audioBlob, duration, contractId);
 
 /**
  * 전체 녹음 목록 조회 (마이페이지 → 녹음목록)
