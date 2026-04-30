@@ -28,6 +28,8 @@ function ChatbotFloatingButton({ onClick }: Props) {
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.buttons === 0) return;
+
     e.stopPropagation();
     e.preventDefault();
 
