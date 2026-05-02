@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
-import { uploadVoiceRecord } from '../api/voiceApi.js';
+import { uploadVoiceRecord, startVoiceAnalysis } from '../api/voiceApi.js';
 import { convertBlobToMp3 } from '../utils/audioConverter.js';
 
 interface RecordingContextValue {
@@ -143,10 +143,11 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     if (blob) {
       try {
         const mp3Blob = await convertBlobToMp3(blob);
-        await uploadVoiceRecord(mp3Blob, finalSeconds, contractId);
+        const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds, contractId);
         setSavedContractId(contractId);
+        await startVoiceAnalysis(uploaded.voiceRecordId, contractId);
       } catch (err) {
-        console.error("녹음 업로드 실패:", err);
+        console.error("녹음 업로드/분석 실패:", err);
       }
     }
     setShowContractModal(false);
@@ -159,9 +160,10 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     if (blob) {
       try {
         const mp3Blob = await convertBlobToMp3(blob);
-        await uploadVoiceRecord(mp3Blob, finalSeconds);
+        const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds);
+        await startVoiceAnalysis(uploaded.voiceRecordId);
       } catch (err) {
-        console.error("녹음 업로드 실패:", err);
+        console.error("녹음 업로드/분석 실패:", err);
       }
     }
     setShowContractModal(false);

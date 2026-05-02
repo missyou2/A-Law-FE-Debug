@@ -31,10 +31,15 @@ apiClient.interceptors.response.use(
 // 타입 정의
 // ============================================
 
+export type VoiceRecordStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+
 export interface VoiceRecordUploadResponse {
   voiceRecordId: number;
   contractId: number | null;
-  duration: number;
+  title: string | null;
+  jobId: string;
+  fileUrl: string;
+  status: VoiceRecordStatus;
   createdAt: string;
 }
 
@@ -46,14 +51,29 @@ export interface VoiceRecordListItem {
   createdAt: string;
 }
 
+export interface FactCheckItem {
+  claim: string;
+  contractContent: string;
+  isMatch: boolean;
+  severity: string;
+}
+
+export interface VoiceFactCheckResponse {
+  voiceRecordId: number;
+  transcript: string;
+  factCheckItems: FactCheckItem[];
+  status: VoiceRecordStatus;
+  createdAt: string;
+}
+
 // ============================================
 // API 함수들
 // ============================================
 
 /**
  * 녹음 파일 저장
- * POST /api/v1/voice-records
- * contractId가 있으면 계약서에 연결, 없으면 voice-only로 저장
+ * - 계약서 연결: POST /api/v1/contracts/{contractId}/voice-records
+ * - 단순 저장:   POST /api/v1/voice-records
  */
 export const uploadVoiceRecord = async (
   audioBlob: Blob,
@@ -63,23 +83,46 @@ export const uploadVoiceRecord = async (
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.mp3');
   formData.append('duration', String(duration));
-  if (contractId !== undefined) {
-    formData.append('contractId', String(contractId));
-  }
+
+  const url = contractId !== undefined
+    ? `/contracts/${contractId}/voice-records`
+    : '/voice-records';
 
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
-    '/voice-records',
+    url,
     formData,
   );
   return response.data.data;
 };
 
-/** @deprecated use uploadVoiceRecord with contractId param */
-export const uploadVoiceRecordWithContract = (
-  contractId: number,
-  audioBlob: Blob,
-  duration: number,
-) => uploadVoiceRecord(audioBlob, duration, contractId);
+/**
+ * 음성 분석 시작
+ * POST /api/v1/voice-records/{voiceRecordId}/analyze
+ * contractId가 있으면 계약서 내용과 팩트체크, 없으면 단순 리스크 분석
+ */
+export const startVoiceAnalysis = async (
+  voiceRecordId: number,
+  contractId?: number,
+): Promise<void> => {
+  const params = contractId !== undefined ? { contractId } : {};
+  await apiClient.post(`/voice-records/${voiceRecordId}/analyze`, null, { params });
+};
+
+/**
+ * 음성 분석 결과 조회
+ * GET /api/v1/voice-records/{voiceRecordId}/fact-check
+ */
+export const getVoiceFactCheck = async (
+  voiceRecordId: number,
+  contractId?: number,
+): Promise<VoiceFactCheckResponse> => {
+  const params = contractId !== undefined ? { contractId } : {};
+  const response = await apiClient.get<{ success: boolean; data: VoiceFactCheckResponse }>(
+    `/voice-records/${voiceRecordId}/fact-check`,
+    { params },
+  );
+  return response.data.data;
+};
 
 /**
  * 전체 녹음 목록 조회 (마이페이지 → 녹음목록)
