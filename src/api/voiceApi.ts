@@ -110,18 +110,55 @@ export const startVoiceAnalysis = async (
 
 /**
  * 음성 분석 결과 조회
- * GET /api/v1/voice-records/{voiceRecordId}/fact-check
+ * GET /api/v1/voice-records/{voiceRecordId}/analysis
  */
-export const getVoiceFactCheck = async (
+export const getVoiceAnalysisResult = async (
   voiceRecordId: number,
   contractId?: number,
 ): Promise<VoiceFactCheckResponse> => {
   const params = contractId !== undefined ? { contractId } : {};
   const response = await apiClient.get<{ success: boolean; data: VoiceFactCheckResponse }>(
-    `/voice-records/${voiceRecordId}/fact-check`,
+    `/voice-records/${voiceRecordId}/analysis`,
     { params },
   );
   return response.data.data;
+};
+
+/**
+ * 음성 분석 SSE 구독
+ * GET /api/v1/voice-records/analysis/{jobId}/stream
+ *
+ * 이벤트:
+ *   analysis_complete - 분석 완료 → 자동 종료
+ *   error             - 실패 → 자동 종료
+ *
+ * @returns EventSource — 호출측에서 .close()로 구독 종료 가능
+ */
+export interface VoiceAnalysisSSECallbacks {
+  onComplete: (data: VoiceFactCheckResponse) => void;
+  onError: (error: Event) => void;
+}
+
+export const subscribeVoiceAnalysisSSE = (
+  jobId: string,
+  callbacks: VoiceAnalysisSSECallbacks,
+): EventSource => {
+  const token = getKakaoAccessToken();
+  const url = `${BASE_URL}/voice-records/analysis/${encodeURIComponent(jobId)}/stream${token ? `?token=${token}` : ''}`;
+  const eventSource = new EventSource(url, { withCredentials: true });
+
+  eventSource.addEventListener('analysis_complete', (e) => {
+    const data = JSON.parse((e as MessageEvent).data);
+    callbacks.onComplete(data);
+    eventSource.close();
+  });
+
+  eventSource.onerror = (error) => {
+    callbacks.onError(error);
+    eventSource.close();
+  };
+
+  return eventSource;
 };
 
 /**

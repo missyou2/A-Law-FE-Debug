@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from 'react';
-import { uploadVoiceRecord, startVoiceAnalysis } from '../api/voiceApi.js';
+import { uploadVoiceRecord, startVoiceAnalysis, subscribeVoiceAnalysisSSE } from '../api/voiceApi.js';
+import type { VoiceFactCheckResponse } from '../api/voiceApi.js';
 import { convertBlobToMp3 } from '../utils/audioConverter.js';
 
 interface RecordingContextValue {
@@ -138,6 +139,21 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     setIsRecording(false);
   };
 
+  const startAnalysisWithSSE = (jobId: string, voiceRecordId: number, contractId?: number) => {
+    startVoiceAnalysis(voiceRecordId, contractId).catch((err) =>
+      console.error("분석 시작 실패:", err),
+    );
+
+    subscribeVoiceAnalysisSSE(jobId, {
+      onComplete: (result: VoiceFactCheckResponse) => {
+        console.log("✅ 음성 분석 완료:", result);
+      },
+      onError: (err) => {
+        console.error("음성 분석 SSE 오류:", err);
+      },
+    });
+  };
+
   const handleContractSelect = async (contractId: number) => {
     const blob = audioBlobRef.current;
     if (blob) {
@@ -145,9 +161,9 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
         const mp3Blob = await convertBlobToMp3(blob);
         const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds, contractId);
         setSavedContractId(contractId);
-        await startVoiceAnalysis(uploaded.voiceRecordId, contractId);
+        startAnalysisWithSSE(uploaded.jobId, uploaded.voiceRecordId, contractId);
       } catch (err) {
-        console.error("녹음 업로드/분석 실패:", err);
+        console.error("녹음 업로드 실패:", err);
       }
     }
     setShowContractModal(false);
@@ -161,9 +177,9 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
       try {
         const mp3Blob = await convertBlobToMp3(blob);
         const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds);
-        await startVoiceAnalysis(uploaded.voiceRecordId);
+        startAnalysisWithSSE(uploaded.jobId, uploaded.voiceRecordId);
       } catch (err) {
-        console.error("녹음 업로드/분석 실패:", err);
+        console.error("녹음 업로드 실패:", err);
       }
     }
     setShowContractModal(false);
