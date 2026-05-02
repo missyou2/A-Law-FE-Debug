@@ -62,6 +62,7 @@ function RecordingModals() {
     showSaveModal, showContractModal, finalSeconds, savedContractId,
     handleSaveConfirm, handleSaveCancel, handleContractSelect, handleContractSkip,
     formatSeconds, setSavedContractId,
+    toast, clearToast,
   } = useRecording();
 
   const [contracts, setContracts] = React.useState<import('./api/contractApi.js').ContractListItem[]>([]);
@@ -132,9 +133,16 @@ function RecordingModals() {
       )}
 
       {savedContractId !== null && (
-        <div style={{ position: "fixed", bottom: "90px", left: "50%", transform: "translateX(-50%)", background: "#333", color: "#fff", padding: "10px 20px", borderRadius: "99px", fontSize: "13px", fontWeight: 500, zIndex: 2000, animation: "fadeOut 2.5s forwards" }}
+        <div style={{ position: "fixed", bottom: "90px", left: "50%", transform: "translateX(-50%)", background: "#333", color: "#fff", padding: "10px 20px", borderRadius: "99px", fontSize: "13px", fontWeight: 500, zIndex: 2000, animation: "fadeOut 2.5s forwards", whiteSpace: "nowrap" }}
           onAnimationEnd={() => setSavedContractId(null)}>
           계약서에 연결되었습니다.
+        </div>
+      )}
+
+      {toast && (
+        <div style={{ position: "fixed", bottom: "130px", left: "50%", transform: "translateX(-50%)", background: "#5B4FCF", color: "#fff", padding: "10px 20px", borderRadius: "99px", fontSize: "13px", fontWeight: 500, zIndex: 2000, animation: "fadeOut 3s forwards", whiteSpace: "nowrap" }}
+          onAnimationEnd={clearToast}>
+          {toast}
         </div>
       )}
     </>

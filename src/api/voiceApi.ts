@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getKakaoAccessToken } from '../services/kakaoAuth.js';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -48,6 +48,7 @@ export interface VoiceRecordListItem {
   contractId: number | null;
   contractTitle: string | null;
   duration: number;
+  fileUrl: string | null;
   createdAt: string;
 }
 

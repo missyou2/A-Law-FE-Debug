@@ -19,6 +19,9 @@ interface RecordingContextValue {
   formatSeconds: (sec: number) => string;
   savedContractId: number | null;
   setSavedContractId: (id: number | null) => void;
+  analyzingIds: number[];
+  toast: string | null;
+  clearToast: () => void;
 }
 
 const RecordingContext = createContext<RecordingContextValue | null>(null);
@@ -31,6 +34,9 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showContractModal, setShowContractModal] = useState(false);
   const [savedContractId, setSavedContractId] = useState<number | null>(null);
+  const [analyzingIds, setAnalyzingIds] = useState<number[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const clearToast = () => setToast(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -140,6 +146,8 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const startAnalysisWithSSE = (jobId: string, voiceRecordId: number, contractId?: number) => {
+    setAnalyzingIds(prev => [...prev, voiceRecordId]);
+
     startVoiceAnalysis(voiceRecordId, contractId).catch((err) =>
       console.error("분석 시작 실패:", err),
     );
@@ -147,9 +155,12 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     subscribeVoiceAnalysisSSE(jobId, {
       onComplete: (result: VoiceFactCheckResponse) => {
         console.log("✅ 음성 분석 완료:", result);
+        setAnalyzingIds(prev => prev.filter(id => id !== voiceRecordId));
+        setToast(contractId ? "팩트체크 분석이 완료되었습니다!" : "음성 분석이 완료되었습니다!");
       },
       onError: (err) => {
         console.error("음성 분석 SSE 오류:", err);
+        setAnalyzingIds(prev => prev.filter(id => id !== voiceRecordId));
       },
     });
   };
@@ -177,6 +188,7 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
       try {
         const mp3Blob = await convertBlobToMp3(blob);
         const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds);
+        setToast("녹음이 저장되었습니다. 분석을 시작합니다.");
         startAnalysisWithSSE(uploaded.jobId, uploaded.voiceRecordId);
       } catch (err) {
         console.error("녹음 업로드 실패:", err);
@@ -194,6 +206,7 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
       toggleRecording, handleSaveConfirm, handleSaveCancel,
       handleContractSelect, handleContractSkip, formatSeconds,
       savedContractId, setSavedContractId,
+      analyzingIds, toast, clearToast,
     }}>
       {children}
     </RecordingContext.Provider>
