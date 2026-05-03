@@ -10,6 +10,7 @@
   align-items: stretch;
   padding-top: env(safe-area-inset-top);
   z-index: 1000;
+  background: linear-gradient(to bottom, #F1F2F6 60%, transparent);
 }
 
 .top-nav-item {

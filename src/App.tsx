@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import { RecordingProvider, useRecording } from './contexts/RecordingContext.js';
 import { FaChevronRight } from 'react-icons/fa';
 import { AnimatePresence, motion } from "framer-motion";
-import BottomNav from './components/BottomNav.js';
+import TopNav from './components/TopNav.js';
 import MainScreen from "./pages/MainScreen.js";
 import ScanPage from "./pages/scan/ScanPage.js";
 import FailedPage from './pages/scan/ScanFailed.js';
@@ -222,7 +222,7 @@ function App(){
         <Route path="/debug/ocr" element={<OcrOverlay />} />
       </Routes>
     </AnimatePresence>
-    {showNav && !isChatbotOpen && <BottomNav />}
+    {showNav && !isChatbotOpen && <TopNav />}
     <RecordingModals />
     </>
     </RecordingProvider>
