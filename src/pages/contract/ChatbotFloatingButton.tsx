@@ -1,18 +1,46 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import ChatbotIcon from "../../assets/icons/chatbot.png";
 
 interface Props {
   onClick: () => void;
 }
 
+const MOBILE_WIDTH = 430;
+
+function getContainerLeft() {
+  return Math.max(0, (window.innerWidth - MOBILE_WIDTH) / 2);
+}
+
+function getContainerWidth() {
+  return Math.min(window.innerWidth, MOBILE_WIDTH);
+}
+
 function ChatbotFloatingButton({ onClick }: Props) {
-  const [pos, setPos] = useState({
-    x: window.innerWidth - 80,
-    y: window.innerHeight - 160,
+  const [pos, setPos] = useState(() => {
+    const left = getContainerLeft();
+    const w = getContainerWidth();
+    return {
+      x: left + w - 80,
+      y: window.innerHeight - 160,
+    };
   });
 
   const offset = useRef({ x: 0, y: 0 });
   const isDragging = useRef(false);
+  const isPointerDown = useRef(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const left = getContainerLeft();
+      const w = getContainerWidth();
+      setPos((prev) => ({
+        x: Math.min(Math.max(prev.x, left), left + w - 56),
+        y: Math.min(Math.max(prev.y, 80), window.innerHeight - 120),
+      }));
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -24,12 +52,12 @@ function ChatbotFloatingButton({ onClick }: Props) {
     };
 
     isDragging.current = false;
+    isPointerDown.current = true;
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.buttons === 0) return;
-
+    if (!isPointerDown.current) return;
     e.stopPropagation();
     e.preventDefault();
 
@@ -50,14 +78,19 @@ function ChatbotFloatingButton({ onClick }: Props) {
     e.preventDefault();
 
     e.currentTarget.releasePointerCapture(e.pointerId);
+    isPointerDown.current = false;
 
     if (!isDragging.current) return;
 
-    const screenW = window.innerWidth;
+    const containerLeft = getContainerLeft();
+    const containerW = getContainerWidth();
     const screenH = window.innerHeight;
+    const containerMid = containerLeft + containerW / 2;
 
     const snappedX =
-      pos.x + 28 < screenW / 2 ? 16 : screenW - 72;
+      pos.x + 28 < containerMid
+        ? containerLeft + 16
+        : containerLeft + containerW - 72;
 
     const snappedY = Math.min(
       Math.max(pos.y, 80),
