@@ -105,7 +105,7 @@ export const loginWithKakao = async (): Promise<void> => {
   console.log('🔵 카카오 로그인 리다이렉트 시작...');
 
   window.Kakao.Auth.authorize({
-    redirectUri: 'https://api.a-law.site/oauth2/authorization/kakao',
+    redirectUri: `${window.location.origin}/oauth/callback`,
   });
 };
 
@@ -142,6 +142,7 @@ export const logoutKakao = async (): Promise<void> => {
   // 클라이언트 쿠키 삭제
   Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
   Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
+  Cookies.remove('is_logged_in', { path: '/' });
   console.log('✅ 클라이언트 쿠키가 삭제되었습니다.');
 
   // Kakao SDK 로그아웃 (SDK가 초기화되어 있는 경우)

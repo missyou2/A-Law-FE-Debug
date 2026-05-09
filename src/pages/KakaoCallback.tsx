@@ -4,7 +4,7 @@ import axios from 'axios';
 import { saveKakaoSession } from '../services/kakaoAuth.js';
 import type { KakaoUserInfo } from '../services/kakaoAuth.js';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 
 const KakaoCallback = () => {
   const navigate = useNavigate();

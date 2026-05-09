@@ -37,6 +37,29 @@ const toRecording = (item: VoiceRecordListItem): Recording => ({
   fileUrl: item.fileUrl,
 });
 
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
+const MOCK_RECORDINGS: Recording[] = [
+  {
+    id: 1,
+    title: '원룸 전세 계약 상담 녹음',
+    duration: '00:05',
+    date: '2026-05-09',
+    contractTitle: '원룸 전세 계약서',
+    contractId: 1,
+    fileUrl: '/dummy-recording.wav',
+  },
+  {
+    id: 2,
+    title: '녹음 2026-05-08',
+    duration: '00:05',
+    date: '2026-05-08',
+    contractTitle: null,
+    contractId: null,
+    fileUrl: '/dummy-recording.wav',
+  },
+];
+
 const severityColor = (severity: string) => {
   switch (severity?.toUpperCase()) {
     case 'HIGH': return '#FF4D4F';
@@ -138,6 +161,21 @@ const BottomSheet = ({
   const [analysisError, setAnalysisError] = useState('');
 
   useEffect(() => {
+    if (USE_MOCK) {
+      setAnalysis({
+        voiceRecordId: rec.id,
+        transcript: '안녕하세요. 이 계약서의 보증금은 5천만원이고, 월세는 없는 전세 계약입니다. 계약 기간은 2년이며 중도 해지 시 위약금이 발생합니다.',
+        factCheckItems: rec.contractId ? [
+          { claim: '보증금 5천만원', contractContent: '보증금: 금 오천만원정 (₩50,000,000)', isMatch: true, severity: 'LOW' },
+          { claim: '계약 기간 2년', contractContent: '임대차 기간: 2024년 06월 01일부터 2026년 05월 31일까지', isMatch: true, severity: 'LOW' },
+          { claim: '중도 해지 시 위약금 발생', contractContent: '특약사항: 중도해지 관련 조항 없음', isMatch: false, severity: 'HIGH' },
+        ] : [],
+        status: 'COMPLETED',
+        createdAt: rec.date,
+      });
+      setAnalysisLoading(false);
+      return;
+    }
     const fetchAnalysis = async () => {
       setAnalysisLoading(true);
       setAnalysisError('');
@@ -400,6 +438,11 @@ const RecordingsPage = () => {
   const [selectedRec, setSelectedRec] = useState<Recording | null>(null);
 
   useEffect(() => {
+    if (USE_MOCK) {
+      setRecordings(MOCK_RECORDINGS);
+      setLoading(false);
+      return;
+    }
     const fetchRecordings = async () => {
       try {
         const data = await getVoiceRecords();
