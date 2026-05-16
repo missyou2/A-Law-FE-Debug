@@ -328,6 +328,11 @@ function ContractCarousel() {
 
       longPressTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
 
+      // 텍스트 영역은 기본적으로 스와이프 비활성화 (원본과 동일)
+      touchStartX.current = null;
+      touchStartTime.current = null;
+      setDragOffset(0);
+
       // 1초 홀드 후 텍스트 선택 모드 진입
       longPressTimerRef.current = window.setTimeout(() => {
         longPressActivatedRef.current = true;
@@ -337,15 +342,8 @@ function ContractCarousel() {
 
         const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
         selectionStartRangeRef.current = startRange;
-
-        touchStartX.current = null;
-        touchStartTime.current = null;
-        setDragOffset(0);
       }, 1000);
 
-      // 캐러셀 스와이프 대비용으로 일단 기록
-      touchStartX.current = touch.clientX;
-      touchStartTime.current = Date.now();
       return;
     }
 
@@ -378,7 +376,7 @@ function ContractCarousel() {
       return;
     }
 
-    // 롱프레스 대기 중 → 손가락이 10px 이상 움직이면 타이머 취소 후 스와이프로 처리
+    // 롱프레스 대기 중 → 10px 이상 이동 시 타이머 취소 후 스와이프 활성화
     if (longPressTimerRef.current !== null && !longPressActivatedRef.current) {
       const touch = e.touches[0];
       const start = longPressTouchStartRef.current;
@@ -388,6 +386,9 @@ function ContractCarousel() {
         if (dx > 10 || dy > 10) {
           clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
+          // 스와이프 시작점을 초기 터치 위치로 설정
+          touchStartX.current = start.x;
+          touchStartTime.current = Date.now();
         }
       }
     }
