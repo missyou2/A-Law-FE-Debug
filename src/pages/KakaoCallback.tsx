@@ -36,11 +36,7 @@ const KakaoCallback = () => {
         saveKakaoSession(access_token, user);
 
         console.log('✅ 카카오 로그인 완료:', user);
-        if (!localStorage.getItem('termsAgreed')) {
-          navigate('/terms-agree', { replace: true });
-        } else {
-          navigate('/mypage', { replace: true });
-        }
+        navigate('/mypage', { replace: true });
       } catch (error) {
         console.error('카카오 토큰 교환 실패:', error);
         navigate('/mypage', { replace: true });

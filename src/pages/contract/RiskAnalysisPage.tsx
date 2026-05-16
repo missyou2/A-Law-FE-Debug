@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { AnalysisResultEvent } from "../../types/contract.js";
+import './contractCarousel.css';
 
 export const MOCK_RISK_DATA: AnalysisResultEvent = {
   totalClauses: 3,
@@ -86,10 +87,10 @@ function SkeletonCard({ width }: { width?: string }) {
       border: "1px solid #ebebeb",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-        <div style={{ height: "14px", borderRadius: "6px", background: "#e0e0e0", width: width ?? "70%" }} />
-        <div style={{ height: "24px", width: "40px", borderRadius: "6px", background: "#e0e0e0", flexShrink: 0 }} />
+        <div className="skeleton" style={{ height: "14px", width: width ?? "70%" }} />
+        <div className="skeleton" style={{ height: "24px", width: "40px", flexShrink: 0 }} />
       </div>
-      <div style={{ height: "12px", borderRadius: "6px", background: "#e0e0e0", width: "40%", marginTop: "10px" }} />
+      <div className="skeleton" style={{ height: "12px", width: "40%", marginTop: "10px" }} />
     </div>
   );
 }
@@ -131,7 +132,7 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
     return (
       <div className="page-container">
         <h2 className="page-title">위험 요소 분석</h2>
-        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석했습니다.</p>
+        <p className="page-caption">임대차 계약에서 분쟁 가능성이 있는 부분을 분석 중에 있습니다.</p>
 
         {/* 점수 카드 스켈레톤 */}
         <div style={{
@@ -139,10 +140,10 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
           padding: "14px 18px", borderRadius: "12px",
           background: "#f5f5f5", border: "1px solid #ebebeb", marginBottom: "16px",
         }}>
-          <div style={{ width: "40px", height: "36px", borderRadius: "8px", background: "#e0e0e0" }} />
+          <div className="skeleton" style={{ width: "40px", height: "36px", borderRadius: "8px" }} />
           <div style={{ flex: 1 }}>
-            <div style={{ width: "50px", height: "22px", borderRadius: "6px", background: "#e0e0e0" }} />
-            <div style={{ width: "140px", height: "13px", borderRadius: "6px", background: "#e0e0e0", marginTop: "8px" }} />
+            <div className="skeleton" style={{ width: "50px", height: "22px" }} />
+            <div className="skeleton" style={{ width: "140px", height: "13px", marginTop: "8px" }} />
           </div>
         </div>
 
