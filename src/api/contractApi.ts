@@ -11,7 +11,6 @@ import type {
   AnalysisSSECallbacks,
   AnalysisResultEvent,
   ContractListItem,
-  ContractDetail,
   OcrWord,
 } from '../types/contract.js';
 
@@ -26,7 +25,6 @@ export type {
   OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
-  ContractDetail,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -105,14 +103,6 @@ const compressDataURL = (dataURL: string): Promise<string> =>
 // API 함수들
 // ============================================
 
-type ApiSuccessResponse<T = unknown> = {
-  success: boolean;
-  code: string;
-  message: string;
-  data: T;
-  timestamp: string;
-};
-
 /**
  * 계약서 목록 조회
  * GET /api/v1/contracts
@@ -120,33 +110,6 @@ type ApiSuccessResponse<T = unknown> = {
 export const getContractList = async (): Promise<ContractListItem[]> => {
   const response = await apiClient.get<{ success: boolean; data: ContractListItem[] }>('/contracts');
   return response.data.data;
-};
-
-/**
- * 계약서 단건 조회
- * GET /api/v1/contracts/{id}
- */
-export const getContractById = async (contractId: number): Promise<ApiSuccessResponse<ContractDetail>> => {
-  const response = await apiClient.get<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`);
-  return response.data;
-};
-
-/**
- * 계약서 제목 수정
- * PATCH /api/v1/contracts/{id}
- */
-export const updateContractTitle = async (contractId: number, title: string): Promise<ApiSuccessResponse<ContractDetail>> => {
-  const response = await apiClient.patch<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`, { title });
-  return response.data;
-};
-
-/**
- * 계약서 삭제
- * DELETE /api/v1/contracts/{id}
- */
-export const deleteContract = async (contractId: number): Promise<ApiSuccessResponse<string>> => {
-  const response = await apiClient.delete<ApiSuccessResponse<string>>(`/contracts/${contractId}`);
-  return response.data;
 };
 
 /**
