@@ -96,6 +96,9 @@ function ContractCarousel() {
   const isTextSelectingRef = useRef(false);
   const selectingRef = useRef(false);
   const openTimerRef = useRef<number | null>(null);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressActivatedRef = useRef(false);
+  const longPressTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const selectionStartRangeRef = useRef<Range | null>(null);
 
@@ -309,15 +312,10 @@ function ContractCarousel() {
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const inText = isInSelectableTextArea(e.target);
-    isTextSelectingRef.current = inText;
 
     if (inText) {
-      selectingRef.current = true;
       clearOpenTimer();
-
-      touchStartX.current = null;
-      touchStartTime.current = null;
-      setDragOffset(0);
+      longPressActivatedRef.current = false;
 
       const touch =
         e.touches && e.touches.length > 0
@@ -328,9 +326,26 @@ function ContractCarousel() {
 
       if (!touch) return;
 
-      const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
-      selectionStartRangeRef.current = startRange;
+      longPressTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
 
+      // 1초 홀드 후 텍스트 선택 모드 진입
+      longPressTimerRef.current = window.setTimeout(() => {
+        longPressActivatedRef.current = true;
+        isTextSelectingRef.current = true;
+        selectingRef.current = true;
+        if (navigator.vibrate) navigator.vibrate(30);
+
+        const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
+        selectionStartRangeRef.current = startRange;
+
+        touchStartX.current = null;
+        touchStartTime.current = null;
+        setDragOffset(0);
+      }, 1000);
+
+      // 캐러셀 스와이프 대비용으로 일단 기록
+      touchStartX.current = touch.clientX;
+      touchStartTime.current = Date.now();
       return;
     }
 
@@ -340,6 +355,7 @@ function ContractCarousel() {
   };
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    // 롱프레스 활성화된 경우 → 텍스트 선택 드래그
     if (isTextSelectingRef.current && selectingRef.current) {
       e.preventDefault();
 
@@ -362,6 +378,20 @@ function ContractCarousel() {
       return;
     }
 
+    // 롱프레스 대기 중 → 손가락이 10px 이상 움직이면 타이머 취소 후 스와이프로 처리
+    if (longPressTimerRef.current !== null && !longPressActivatedRef.current) {
+      const touch = e.touches[0];
+      const start = longPressTouchStartRef.current;
+      if (touch && start) {
+        const dx = Math.abs(touch.clientX - start.x);
+        const dy = Math.abs(touch.clientY - start.y);
+        if (dx > 10 || dy > 10) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+      }
+    }
+
     if (touchStartX.current === null) return;
     const delta = e.touches[0]!.clientX - touchStartX.current;
     let adjusted = delta;
@@ -373,9 +403,17 @@ function ContractCarousel() {
   };
 
   const onTouchEnd = () => {
+    // 롱프레스 타이머 정리
+    if (longPressTimerRef.current !== null) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    longPressTouchStartRef.current = null;
+
     if (isTextSelectingRef.current) {
       isTextSelectingRef.current = false;
       selectingRef.current = false;
+      longPressActivatedRef.current = false;
       selectionStartRangeRef.current = null;
       setDragOffset(0);
 
