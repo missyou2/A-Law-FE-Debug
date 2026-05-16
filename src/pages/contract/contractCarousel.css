@@ -348,7 +348,7 @@
   touch-action: pan-y;
 }
 
-::selection {
+.container ::selection {
   background: #fff59d;
   color: #111;
 }

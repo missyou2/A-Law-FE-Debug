@@ -11,6 +11,7 @@ import type {
   AnalysisSSECallbacks,
   AnalysisResultEvent,
   ContractListItem,
+  ContractDetail,
   OcrWord,
 } from '../types/contract.js';
 
@@ -25,6 +26,7 @@ export type {
   OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
+  ContractDetail,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -124,8 +126,17 @@ export const getContractList = async (): Promise<ContractListItem[]> => {
  * 계약서 단건 조회
  * GET /api/v1/contracts/{id}
  */
-export const getContractById = async (contractId: number): Promise<ApiSuccessResponse<ContractListItem>> => {
-  const response = await apiClient.get<ApiSuccessResponse<ContractListItem>>(`/contracts/${contractId}`);
+export const getContractById = async (contractId: number): Promise<ApiSuccessResponse<ContractDetail>> => {
+  const response = await apiClient.get<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`);
+  return response.data;
+};
+
+/**
+ * 계약서 제목 수정
+ * PATCH /api/v1/contracts/{id}
+ */
+export const updateContractTitle = async (contractId: number, title: string): Promise<ApiSuccessResponse<ContractDetail>> => {
+  const response = await apiClient.patch<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`, { title });
   return response.data;
 };
 

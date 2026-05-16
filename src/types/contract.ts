@@ -128,6 +128,15 @@ export interface ContractListItem {
 }
 
 /**
+ * 계약서 단건 조회
+ * GET /api/v1/contracts/{id}
+ */
+export interface ContractDetail extends ContractListItem {
+  analysisId: string;
+  fileUrl: string;
+}
+
+/**
  * OCR 오버레이 — 선택 문장 쉬운 말로 설명
  * POST /api/v1/contracts/easy-explanation
  */

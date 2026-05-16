@@ -8,7 +8,7 @@ import './MyContracts.css';
 import checkSelected from '../assets/icons/check-selected.png';
 import checkUnselected from '../assets/icons/check-unselected.png';
 
-import { getContractList, addBookmark, removeBookmark, getContractById, deleteContract } from '../api/contractApi.js';
+import { getContractList, addBookmark, removeBookmark, getContractById, deleteContract, updateContractTitle } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -40,6 +40,9 @@ const MyContracts = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
+  const [editingTitleId, setEditingTitleId] = useState<number | null>(null);
+  const [editingTitleValue, setEditingTitleValue] = useState('');
+  const [isSavingTitle, setIsSavingTitle] = useState(false);
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -92,6 +95,38 @@ const MyContracts = () => {
   const toggleEdit = () => {
     setIsEditing(!isEditing);
     setSelectedIds([]);
+    setEditingTitleId(null);
+  };
+
+  const handleTitleEditClick = (e: React.MouseEvent, item: ContractListItem) => {
+    e.stopPropagation();
+    setEditingTitleId(item.contractId);
+    setEditingTitleValue(item.title);
+  };
+
+  const handleTitleSave = async (contractId: number) => {
+    const trimmed = editingTitleValue.trim();
+    if (!trimmed) {
+      setEditingTitleId(null);
+      return;
+    }
+    setIsSavingTitle(true);
+    try {
+      await updateContractTitle(contractId, trimmed);
+      setContracts(prev =>
+        prev.map(c => c.contractId === contractId ? { ...c, title: trimmed } : c)
+      );
+      setEditingTitleId(null);
+    } catch {
+      alert('제목 수정 중 오류가 발생했습니다.');
+    } finally {
+      setIsSavingTitle(false);
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent, contractId: number) => {
+    if (e.key === 'Enter') handleTitleSave(contractId);
+    if (e.key === 'Escape') setEditingTitleId(null);
   };
 
   const toggleSelect = (id: number) => {
@@ -261,7 +296,14 @@ const MyContracts = () => {
                 <div className="mc-contract-date">{formatDate(item.createdAt)}</div>
               </div>
 
-              {!isEditing && (
+              {isEditing ? (
+                <button
+                  className="mc-rename-btn"
+                  onClick={(e) => handleTitleEditClick(e, item)}
+                >
+                  이름수정
+                </button>
+              ) : (
                 <button
                   className={`mc-bookmark-btn${item.bookmark ? ' active' : ''}${bookmarkLoading.has(item.contractId) ? ' loading' : ''}`}
                   onClick={(e) => handleBookmarkToggle(e, item)}
@@ -275,6 +317,25 @@ const MyContracts = () => {
         )}
       </div>
 
+      {editingTitleId !== null && (
+        <div className="mc-modal-overlay" onClick={() => setEditingTitleId(null)}>
+          <div className="mc-modal" onClick={(e) => e.stopPropagation()}>
+            <input
+              className="mc-modal-input"
+              value={editingTitleValue}
+              placeholder="바꿀 이름을 입력하세요"
+              onChange={(e) => setEditingTitleValue(e.target.value)}
+              onKeyDown={(e) => handleTitleKeyDown(e, editingTitleId)}
+              disabled={isSavingTitle}
+              autoFocus
+            />
+            <div className="mc-modal-actions">
+              <button className="mc-modal-cancel" onClick={() => setEditingTitleId(null)} disabled={isSavingTitle}>취소</button>
+              <button className="mc-modal-confirm" onClick={() => handleTitleSave(editingTitleId)} disabled={isSavingTitle}>완료</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
