@@ -122,6 +122,11 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
   overflow: hidden;
   padding: 8px !important;
+  z-index: 9999 !important;
+}
+
+.react-datepicker-popper {
+  z-index: 9999 !important;
 }
 
 .mc-calendar .react-datepicker__header {

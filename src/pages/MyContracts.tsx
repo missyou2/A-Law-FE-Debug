@@ -242,6 +242,9 @@ const MyContracts = () => {
               className="mc-date-input"
               calendarClassName="mc-calendar"
               isClearable
+              popperProps={{ strategy: 'fixed' }}
+              popperPlacement="bottom-start"
+              onFocus={(e) => e.target.blur()}
             />
             <span className="mc-date-sep">~</span>
             <DatePicker
@@ -257,6 +260,9 @@ const MyContracts = () => {
               className="mc-date-input"
               calendarClassName="mc-calendar"
               isClearable
+              popperProps={{ strategy: 'fixed' }}
+              popperPlacement="bottom-end"
+              onFocus={(e) => e.target.blur()}
             />
           </div>
         </div>
