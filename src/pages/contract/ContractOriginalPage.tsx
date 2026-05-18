@@ -41,12 +41,13 @@ const styles = {
 }
 
 function ContractOriginalPage({ onSelect }: Props) {
-  const [mode, setMode] = useState<"image" | "text">("image");
+  const location = useLocation();
+  const [mode, setMode] = useState<"image" | "text">(
+    (location.state as LocationState | undefined)?.capturedImageData ? "image" : "text"
+  );
   const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
-
-  const location = useLocation();
   const state = location.state as LocationState | undefined;
   const capturedImageData = state?.capturedImageData || null;
   const ocrText = state?.ocrText?.trim() || null;
@@ -188,7 +189,9 @@ function ContractOriginalPage({ onSelect }: Props) {
                 style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
               />
             ) : (
-              <p style={{ color: "#999" }}>OCR 결과가 없습니다.</p>
+              <p style={{ fontSize: "13px", color: "#9ca3af", textAlign: "center", marginTop: "40px" }}>
+                OCR 데이터가 없습니다.
+              </p>
             )}
           </div>
         </>

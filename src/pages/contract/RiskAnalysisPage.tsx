@@ -3,50 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import type { AnalysisResultEvent } from "../../types/contract.js";
 import './contractCarousel.css';
 
-export const MOCK_RISK_DATA: AnalysisResultEvent = {
-  totalClauses: 3,
-  riskCount: 1,
-  cautionCount: 1,
-  safetyCount: 1,
-  clauseResults: [
-    {
-      clauseId: 1,
-      clauseContent: "임차인은 퇴실시 청소비 20만원 있음.",
-      clauseTitle: "임차인에게 불리한 조항",
-      riskLevel: "위험",
-      category: "임차인에게 불리한 조항",
-      reasoningSummary: "퇴실 시 청소비를 임차인에게 일방적으로 부담시키는 조항은 공정거래위원회의 불공정약관 기준에 해당할 수 있습니다.",
-      recommendation: "청소비 조항 삭제 또는 상호 협의 조항으로 수정을 권장합니다.",
-      legalReference: "",
-      relatedLaw: "",
-      score: 80,
-    },
-    {
-      clauseId: 2,
-      clauseContent: "보증금은 퇴실 후 30일 이내 반환한다.",
-      clauseTitle: "보증금 반환 지연 위험",
-      riskLevel: "주의",
-      category: "보증금 반환 지연 위험",
-      reasoningSummary: "법적으로는 즉시 반환이 원칙이나, 30일 유예는 임차인에게 불리할 수 있습니다.",
-      recommendation: "반환 기한을 단축하거나 지연 시 이자 조항을 추가하는 것을 권장합니다.",
-      legalReference: "",
-      relatedLaw: "",
-      score: 50,
-    },
-    {
-      clauseId: 3,
-      clauseContent: "애완동물사육금지 및 건물내 금연",
-      clauseTitle: "일반 관리 규정",
-      riskLevel: "안전",
-      category: "일반 관리 규정",
-      reasoningSummary: "일반적인 임대차 계약에 포함되는 표준 조항입니다.",
-      recommendation: "",
-      legalReference: "",
-      relatedLaw: "",
-      score: 10,
-    },
-  ],
-};
 
 interface Props {
   riskData: AnalysisResultEvent | null;
@@ -214,7 +170,7 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 600, flex: 1, lineHeight: "1.5" }}>
+                <span className="text-selectable" style={{ fontSize: "14px", fontWeight: 600, flex: 1, lineHeight: "1.5" }}>
                   {clause.clauseContent}
                 </span>
                 <span style={{
@@ -256,7 +212,7 @@ function RiskAnalysisPage({ riskData, analysisDone }: Props) {
                     transition={{ duration: 0.25, ease: "easeInOut" }}
                     style={{ overflow: "hidden" }}
                   >
-                    <div style={{
+                    <div className="text-selectable" style={{
                       marginTop: "8px",
                       padding: "12px 14px",
                       borderRadius: "8px",
