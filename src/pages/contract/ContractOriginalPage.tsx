@@ -12,6 +12,7 @@ interface LocationState {
 
 interface Props {
   onSelect: (text: string) => void;
+  capturedImageData?: string | undefined;
 }
 
 const PAGE_PADDING = 18; // matches .page-container padding
@@ -40,16 +41,14 @@ const styles = {
     } as const,
 }
 
-function ContractOriginalPage({ onSelect }: Props) {
+function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp }: Props) {
   const location = useLocation();
-  const [mode, setMode] = useState<"image" | "text">(
-    (location.state as LocationState | undefined)?.capturedImageData ? "image" : "text"
-  );
+  const state = location.state as LocationState | undefined;
+  const capturedImageData = capturedImageDataProp ?? state?.capturedImageData ?? null;
+  const [mode, setMode] = useState<"image" | "text">(capturedImageData ? "image" : "text");
   const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
-  const state = location.state as LocationState | undefined;
-  const capturedImageData = state?.capturedImageData || null;
   const ocrText = state?.ocrText?.trim() || null;
   const ocrWords = state?.ocrWords ?? [];
 

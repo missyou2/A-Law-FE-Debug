@@ -2,12 +2,13 @@ import '../../App.css'
 import './scan.css'
 import './ScanFailed.css'
 
+import { useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AlbumIcon from '../../assets/icons/album.png';
 import CameraIcon from '../../assets/icons/camera.png';
 import { FaArrowLeft } from 'react-icons/fa';
 
-type ErrorReason = 'server_error' | 'invalid_format' | 'ocr_error';
+type ErrorReason = 'server_error' | 'invalid_format' | 'ocr_error' | 'unauthorized';
 
 const ERROR_MESSAGES: Record<ErrorReason, { title: string; description: string }> = {
   server_error: {
@@ -22,13 +23,29 @@ const ERROR_MESSAGES: Record<ErrorReason, { title: string; description: string }
     title: '텍스트 인식 실패',
     description: '계약서의 텍스트를 인식하지 못했습니다.\n더 선명한 이미지로 다시 시도해 주세요.',
   },
+  unauthorized: {
+    title: '인증 오류',
+    description: '로그인이 필요합니다.\n다시 로그인 후 시도해 주세요.',
+  },
 };
 
 const ScanPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const errorReason = (location.state?.errorReason as ErrorReason) ?? 'server_error';
   const { title, description } = ERROR_MESSAGES[errorReason] ?? ERROR_MESSAGES.server_error;
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        navigate('/loading', { state: { capturedImageData: reader.result as string } });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="scan-container scan-container--failed">
@@ -41,23 +58,32 @@ const ScanPage = () => {
         <p className="scan-error-description">{description}</p>
       </div>
 
-      {/* 2. 지금 바로 촬영하기 버튼 */}
-      <div 
+      {/* 2. 다시 촬영하기 버튼 */}
+      <button
+        type="button"
         className="btn-base btn-capture hover-scale-effect"
-        onClick={() => { alert('카메라 실행') }}
+        onClick={() => navigate('/camera')}
       >
         <img src={CameraIcon} />
         다시 촬영하기
-      </div>
+      </button>
 
       {/* 3. 앨범에서 불러오기 버튼 */}
-      <div 
+      <input
+        type="file"
+        ref={fileInputRef}
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
+      <button
+        type="button"
         className="btn-base btn-album"
-        onClick={() => { alert('앨범 열기') }}
+        onClick={() => fileInputRef.current?.click()}
       >
         <img src={AlbumIcon} />
         앨범에서 불러오기
-      </div>
+      </button>
 
       {/* 4. 이전으로 돌아가기 링크 */}
       <div 

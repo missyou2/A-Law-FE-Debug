@@ -16,8 +16,19 @@ export interface OcrWord {
 }
 
 /**
- * 1번. 계약서 이미지 업로드 → OCR 결과 응답
+ * 계약서 저장
  * POST /api/v1/contracts
+ */
+export interface SaveContractResponse {
+  job_id: string;
+  contract_id: number;
+  status: string;
+  created_at: string;
+}
+
+/**
+ * 1번. 계약서 이미지 업로드 → OCR 결과 응답
+ * POST /api/v1/contracts/ocr
  */
 export interface ContractOCRResponse {
   status: 'ocr_complete' | 'ocr_failed' | 'error' | 'fail';

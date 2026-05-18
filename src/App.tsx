@@ -12,6 +12,7 @@ import SaveComplete from './pages/SaveComplete.js';
 import CameraPage from './pages/scan/CameraPage.js';
 import CapturedResult from './pages/scan/CapturedResult.js';
 import ContractCarousel from './pages/contract/ContractCarousel.js';
+import ContractViewPage from './pages/contract/ContractViewPage.js';
 import DocumentSavePage from './pages/contract/DocumentSavePage.js';
 import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePage.js';
 import MyContracts from './pages/MyContracts.js';
@@ -191,6 +192,9 @@ function App(){
 
         {/* Contract carousel view page */}
         <Route path="/contract/view" element={<Page><ContractCarousel /></Page>} />
+
+        {/* Saved contract view page (no 다음 button, shows fileUrl image) */}
+        <Route path="/contract/detail/:contractId" element={<Page><ContractViewPage /></Page>} />
 
         {/* Contract save page */}
         <Route path="/contract/save" element={<Page><DocumentSavePage /></Page>} />

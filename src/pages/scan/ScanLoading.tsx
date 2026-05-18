@@ -58,6 +58,8 @@ const ScanLoading = () => {
             const status = (error as { response: { status: number } }).response.status;
             if (status === 400 || status === 415) {
               errorReason = 'invalid_format';
+            } else if (status === 401) {
+              errorReason = 'unauthorized';
             }
           }
           navigate('/scan/failed', { state: { errorReason }, replace: true });

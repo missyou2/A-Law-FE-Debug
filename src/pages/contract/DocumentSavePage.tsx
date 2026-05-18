@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './contractCarousel.css'
 import '../../App.css'
-// import { saveContract } from "../../services/contractService.js";  // 서비스 사용 시
+import { saveContract } from "../../api/contractApi.js";
 
 const styles={
     container: {
@@ -39,12 +39,15 @@ const styles={
 }
 
 function DocumentSavePage() {
-  const [title, setTitle] = useState("2024-11-표준계약서_임대");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { contractId?: number; capturedImageData?: string } | undefined;
+  const capturedImageData = state?.capturedImageData ?? null;
+
+  const [title, setTitle] = useState("");
   const [isImportant, setIsImportant] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
-
-  const navigate = useNavigate();
 
   return (
     <div style={styles.container}
@@ -125,55 +128,26 @@ function DocumentSavePage() {
         }}
         onClick={async () => {
           if (isSaving) return;
+          if (!capturedImageData) {
+            setError("저장할 계약서 이미지가 없습니다.");
+            return;
+          }
+          if (!title.trim()) {
+            setError("문서 이름을 입력해주세요.");
+            return;
+          }
 
           setIsSaving(true);
           setError("");
 
-          // ============================================
-          // 여기에 API 호출 코드 삽입
-          // ============================================
-          // API: POST /api/v1/contracts
-          // 설명: 계약서 업로드 및 분석 요청 (파일 저장 생성)
-          //
-          // 필요한 데이터:
-          // - title: string (계약서 제목)
-          // - isImportant: boolean (중요 문서 여부)
-          // - file: File (이미지, PDF, 텍스트 파일)
-          //
-          // 예시 코드:
-          // const API_KEY = "여기에 API 키 입력";
-          // const BASE_URL = "http://localhost:3000/api/v1";
-          //
-          // const formData = new FormData();
-          // formData.append('title', title);
-          // formData.append('isImportant', String(isImportant));
-          // // formData.append('file', fileObject);  // 파일이 있는 경우
-          //
-          // try {
-          //   const response = await fetch(`${BASE_URL}/contracts`, {
-          //     method: 'POST',
-          //     headers: {
-          //       'Authorization': `Bearer ${API_KEY}`,
-          //     },
-          //     body: formData,
-          //   });
-          //
-          //   if (!response.ok) throw new Error('업로드 실패');
-          //   const data = await response.json();
-          //
-          //   setIsSaving(false);
-          //   navigate('/contract/saved');
-          // } catch (error) {
-          //   setIsSaving(false);
-          //   setError('저장에 실패했습니다.');
-          // }
-          // ============================================
-
-          // 임시: 더미 동작 (위 코드로 교체하세요)
-          setTimeout(() => {
-            setIsSaving(false);
+          try {
+            await saveContract(capturedImageData, title.trim());
             navigate('/contract/saved');
-          }, 1000);
+          } catch {
+            setError("저장에 실패했습니다. 다시 시도해주세요.");
+          } finally {
+            setIsSaving(false);
+          }
         }}
         disabled={isSaving}
       >

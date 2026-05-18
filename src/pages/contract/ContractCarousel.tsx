@@ -488,7 +488,12 @@ function ContractCarousel() {
           style={{ fontSize: 15, color: "#111", cursor: "pointer" }}
           onClick={() => {
             haptic();
-            navigate("/contract/save", { state: { contractId: locationState?.contractId } });
+            navigate("/contract/save", {
+              state: {
+                contractId: locationState?.contractId,
+                capturedImageData: locationState?.capturedImageData,
+              },
+            });
           }}
         >
           다음 →

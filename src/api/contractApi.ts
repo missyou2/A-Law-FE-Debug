@@ -12,6 +12,7 @@ import type {
   AnalysisResultEvent,
   ContractListItem,
   ContractDetail,
+  SaveContractResponse,
   OcrWord,
 } from '../types/contract.js';
 
@@ -231,6 +232,28 @@ export const exportToImage = async (
   request: ExportImageRequest
 ): Promise<ExportImageResponse> => {
   const response = await apiClient.post(`/contracts/${contractId}/text`, request);
+  return response.data;
+};
+
+/**
+ * 계약서 저장
+ * POST /api/v1/contracts  (multipart/form-data)
+ */
+export const saveContract = async (
+  capturedImageData: string,
+  title: string,
+): Promise<SaveContractResponse> => {
+  const blob = dataURLtoBlob(capturedImageData);
+  const formData = new FormData();
+  formData.append('file', blob, 'contract.jpg');
+  formData.append('title', title);
+
+  const response = await apiClient.post('/contracts', formData, {
+    transformRequest: (data: FormData, headers: Record<string, string>) => {
+      delete headers['Content-Type'];
+      return data;
+    },
+  });
   return response.data;
 };
 
