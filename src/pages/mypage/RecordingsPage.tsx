@@ -9,18 +9,11 @@ import { useRecording } from '../../contexts/RecordingContext.js';
 interface Recording {
   id: number;
   title: string;
-  duration: string;
+  duration: string; // 오디오 로드 후 동적으로 채워짐
   date: string;
-  contractTitle: string | null;
   contractId: number | null;
   fileUrl: string | null;
 }
-
-const formatDuration = (seconds: number): string => {
-  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const s = String(seconds % 60).padStart(2, '0');
-  return `${m}:${s}`;
-};
 
 const formatDate = (isoString: string): string => {
   const d = new Date(isoString);
@@ -29,10 +22,9 @@ const formatDate = (isoString: string): string => {
 
 const toRecording = (item: VoiceRecordListItem): Recording => ({
   id: item.voiceRecordId,
-  title: item.contractTitle ? `${item.contractTitle} 녹음` : `녹음 ${formatDate(item.createdAt)}`,
-  duration: formatDuration(item.duration),
+  title: item.title ?? `녹음 ${formatDate(item.createdAt)}`,
+  duration: '',
   date: formatDate(item.createdAt),
-  contractTitle: item.contractTitle,
   contractId: item.contractId,
   fileUrl: item.fileUrl,
 });
@@ -45,7 +37,6 @@ const MOCK_RECORDINGS: Recording[] = [
     title: '원룸 전세 계약 상담 녹음',
     duration: '00:05',
     date: '2026-05-09',
-    contractTitle: '원룸 전세 계약서',
     contractId: 1,
     fileUrl: '/dummy-recording.wav',
   },
@@ -54,7 +45,6 @@ const MOCK_RECORDINGS: Recording[] = [
     title: '녹음 2026-05-08',
     duration: '00:05',
     date: '2026-05-08',
-    contractTitle: null,
     contractId: null,
     fileUrl: '/dummy-recording.wav',
   },
@@ -162,17 +152,30 @@ const BottomSheet = ({
 
   useEffect(() => {
     if (USE_MOCK) {
-      setAnalysis({
-        voiceRecordId: rec.id,
-        transcript: '안녕하세요. 이 계약서의 보증금은 5천만원이고, 월세는 없는 전세 계약입니다. 계약 기간은 2년이며 중도 해지 시 위약금이 발생합니다.',
-        factCheckItems: rec.contractId ? [
-          { claim: '보증금 5천만원', contractContent: '보증금: 금 오천만원정 (₩50,000,000)', isMatch: true, severity: 'LOW' },
-          { claim: '계약 기간 2년', contractContent: '임대차 기간: 2024년 06월 01일부터 2026년 05월 31일까지', isMatch: true, severity: 'LOW' },
-          { claim: '중도 해지 시 위약금 발생', contractContent: '특약사항: 중도해지 관련 조항 없음', isMatch: false, severity: 'HIGH' },
-        ] : [],
-        status: 'COMPLETED',
-        createdAt: rec.date,
-      });
+      if (rec.id === 1) {
+        // 계약서 연동 — STT 텍스트 + 팩트체크 결과
+        setAnalysis({
+          voiceRecordId: 1,
+          transcript: '네, 보증금은 5천만원이고요, 계약 기간은 2년으로 알고 있습니다. 중도 해지하시면 위약금이 발생한다고 하셨고, 관리비는 따로 월 5만원이라고 하셨는데 맞나요?',
+          factCheckItems: [
+            { claim: '보증금 5천만원', contractContent: '제3조: 보증금은 금 오천만원정(₩50,000,000)으로 한다.', isMatch: true, severity: 'LOW' },
+            { claim: '계약 기간 2년', contractContent: '제4조: 임대차 기간은 2024년 6월 1일부터 2026년 5월 31일까지로 한다.', isMatch: true, severity: 'LOW' },
+            { claim: '중도 해지 시 위약금 발생', contractContent: '특약사항: 중도해지 관련 조항 없음', isMatch: false, severity: 'HIGH' },
+            { claim: '관리비 월 5만원', contractContent: '제6조: 관리비는 월 7만원으로 임차인이 부담한다.', isMatch: false, severity: 'MEDIUM' },
+          ],
+          status: 'COMPLETED',
+          createdAt: rec.date,
+        });
+      } else {
+        // 단순 저장 — STT 텍스트만
+        setAnalysis({
+          voiceRecordId: 2,
+          transcript: '저 혹시 이 건물 전세 매물 관련해서 문의드리려고요. 보증금이 얼마나 되는지, 그리고 계약 기간은 보통 어떻게 되는지 여쭤봐도 될까요? 그리고 혹시 옵션이나 관리비 같은 것도 따로 있나요?',
+          factCheckItems: [],
+          status: 'COMPLETED',
+          createdAt: rec.date,
+        });
+      }
       setAnalysisLoading(false);
       return;
     }
@@ -267,7 +270,7 @@ const BottomSheet = ({
             <div style={{ fontSize: '17px', fontWeight: '800', color: '#111' }}>{rec.title}</div>
             <div style={{ fontSize: '12px', color: '#aaa', marginTop: '3px' }}>
               {rec.duration} · {rec.date}
-              {rec.contractTitle && ` · ${rec.contractTitle}`}
+              {rec.contractId && ` · 계약서 연동`}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -367,6 +370,7 @@ const BottomSheet = ({
           ) : hasFactCheck ? (
             /* 계약서 팩트체크 결과 */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* 팩트체크 카드 */}
               {analysis.factCheckItems.map((item, idx) => (
                 <div
                   key={idx}
@@ -404,9 +408,16 @@ const BottomSheet = ({
                   </div>
                 </div>
               ))}
+              {/* STT 전사 텍스트 */}
+              {analysis.transcript && (
+                <div style={{ background: '#F8F9FF', borderRadius: '12px', padding: '16px', marginTop: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#111', marginBottom: '8px' }}>녹음 내용</div>
+                  <div style={{ fontSize: '13px', color: '#444', lineHeight: 1.6 }}>{analysis.transcript}</div>
+                </div>
+              )}
             </div>
           ) : analysis?.transcript ? (
-            /* 단순 녹음 — 전사 텍스트 */
+            /* 단순 녹음 — 전사 텍스트만 */
             <div style={{
               background: '#F8F9FF',
               borderRadius: '12px',
@@ -494,7 +505,7 @@ const RecordingsPage = () => {
                 <div style={styles.itemTitle}>{rec.title}</div>
                 <div style={styles.itemMeta}>
                   {rec.duration} · {rec.date}
-                  {rec.contractTitle && ` · ${rec.contractTitle}`}
+                  {rec.contractId && ` · 계약서 연동`}
                 </div>
                 {analyzingIds.includes(rec.id) && (
                   <div style={{ fontSize: '11px', color: '#FA8C16', fontWeight: 700, marginTop: '3px' }}>

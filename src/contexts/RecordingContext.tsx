@@ -170,7 +170,7 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     if (blob) {
       try {
         const mp3Blob = await convertBlobToMp3(blob);
-        const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds, contractId);
+        const uploaded = await uploadVoiceRecord(mp3Blob, contractId);
         setSavedContractId(contractId);
         startAnalysisWithSSE(uploaded.jobId, uploaded.voiceRecordId, contractId);
       } catch (err) {
@@ -187,7 +187,7 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
     if (blob) {
       try {
         const mp3Blob = await convertBlobToMp3(blob);
-        const uploaded = await uploadVoiceRecord(mp3Blob, finalSeconds);
+        const uploaded = await uploadVoiceRecord(mp3Blob);
         setToast("녹음이 저장되었습니다. 분석을 시작합니다.");
         startAnalysisWithSSE(uploaded.jobId, uploaded.voiceRecordId);
       } catch (err) {
