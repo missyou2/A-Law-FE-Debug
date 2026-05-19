@@ -11,7 +11,7 @@ declare global {
 const KAKAO_APP_KEY = import.meta.env.VITE_KAKAO_APP_KEY;
 
 // API 기본 URL
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.a-law.site/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
 const isSecureUrl = (url: string) => url.startsWith('https://') || url.startsWith('/');
 
 // 쿠키 키 상수
@@ -105,7 +105,7 @@ export const loginWithKakao = async (): Promise<void> => {
   console.log('🔵 카카오 로그인 리다이렉트 시작...');
 
   window.Kakao.Auth.authorize({
-    redirectUri: 'https://api.a-law.site/oauth2/authorization/kakao',
+    redirectUri: `${window.location.origin}/oauth/callback`,
   });
 };
 
@@ -142,6 +142,7 @@ export const logoutKakao = async (): Promise<void> => {
   // 클라이언트 쿠키 삭제
   Cookies.remove(COOKIE_KEYS.USER_INFO, { path: '/' });
   Cookies.remove(COOKIE_KEYS.ACCESS_TOKEN, { path: '/' });
+  Cookies.remove('is_logged_in', { path: '/' });
   console.log('✅ 클라이언트 쿠키가 삭제되었습니다.');
 
   // Kakao SDK 로그아웃 (SDK가 초기화되어 있는 경우)
@@ -193,40 +194,44 @@ export interface KakaoUserInfo {
 
 /**
  * 개발용 강제 로그인
- * POST /api/v1/auth/dev
- * 응답의 data 필드(토큰)를 쿠키에 직접 저장해 로그인 상태를 만든다.
+ * 1순위: POST /api/v1/auth/dev (백엔드 dev 엔드포인트)
+ * fallback: 프론트엔드 전용 mock 쿠키 세팅 (API 호출은 실패하지만 UI 탐색 가능)
  */
 export const devLogin = async (): Promise<void> => {
-  const response = await fetch(`${BASE_URL}/auth/dev`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+  try {
+    const response = await fetch(`${BASE_URL}/auth/dev`, {
+      method: 'POST',
+      credentials: 'include',
+    });
 
-  if (!response.ok) {
-    throw new Error(`Dev login failed: ${response.status}`);
+    if (response.ok) {
+      const body = await response.json() as {
+        success: boolean;
+        data?: string | null;
+        message?: string;
+      };
+
+      if (body.success) {
+        if (body.data) {
+          Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, body.data, COOKIE_OPTIONS);
+        }
+        Cookies.set('is_logged_in', 'true', COOKIE_OPTIONS);
+        const devUser: KakaoUserInfo = { id: 0, nickname: '개발 테스트 사용자' };
+        Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(devUser), COOKIE_OPTIONS);
+        console.log('✅ Dev login 완료 (서버).');
+        return;
+      }
+    }
+
+    // 서버가 403 등으로 막혀있으면 프론트 mock으로 fallback
+    console.warn(`⚠️ /auth/dev 응답 ${response.status} — 프론트 mock 로그인으로 전환`);
+  } catch (e) {
+    console.warn('⚠️ /auth/dev 요청 실패 — 프론트 mock 로그인으로 전환:', e);
   }
 
-  const body = await response.json() as {
-    success: boolean;
-    data?: string | null; // access token (없으면 서버가 세션 쿠키로 처리)
-    message?: string;
-  };
-
-  if (!body.success) {
-    throw new Error(`Dev login error: ${body.message ?? 'server returned success=false'}`);
-  }
-
-  // 서버가 토큰을 body.data로 내려준 경우 → Bearer 헤더용으로 쿠키에 저장
-  // 없는 경우 → 서버가 이미 HttpOnly 세션 쿠키를 Set-Cookie로 심어 준 것이므로 그대로 진행
-  if (body.data) {
-    Cookies.set(COOKIE_KEYS.ACCESS_TOKEN, body.data, COOKIE_OPTIONS);
-  }
-
+  // Fallback: 쿠키만 직접 심어서 로그인 상태 유지 (API 호출은 인증 실패할 수 있음)
   Cookies.set('is_logged_in', 'true', COOKIE_OPTIONS);
-
-  // 개발용 유저 정보 (getKakaoUser()가 null 반환하지 않도록)
-  const devUser: KakaoUserInfo = { id: 0, nickname: '개발 테스트 사용자' };
+  const devUser: KakaoUserInfo = { id: 0, nickname: '[Mock] 개발 사용자' };
   Cookies.set(COOKIE_KEYS.USER_INFO, JSON.stringify(devUser), COOKIE_OPTIONS);
-
-  console.log('✅ Dev login 완료.', body.data ? `token: ${body.data.substring(0, 12)}...` : '(세션 쿠키 방식)');
+  console.log('✅ Dev login 완료 (mock — UI 탐색 전용, API는 인증 불필요한 항목만 동작).');
 };

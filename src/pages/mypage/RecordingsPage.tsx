@@ -2,22 +2,18 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaPlay, FaPause, FaChevronRight, FaTimes, FaTrash } from 'react-icons/fa';
 import '../../App.css';
-import { getVoiceRecords, deleteVoiceRecord } from '../../api/voiceApi.js';
-import type { VoiceRecordListItem } from '../../api/voiceApi.js';
+import { getVoiceRecords, deleteVoiceRecord, getVoiceAnalysisResult } from '../../api/voiceApi.js';
+import type { VoiceRecordListItem, VoiceFactCheckResponse } from '../../api/voiceApi.js';
+import { useRecording } from '../../contexts/RecordingContext.js';
 
 interface Recording {
   id: number;
   title: string;
-  duration: string;
+  duration: string; // 오디오 로드 후 동적으로 채워짐
   date: string;
-  contractTitle: string | null;
+  contractId: number | null;
+  fileUrl: string | null;
 }
-
-const formatDuration = (seconds: number): string => {
-  const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-  const s = String(seconds % 60).padStart(2, '0');
-  return `${m}:${s}`;
-};
 
 const formatDate = (isoString: string): string => {
   const d = new Date(isoString);
@@ -26,11 +22,51 @@ const formatDate = (isoString: string): string => {
 
 const toRecording = (item: VoiceRecordListItem): Recording => ({
   id: item.voiceRecordId,
-  title: item.contractTitle ? `${item.contractTitle} 녹음` : `녹음 ${formatDate(item.createdAt)}`,
-  duration: formatDuration(item.duration),
+  title: item.title ?? `녹음 ${formatDate(item.createdAt)}`,
+  duration: '',
   date: formatDate(item.createdAt),
-  contractTitle: item.contractTitle,
+  contractId: item.contractId,
+  fileUrl: item.fileUrl,
 });
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
+const MOCK_RECORDINGS: Recording[] = [
+  {
+    id: 1,
+    title: '원룸 전세 계약 상담 녹음',
+    duration: '00:05',
+    date: '2026-05-09',
+    contractId: 1,
+    fileUrl: '/dummy-recording.wav',
+  },
+  {
+    id: 2,
+    title: '녹음 2026-05-08',
+    duration: '00:05',
+    date: '2026-05-08',
+    contractId: null,
+    fileUrl: '/dummy-recording.wav',
+  },
+];
+
+const severityColor = (severity: string) => {
+  switch (severity?.toUpperCase()) {
+    case 'HIGH': return '#FF4D4F';
+    case 'MEDIUM': return '#FA8C16';
+    case 'LOW': return '#52C41A';
+    default: return '#8c8c8c';
+  }
+};
+
+const severityLabel = (severity: string) => {
+  switch (severity?.toUpperCase()) {
+    case 'HIGH': return '높음';
+    case 'MEDIUM': return '중간';
+    case 'LOW': return '낮음';
+    default: return severity;
+  }
+};
 
 const styles = {
   container: {
@@ -96,7 +132,6 @@ const styles = {
   itemMeta: { fontSize: '12px', color: '#aaa', marginTop: '3px', fontWeight: '600' } as const,
 };
 
-// 바텀 시트
 const BottomSheet = ({
   rec,
   onClose,
@@ -111,6 +146,69 @@ const BottomSheet = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
   const [deleting, setDeleting] = useState(false);
+  const [analysis, setAnalysis] = useState<VoiceFactCheckResponse | null>(null);
+  const [analysisLoading, setAnalysisLoading] = useState(true);
+  const [analysisError, setAnalysisError] = useState('');
+
+  useEffect(() => {
+    if (USE_MOCK) {
+      if (rec.id === 1) {
+        // 계약서 연동 — STT 텍스트 + 팩트체크 결과
+        setAnalysis({
+          voiceRecordId: 1,
+          transcript: '네, 보증금은 5천만원이고요, 계약 기간은 2년으로 알고 있습니다. 중도 해지하시면 위약금이 발생한다고 하셨고, 관리비는 따로 월 5만원이라고 하셨는데 맞나요?',
+          factCheckItems: [
+            { claim: '보증금 5천만원', contractContent: '제3조: 보증금은 금 오천만원정(₩50,000,000)으로 한다.', isMatch: true, severity: 'LOW' },
+            { claim: '계약 기간 2년', contractContent: '제4조: 임대차 기간은 2024년 6월 1일부터 2026년 5월 31일까지로 한다.', isMatch: true, severity: 'LOW' },
+            { claim: '중도 해지 시 위약금 발생', contractContent: '특약사항: 중도해지 관련 조항 없음', isMatch: false, severity: 'HIGH' },
+            { claim: '관리비 월 5만원', contractContent: '제6조: 관리비는 월 7만원으로 임차인이 부담한다.', isMatch: false, severity: 'MEDIUM' },
+          ],
+          status: 'COMPLETED',
+          createdAt: rec.date,
+        });
+      } else {
+        // 단순 저장 — STT 텍스트만
+        setAnalysis({
+          voiceRecordId: 2,
+          transcript: '저 혹시 이 건물 전세 매물 관련해서 문의드리려고요. 보증금이 얼마나 되는지, 그리고 계약 기간은 보통 어떻게 되는지 여쭤봐도 될까요? 그리고 혹시 옵션이나 관리비 같은 것도 따로 있나요?',
+          factCheckItems: [],
+          status: 'COMPLETED',
+          createdAt: rec.date,
+        });
+      }
+      setAnalysisLoading(false);
+      return;
+    }
+    const fetchAnalysis = async () => {
+      setAnalysisLoading(true);
+      setAnalysisError('');
+      try {
+        const result = await getVoiceAnalysisResult(
+          rec.id,
+          rec.contractId ?? undefined,
+        );
+        setAnalysis(result);
+      } catch {
+        setAnalysisError('분석 결과를 불러오지 못했습니다.');
+      } finally {
+        setAnalysisLoading(false);
+      }
+    };
+    fetchAnalysis();
+  }, [rec.id, rec.contractId]);
+
+  // 분석 중이면 3초마다 자동 갱신
+  useEffect(() => {
+    const isRunning = analysis?.status === 'PENDING' || analysis?.status === 'PROCESSING';
+    if (!isRunning) return;
+    const timer = setInterval(async () => {
+      try {
+        const result = await getVoiceAnalysisResult(rec.id, rec.contractId ?? undefined);
+        setAnalysis(result);
+      } catch { /* ignore */ }
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [analysis?.status, rec.id, rec.contractId]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -144,9 +242,10 @@ const BottomSheet = ({
     }
   };
 
+  const hasFactCheck = analysis && analysis.factCheckItems && analysis.factCheckItems.length > 0;
+
   return (
     <>
-      {/* 딤 배경 */}
       <div
         onClick={onClose}
         style={{
@@ -156,14 +255,13 @@ const BottomSheet = ({
         }}
       />
 
-      {/* 시트 */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: '#fff',
         borderRadius: '24px 24px 0 0',
         padding: '24px 20px 40px',
         zIndex: 101,
-        maxHeight: '75vh',
+        maxHeight: '80vh',
         overflowY: 'auto',
       }}>
         {/* 헤더 */}
@@ -172,7 +270,7 @@ const BottomSheet = ({
             <div style={{ fontSize: '17px', fontWeight: '800', color: '#111' }}>{rec.title}</div>
             <div style={{ fontSize: '12px', color: '#aaa', marginTop: '3px' }}>
               {rec.duration} · {rec.date}
-              {rec.contractTitle && ` · ${rec.contractTitle}`}
+              {rec.contractId && ` · 계약서 연동`}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
@@ -192,13 +290,16 @@ const BottomSheet = ({
           </div>
         </div>
 
-        {/* 오디오 플레이어 (audioUrl이 있을 경우에만 표시) */}
-        <audio
-          ref={audioRef}
-          onTimeUpdate={e => setCurrentTime(e.currentTarget.currentTime)}
-          onLoadedMetadata={e => setAudioDuration(e.currentTarget.duration)}
-          onEnded={() => setIsPlaying(false)}
-        />
+        {/* 오디오 플레이어 */}
+        {rec.fileUrl && (
+          <audio
+            ref={audioRef}
+            src={rec.fileUrl}
+            onTimeUpdate={e => setCurrentTime(e.currentTarget.currentTime)}
+            onLoadedMetadata={e => setAudioDuration(e.currentTarget.duration)}
+            onEnded={() => setIsPlaying(false)}
+          />
+        )}
         <div style={{
           background: '#F6F5FF',
           borderRadius: '16px',
@@ -206,13 +307,15 @@ const BottomSheet = ({
           display: 'flex',
           alignItems: 'center',
           gap: '14px',
-          marginBottom: '20px',
+          marginBottom: '24px',
         }}>
           <button
             onClick={togglePlay}
+            disabled={!rec.fileUrl}
             style={{
               width: '44px', height: '44px', borderRadius: '50%',
-              background: '#5B4FCF', border: 'none', cursor: 'pointer',
+              background: rec.fileUrl ? '#5B4FCF' : '#ccc',
+              border: 'none', cursor: rec.fileUrl ? 'pointer' : 'default',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               flexShrink: 0,
             }}
@@ -238,6 +341,101 @@ const BottomSheet = ({
             </div>
           </div>
         </div>
+
+        {/* 분석 결과 */}
+        <div style={{ borderTop: '1px solid #F0F0F0', paddingTop: '20px' }}>
+          <div style={{ fontSize: '15px', fontWeight: '800', color: '#111', marginBottom: '14px' }}>
+            분석 결과
+          </div>
+
+          {analysisLoading ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#aaa', fontSize: '14px' }}>
+              분석 결과를 불러오는 중...
+            </div>
+          ) : analysisError ? (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#FF6B6B', fontSize: '14px' }}>
+              {analysisError}
+            </div>
+          ) : analysis?.status === 'PENDING' || analysis?.status === 'PROCESSING' ? (
+            <div style={{
+              background: '#FFF9E6',
+              borderRadius: '12px',
+              padding: '16px',
+              fontSize: '14px',
+              color: '#886600',
+              textAlign: 'center',
+            }}>
+              분석이 아직 진행 중입니다. 잠시 후 다시 확인해 주세요.
+            </div>
+          ) : hasFactCheck ? (
+            /* 계약서 팩트체크 결과 */
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* 팩트체크 카드 */}
+              {analysis.factCheckItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: item.isMatch ? '#F6FFED' : '#FFF2F0',
+                    border: `1px solid ${item.isMatch ? '#B7EB8F' : '#FFCCC7'}`,
+                    borderRadius: '12px',
+                    padding: '14px',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '18px' }}>{item.isMatch ? '✅' : '❌'}</span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      color: severityColor(item.severity),
+                      background: '#fff',
+                      borderRadius: '6px',
+                      padding: '2px 8px',
+                    }}>
+                      위험도 {severityLabel(item.severity)}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#111', marginBottom: '6px' }}>
+                    발화 내용
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#444', marginBottom: '10px', lineHeight: 1.5 }}>
+                    {item.claim}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#111', marginBottom: '6px' }}>
+                    계약서 내용
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#666', lineHeight: 1.5 }}>
+                    {item.contractContent}
+                  </div>
+                </div>
+              ))}
+              {/* STT 전사 텍스트 */}
+              {analysis.transcript && (
+                <div style={{ background: '#F8F9FF', borderRadius: '12px', padding: '16px', marginTop: '4px' }}>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#111', marginBottom: '8px' }}>녹음 내용</div>
+                  <div style={{ fontSize: '13px', color: '#444', lineHeight: 1.6 }}>{analysis.transcript}</div>
+                </div>
+              )}
+            </div>
+          ) : analysis?.transcript ? (
+            /* 단순 녹음 — 전사 텍스트만 */
+            <div style={{
+              background: '#F8F9FF',
+              borderRadius: '12px',
+              padding: '16px',
+            }}>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: '#111', marginBottom: '8px' }}>
+                녹음 내용
+              </div>
+              <div style={{ fontSize: '13px', color: '#444', lineHeight: 1.6 }}>
+                {analysis.transcript}
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px 0', color: '#aaa', fontSize: '14px' }}>
+              분석 결과가 없습니다.
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
@@ -245,11 +443,17 @@ const BottomSheet = ({
 
 const RecordingsPage = () => {
   const navigate = useNavigate();
+  const { analyzingIds } = useRecording();
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedRec, setSelectedRec] = useState<Recording | null>(null);
 
   useEffect(() => {
+    if (USE_MOCK) {
+      setRecordings(MOCK_RECORDINGS);
+      setLoading(false);
+      return;
+    }
     const fetchRecordings = async () => {
       try {
         const data = await getVoiceRecords();
@@ -301,8 +505,13 @@ const RecordingsPage = () => {
                 <div style={styles.itemTitle}>{rec.title}</div>
                 <div style={styles.itemMeta}>
                   {rec.duration} · {rec.date}
-                  {rec.contractTitle && ` · ${rec.contractTitle}`}
+                  {rec.contractId && ` · 계약서 연동`}
                 </div>
+                {analyzingIds.includes(rec.id) && (
+                  <div style={{ fontSize: '11px', color: '#FA8C16', fontWeight: 700, marginTop: '3px' }}>
+                    분석 중...
+                  </div>
+                )}
               </div>
               <FaChevronRight size={13} color="#ccc" />
             </div>
