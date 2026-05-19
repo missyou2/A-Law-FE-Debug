@@ -182,6 +182,11 @@ function ContractViewPage() {
     if (Math.abs(dragOffsetRef.current) > 3 || sheetOpen || chatbotOpen) return;
     const sel = window.getSelection();
     if (!sel || !selectionIsInsideViewport(sel)) return;
+    const anchorEl =
+      sel.anchorNode?.nodeType === 1
+        ? (sel.anchorNode as Element)
+        : sel.anchorNode?.parentElement;
+    if (!anchorEl || (!anchorEl.closest(".doc-box") && !anchorEl.closest(".text-selectable"))) return;
     const text = sel.toString().trim();
     if (text.length < 2) return;
     setSelectedText(text);

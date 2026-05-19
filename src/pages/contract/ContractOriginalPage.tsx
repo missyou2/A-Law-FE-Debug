@@ -115,7 +115,7 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
 
       {mode === "image" && (
         capturedImageData ? (
-          <div style={styles.imageContainer}>
+          <div style={styles.imageContainer} className="text-selectable">
             <img
               ref={imgRef}
               src={capturedImageData}

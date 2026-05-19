@@ -234,6 +234,12 @@ function ContractCarousel() {
     if (!sel) return null;
     if (!selectionIsInsideViewport(sel)) return null;
 
+    const anchorEl =
+      sel.anchorNode?.nodeType === 1
+        ? (sel.anchorNode as Element)
+        : sel.anchorNode?.parentElement;
+    if (!anchorEl || (!anchorEl.closest(".doc-box") && !anchorEl.closest(".text-selectable"))) return null;
+
     const text = sel.toString().trim();
     if (text.length < 2) return null;
 
@@ -281,7 +287,6 @@ function ContractCarousel() {
         const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
         selectionStartRangeRef.current = startRange;
 
-        // 텍스트 선택 모드 전환 → 스와이프 취소
         swipeConfirmedRef.current = false;
         touchStartX.current = null;
         touchStartTime.current = null;
@@ -291,7 +296,7 @@ function ContractCarousel() {
       touchStartX.current = touch.clientX;
       touchStartTime.current = Date.now();
       swipeConfirmedRef.current = true;
-      applyTransform(0, false); // transition 즉시 끔
+      applyTransform(0, false);
       return;
     }
 

@@ -340,7 +340,6 @@
 }
 
 /* drag-select */
-.page-container,
 .doc-box,
 .text-selectable {
   user-select: text;
