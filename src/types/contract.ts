@@ -9,7 +9,6 @@
  */
 export interface OcrWord {
   text: string;
-  confidence?: number;
   x: number;
   y: number;
   width: number;
@@ -151,9 +150,6 @@ export interface ContractListItem {
 export interface ContractDetail extends ContractListItem {
   analysisId: string;
   fileUrl: string;
-  rawText?: string;
-  markdown?: string;
-  words?: OcrWord[];
 }
 
 /**

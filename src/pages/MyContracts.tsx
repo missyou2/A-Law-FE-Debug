@@ -38,6 +38,7 @@ const MyContracts = () => {
   const [loading, setLoading] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<number>>(new Set());
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
+  const [bookmarkOnly, setBookmarkOnly] = useState(false);
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
   const [editingTitleId, setEditingTitleId] = useState<number | null>(null);
@@ -75,6 +76,10 @@ const MyContracts = () => {
       result = result.filter(c => new Date(c.createdAt) <= end);
     }
 
+    if (bookmarkOnly) {
+      result = result.filter(c => c.bookmark);
+    }
+
     if (sortOrder === 'newest') {
       result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     } else if (sortOrder === 'oldest') {
@@ -82,14 +87,15 @@ const MyContracts = () => {
     }
 
     return result;
-  }, [contracts, sortOrder, dateFrom, dateTo]);
+  }, [contracts, sortOrder, bookmarkOnly, dateFrom, dateTo]);
 
-  const isFilterActive = dateFrom !== null || dateTo !== null || sortOrder !== 'default';
+  const isFilterActive = dateFrom !== null || dateTo !== null || sortOrder !== 'default' || bookmarkOnly;
 
   const resetFilter = () => {
     setDateFrom(null);
     setDateTo(null);
     setSortOrder('default');
+    setBookmarkOnly(false);
   };
 
   const toggleEdit = () => {
@@ -229,6 +235,12 @@ const MyContracts = () => {
               onClick={() => setSortOrder(prev => prev === 'oldest' ? 'default' : 'oldest')}
             >
               오래된순
+            </button>
+            <button
+              className={`mc-sort-btn${bookmarkOnly ? ' active' : ''}`}
+              onClick={() => setBookmarkOnly(prev => !prev)}
+            >
+              ★ 북마크
             </button>
             {isFilterActive && (
               <button className="mc-reset-btn" onClick={resetFilter}>초기화</button>

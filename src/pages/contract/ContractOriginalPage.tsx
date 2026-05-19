@@ -1,7 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { OcrWord } from '../../types/contract.js';
 
 interface LocationState {
@@ -15,9 +13,6 @@ interface LocationState {
 interface Props {
   onSelect: (text: string) => void;
   capturedImageData?: string | undefined;
-  ocrText?: string | undefined;
-  markdown?: string | undefined;
-  ocrWords?: OcrWord[] | undefined;
 }
 
 const PAGE_PADDING = 18; // matches .page-container padding
@@ -46,7 +41,7 @@ const styles = {
     } as const,
 }
 
-function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp, ocrText: ocrTextProp, markdown: markdownProp, ocrWords: ocrWordsProp }: Props) {
+function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp }: Props) {
   const location = useLocation();
   const state = location.state as LocationState | undefined;
   const capturedImageData = capturedImageDataProp ?? state?.capturedImageData ?? null;
@@ -54,8 +49,8 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
   const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
-  const ocrText = ocrTextProp?.trim() || state?.ocrText?.trim() || null;
-  const ocrWords: OcrWord[] = ocrWordsProp ?? state?.ocrWords ?? [];
+  const ocrText = state?.ocrText?.trim() || null;
+  const ocrWords = state?.ocrWords ?? [];
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -187,24 +182,8 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
           <p className="page-caption">OCR로 추출된 계약서 본문입니다.</p>
 
           <div className="doc-box">
-            {markdownProp ? (
-              <div className="text-selectable" style={{ fontSize: "13px", lineHeight: "1.7", color: "#333" }}>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    p: ({ children }) => <p style={{ margin: "0 0 8px" }}>{children}</p>,
-                    strong: ({ children }) => <strong style={{ color: "#222" }}>{children}</strong>,
-                    ul: ({ children }) => <ul style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ul>,
-                    ol: ({ children }) => <ol style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ol>,
-                    li: ({ children }) => <li style={{ marginBottom: "4px" }}>{children}</li>,
-                  }}
-                >
-                  {markdownProp}
-                </ReactMarkdown>
-              </div>
-            ) : ocrText ? (
+            {ocrText ? (
               <div
-                className="text-selectable"
                 dangerouslySetInnerHTML={{ __html: stripMarkdownPipes(ocrText) }}
                 style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
               />
