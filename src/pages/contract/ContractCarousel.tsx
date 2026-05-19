@@ -8,6 +8,7 @@ import ContractOriginalPage from "./ContractOriginalPage.js";
 import ClauseSummaryPage from "./ClauseSummaryPage.js";
 import RiskAnalysisPage from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
+import ConfirmDialog from "../../components/ConfirmDialog.js";
 
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
 import ChatbotPanel from "./ChatbotPanel.js";
@@ -75,6 +76,7 @@ function ContractCarousel() {
     return () => eventSource.close();
   }, [locationState?.jobId]);
 
+  const [showConfirm, setShowConfirm] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -498,7 +500,10 @@ function ContractCarousel() {
       <div className="" />
 
       <div className="header">
-        <span className="back-btn" onClick={() => navigate("/")}>
+        <span
+          className="back-btn"
+          onClick={() => riskAnalysisDone ? navigate("/") : setShowConfirm(true)}
+        >
           ← 이전으로 돌아가기
         </span>
 
@@ -567,6 +572,14 @@ function ContractCarousel() {
 
       {chatbotOpen && (
         <ChatbotPanel onClose={() => setChatbotOpen(false)} {...(contractId ? { contractId } : {})} />
+      )}
+
+      {showConfirm && (
+        <ConfirmDialog
+          message="분석이 아직 진행중이에요, 정말로 돌아가시겠습니까?"
+          onConfirm={() => navigate("/")}
+          onCancel={() => setShowConfirm(false)}
+        />
       )}
     </div>
   );
