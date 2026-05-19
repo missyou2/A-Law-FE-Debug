@@ -14,6 +14,7 @@ import type {
   ContractDetail,
   SaveContractResponse,
   OcrWord,
+  ContractAnalysisResponse,
 } from '../types/contract.js';
 
 // Re-export types for external use
@@ -28,6 +29,7 @@ export type {
   AnalysisSSECallbacks,
   ContractListItem,
   ContractDetail,
+  ContractAnalysisResponse,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -291,6 +293,17 @@ export const getOcrEasyExplanation = async (
     sentence: originalSentence,
   });
 
+  return response.data.data;
+};
+
+/**
+ * 저장된 분석 결과 조회
+ * GET /api/v1/contracts/analysis/{jobId}
+ */
+export const getContractAnalysis = async (jobId: string): Promise<ContractAnalysisResponse> => {
+  const response = await apiClient.get<ApiSuccessResponse<ContractAnalysisResponse>>(
+    `/contracts/analysis/${encodeURIComponent(jobId)}`
+  );
   return response.data.data;
 };
 

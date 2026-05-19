@@ -168,6 +168,35 @@ export interface OcrEasyExplanationResponse {
 }
 
 /**
+ * GET /api/v1/contracts/analysis/{jobId}
+ * 저장된 분석 결과 조회
+ */
+export interface ContractAnalysisResponse {
+  jobId: string;
+  contractId: number;
+  status: string;
+  processingTimeMs: number;
+  errorMessage: string;
+  createdAt: string;
+  summary: SummaryResultEvent | null;
+  riskAnalysis: {
+    totalClauses: number;
+    riskCount: number;
+    cautionCount: number;
+    safetyCount: number;
+    riskPercentage: number;
+    clauseResults: {
+      clauseTitle: string;
+      clauseContent: string;
+      riskLevel: string;
+      legalReference: string;
+      reasoningSummary: string;
+      category: string;
+    }[];
+  } | null;
+}
+
+/**
  * 5번. 특정 문장 쉬운 말로 설명
  * POST /api/v1/contracts/{id}/easy-explanation
  */

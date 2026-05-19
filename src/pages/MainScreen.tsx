@@ -14,7 +14,7 @@ import { FaChevronRight } from 'react-icons/fa';
 // Chatbot
 import ChatbotPanel from './contract/ChatbotPanel.js';
 
-import { getContractList } from '../api/contractApi.js';
+import { getContractList, getContractById } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 import { useRecording } from '../contexts/RecordingContext.js';
 
@@ -36,11 +36,12 @@ interface RecentContractItemProps {
     date: string;
     isImportant: boolean;
     contractType: string;
+    onClick: () => void;
 }
 
-const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImportant, contractType }) => {
+const RecentContractItem: FC<RecentContractItemProps> = ({ title, date, isImportant, contractType, onClick }) => {
   return (
-    <div className="ms-contract-item">
+    <div className="ms-contract-item" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="ms-contract-details">
         <div className="ms-contract-title">
           {isImportant && <span className="ms-star">★</span>}
@@ -69,6 +70,17 @@ const MainScreen: FC<MainScreenProps> = ({ onScanClick, onChatbotOpen, onChatbot
   const { isRecording, recordingSeconds, toggleRecording, formatSeconds } = useRecording();
 
   const [contracts, setContracts] = useState<ContractListItem[]>([]);
+
+  const handleContractClick = async (contractId: number) => {
+    try {
+      const res = await getContractById(contractId);
+      navigate(`/contract/detail/${res.data.contractId}`, {
+        state: { contract: res.data, capturedImageData: res.data.fileUrl },
+      });
+    } catch (error) {
+      console.error('계약서 조회 실패:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -166,6 +178,7 @@ const MainScreen: FC<MainScreenProps> = ({ onScanClick, onChatbotOpen, onChatbot
               date={formatDate(contract.createdAt)}
               isImportant={contract.bookmark}
               contractType={contract.contractType}
+              onClick={() => handleContractClick(contract.contractId)}
             />
           ))
         )}

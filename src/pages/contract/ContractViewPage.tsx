@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
-import type { ContractDetail } from "../../types/contract.js";
-import { getContractById } from "../../api/contractApi.js";
+import type { ContractDetail, SummaryResultEvent, AnalysisResultEvent } from "../../types/contract.js";
+import { getContractById, getContractAnalysis } from "../../api/contractApi.js";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
@@ -31,6 +31,41 @@ function ContractViewPage() {
         setFetchError(status === 403 ? 403 : 'error');
       });
   }, [contractId]);
+
+  const [summaryData, setSummaryData] = useState<SummaryResultEvent | null>(null);
+  const [riskData, setRiskData] = useState<AnalysisResultEvent | null>(null);
+  const [analysisDone, setAnalysisDone] = useState(false);
+
+  useEffect(() => {
+    const analysisId = contract?.analysisId;
+    if (!analysisId) return;
+    getContractAnalysis(analysisId)
+      .then(res => {
+        if (res.summary) setSummaryData(res.summary);
+        if (res.riskAnalysis) {
+          setRiskData({
+            totalClauses: res.riskAnalysis.totalClauses,
+            riskCount: res.riskAnalysis.riskCount,
+            cautionCount: res.riskAnalysis.cautionCount,
+            safetyCount: res.riskAnalysis.safetyCount,
+            clauseResults: res.riskAnalysis.clauseResults.map((c, i) => ({
+              clauseId: i,
+              clauseTitle: c.clauseTitle,
+              clauseContent: c.clauseContent,
+              riskLevel: c.riskLevel,
+              legalReference: c.legalReference,
+              reasoningSummary: c.reasoningSummary,
+              recommendation: '',
+              relatedLaw: '',
+              score: 0,
+              category: c.category,
+            })),
+          });
+        }
+        setAnalysisDone(true);
+      })
+      .catch(() => setAnalysisDone(true));
+  }, [contract?.analysisId]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
@@ -320,7 +355,7 @@ function ContractViewPage() {
     <div className="indicator">
       {currentIndex === 0 ? <span className="indicator-pill">원문 보기</span> : <span className="dot" />}
       {currentIndex === 1 ? <span className="indicator-pill">요약 보기</span> : <span className="dot" />}
-      {currentIndex === 2 ? <span className="indicator-pill">안전 분석</span> : <span className="dot" />}
+      {currentIndex === 2 ? <span className="indicator-pill">위험 분석</span> : <span className="dot" />}
     </div>
   );
 
@@ -375,12 +410,12 @@ function ContractViewPage() {
           </div>
           <div className="carousel-page">
             <div style={{ width: "100%", height: "100%" }}>
-              <ClauseSummaryPage onSelect={handleHighlightClick} summaryData={null} />
+              <ClauseSummaryPage onSelect={handleHighlightClick} summaryData={summaryData} />
             </div>
           </div>
           <div className="carousel-page">
             <div style={{ width: "100%", height: "100%" }}>
-              <RiskAnalysisPage riskData={null} analysisDone={false} />
+              <RiskAnalysisPage riskData={riskData} analysisDone={analysisDone} />
             </div>
           </div>
         </div>
