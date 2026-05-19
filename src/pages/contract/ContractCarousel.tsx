@@ -430,12 +430,31 @@ function ContractCarousel() {
     height: "100%",
   } as const;
 
+  const goToPage = (index: number) => {
+    if (index === currentIndex) return;
+    const el = wrapperRef.current;
+    if (el) {
+      el.style.transition = "transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+      el.style.transform = `translateX(-${index * 100}%)`;
+    }
+    setCurrentIndex(index);
+  };
+
   const getIndicator = () => {
     return (
       <div className="indicator">
-        {currentIndex === 0 ? <span className="indicator-pill">원문 보기</span> : <span className="dot"></span>}
-        {currentIndex === 1 ? <span className="indicator-pill">요약 보기</span> : <span className="dot"></span>}
-        {currentIndex === 2 ? <span className="indicator-pill">안전 분석</span> : <span className="dot"></span>}
+        {pages.map((page, i) =>
+          i === currentIndex ? (
+            <span key={i} className="indicator-pill">{page.label}</span>
+          ) : (
+            <span
+              key={i}
+              className="dot"
+              style={{ cursor: "pointer" }}
+              onClick={() => goToPage(i)}
+            />
+          )
+        )}
       </div>
     );
   };

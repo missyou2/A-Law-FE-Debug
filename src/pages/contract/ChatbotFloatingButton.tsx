@@ -6,51 +6,56 @@ interface Props {
 }
 
 const MOBILE_WIDTH = 430;
+const BTN_SIZE = 56;
+const SNAP_MARGIN = 16;
+const Y_MIN = 80;
+const Y_MARGIN = 16;
 
-function getContainerLeft() {
-  return Math.max(0, (window.innerWidth - MOBILE_WIDTH) / 2);
+function getContainerRect(w = window.innerWidth, h = window.innerHeight) {
+  const left = Math.max(0, (w - MOBILE_WIDTH) / 2);
+  const width = Math.min(w, MOBILE_WIDTH);
+  return { left, width, height: h };
 }
 
-function getContainerWidth() {
-  return Math.min(window.innerWidth, MOBILE_WIDTH);
-}
+type Side = "left" | "right";
 
 function ChatbotFloatingButton({ onClick }: Props) {
-  const [pos, setPos] = useState(() => {
-    const left = getContainerLeft();
-    const w = getContainerWidth();
-    return {
-      x: left + w - 80,
-      y: window.innerHeight - 160,
-    };
-  });
+  // Stable state: which edge + proportional Y
+  const [side, setSide] = useState<Side>("right");
+  const [relY, setRelY] = useState(() => (window.innerHeight - 160) / window.innerHeight);
 
-  const offset = useRef({ x: 0, y: 0 });
+  // Window size state drives re-render on resize
+  const [winSize, setWinSize] = useState({ w: window.innerWidth, h: window.innerHeight });
+
+  // Temporary absolute position during drag (null = use snapped position)
+  const [dragPos, setDragPos] = useState<{ x: number; y: number } | null>(null);
+
+  const offsetRef = useRef({ x: 0, y: 0 });
   const isDragging = useRef(false);
   const isPointerDown = useRef(false);
 
   useEffect(() => {
-    const handleResize = () => {
-      const left = getContainerLeft();
-      const w = getContainerWidth();
-      setPos((prev) => ({
-        x: Math.min(Math.max(prev.x, left), left + w - 56),
-        y: Math.min(Math.max(prev.y, 80), window.innerHeight - 120),
-      }));
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    const onResize = () => setWinSize({ w: window.innerWidth, h: window.innerHeight });
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
+
+  // Compute snapped absolute position from relative state
+  const getSnappedPos = (s: Side, ry: number, w: number, h: number) => {
+    const { left, width } = getContainerRect(w, h);
+    const absY = Math.min(Math.max(ry * h, Y_MIN), h - BTN_SIZE - Y_MARGIN);
+    const absX = s === "right"
+      ? left + width - BTN_SIZE - SNAP_MARGIN
+      : left + SNAP_MARGIN;
+    return { x: absX, y: absY };
+  };
+
+  const pos = dragPos ?? getSnappedPos(side, relY, winSize.w, winSize.h);
 
   const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
-
-    offset.current = {
-      x: e.clientX - pos.x,
-      y: e.clientY - pos.y,
-    };
-
+    offsetRef.current = { x: e.clientX - pos.x, y: e.clientY - pos.y };
     isDragging.current = false;
     isPointerDown.current = true;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -61,52 +66,48 @@ function ChatbotFloatingButton({ onClick }: Props) {
     e.stopPropagation();
     e.preventDefault();
 
-    const nextX = e.clientX - offset.current.x;
-    const nextY = e.clientY - offset.current.y;
+    const nextX = e.clientX - offsetRef.current.x;
+    const nextY = e.clientY - offsetRef.current.y;
 
-    const dx = Math.abs(nextX - pos.x);
-    const dy = Math.abs(nextY - pos.y);
+    if (!isDragging.current) {
+      const dx = Math.abs(nextX - pos.x);
+      const dy = Math.abs(nextY - pos.y);
+      if (dx < 3 && dy < 3) return;
+      isDragging.current = true;
+    }
 
-    if (dx < 3 && dy < 3) return;
-
-    isDragging.current = true;
-    setPos({ x: nextX, y: nextY });
+    setDragPos({ x: nextX, y: nextY });
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.stopPropagation();
     e.preventDefault();
-
     e.currentTarget.releasePointerCapture(e.pointerId);
     isPointerDown.current = false;
 
-    if (!isDragging.current) return;
+    if (!isDragging.current) {
+      setDragPos(null);
+      return;
+    }
 
-    const containerLeft = getContainerLeft();
-    const containerW = getContainerWidth();
-    const screenH = window.innerHeight;
-    const containerMid = containerLeft + containerW / 2;
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const { left, width } = getContainerRect(w, h);
+    const containerMid = left + width / 2;
 
-    const snappedX =
-      pos.x + 28 < containerMid
-        ? containerLeft + 16
-        : containerLeft + containerW - 72;
+    const newSide: Side = pos.x + BTN_SIZE / 2 < containerMid ? "left" : "right";
+    const newRelY = Math.min(Math.max(pos.y / h, Y_MIN / h), (h - BTN_SIZE - Y_MARGIN) / h);
 
-    const snappedY = Math.min(
-      Math.max(pos.y, 80),
-      screenH - 120
-    );
-
-    setPos({ x: snappedX, y: snappedY });
+    setSide(newSide);
+    setRelY(newRelY);
+    setDragPos(null);
   };
 
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
-        if (!isDragging.current) {
-          onClick();
-        }
+        if (!isDragging.current) onClick();
       }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -115,8 +116,8 @@ function ChatbotFloatingButton({ onClick }: Props) {
         position: "fixed",
         left: pos.x,
         top: pos.y,
-        width: 56,
-        height: 56,
+        width: BTN_SIZE,
+        height: BTN_SIZE,
         borderRadius: "50%",
         background: "linear-gradient(135deg, #21D8FC, #5865B9)",
         boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
