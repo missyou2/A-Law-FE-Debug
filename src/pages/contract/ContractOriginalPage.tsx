@@ -1,7 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import type { OcrWord } from '../../types/contract.js';
 
 interface LocationState {
@@ -188,20 +186,11 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
 
           <div className="doc-box">
             {markdownProp ? (
-              <div className="text-selectable" style={{ fontSize: "13px", lineHeight: "1.7", color: "#333" }}>
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    p: ({ children }) => <p style={{ margin: "0 0 8px" }}>{children}</p>,
-                    strong: ({ children }) => <strong style={{ color: "#222" }}>{children}</strong>,
-                    ul: ({ children }) => <ul style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ul>,
-                    ol: ({ children }) => <ol style={{ paddingLeft: "18px", margin: "4px 0 8px" }}>{children}</ol>,
-                    li: ({ children }) => <li style={{ marginBottom: "4px" }}>{children}</li>,
-                  }}
-                >
-                  {markdownProp}
-                </ReactMarkdown>
-              </div>
+              <div
+                className="text-selectable"
+                dangerouslySetInnerHTML={{ __html: markdownProp }}
+                style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
+              />
             ) : ocrText ? (
               <div
                 className="text-selectable"
