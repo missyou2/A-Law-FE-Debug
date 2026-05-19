@@ -405,6 +405,9 @@ function ContractViewPage() {
               <ContractOriginalPage
                 onSelect={handleHighlightClick}
                 capturedImageData={contract?.fileUrl ?? locationState?.capturedImageData}
+                ocrText={contract?.rawText}
+                markdown={contract?.markdown}
+                ocrWords={contract?.words}
               />
             </div>
           </div>
