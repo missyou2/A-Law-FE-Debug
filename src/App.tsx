@@ -3,7 +3,7 @@ import { useNavigate, Routes, Route, useLocation } from "react-router-dom";
 import { RecordingProvider, useRecording } from './contexts/RecordingContext.js';
 import { FaChevronRight } from 'react-icons/fa';
 import { AnimatePresence, motion } from "framer-motion";
-import TopNav from './components/TopNav.js';
+import BottomNav from './components/BottomNav.js';
 import MainScreen from "./pages/MainScreen.js";
 import ScanPage from "./pages/scan/ScanPage.js";
 import FailedPage from './pages/scan/ScanFailed.js';
@@ -12,7 +12,6 @@ import SaveComplete from './pages/SaveComplete.js';
 import CameraPage from './pages/scan/CameraPage.js';
 import CapturedResult from './pages/scan/CapturedResult.js';
 import ContractCarousel from './pages/contract/ContractCarousel.js';
-import ContractViewPage from './pages/contract/ContractViewPage.js';
 import DocumentSavePage from './pages/contract/DocumentSavePage.js';
 import DocumentSavedCompletePage from './pages/contract/DocumentSavedCompletePage.js';
 import MyContracts from './pages/MyContracts.js';
@@ -23,7 +22,7 @@ import TermsPage from './pages/mypage/TermsPage.js';
 import PrivacyPage from './pages/mypage/PrivacyPage.js';
 import SupportPage from './pages/mypage/SupportPage.js';
 import RecordingsPage from './pages/mypage/RecordingsPage.js';
-import InfoPage from './pages/mypage/InfoPage.js';
+import TermsAgreePage from './pages/TermsAgreePage.js';
 
 // Debug
 import OcrOverlay from './pages/debug/OcrOverlay.js';
@@ -201,9 +200,6 @@ function App(){
         {/* Contract carousel view page */}
         <Route path="/contract/view" element={<Page><ContractCarousel /></Page>} />
 
-        {/* Saved contract view page (no 다음 button, shows fileUrl image) */}
-        <Route path="/contract/detail/:contractId" element={<Page><ContractViewPage /></Page>} />
-
         {/* Contract save page */}
         <Route path="/contract/save" element={<Page><DocumentSavePage /></Page>} />
 
@@ -219,20 +215,22 @@ function App(){
         {/* Kakao OAuth Callback */}
         <Route path="/oauth/callback" element={<KakaoCallback />} />
 
-{/* Recordings Page */}
+        {/* 최초 로그인 약관 동의 */}
+        <Route path="/terms-agree" element={<Page><TermsAgreePage /></Page>} />
+
+        {/* Recordings Page */}
         <Route path="/recordings" element={<Page><RecordingsPage /></Page>} />
 
         {/* Static Page Router */}
         <Route path="/terms" element={<Page><TermsPage /></Page>} />
         <Route path="/privacy" element={<Page><PrivacyPage /></Page>} />
         <Route path="/support" element={<Page><SupportPage /></Page>} />
-        <Route path="/info" element={<Page><InfoPage /></Page>} />
 
         {/* (Debug) OCR Overlay Test Page — http://localhost:5173/debug/ocr */}
         <Route path="/debug/ocr" element={<OcrOverlay />} />
       </Routes>
     </AnimatePresence>
-    {showNav && !isChatbotOpen && <TopNav />}
+    {showNav && !isChatbotOpen && <BottomNav />}
     <RecordingModals />
     </>
     </RecordingProvider>

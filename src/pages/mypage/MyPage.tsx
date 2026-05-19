@@ -240,7 +240,7 @@ const MyPage = () => {
       const user = getKakaoUser();
       setKakaoUser(user);
       setIsLoggedIn(true);
-      navigate('/mypage');
+      navigate('/terms-agree');
     } catch (error) {
       console.error('Dev 로그인 실패:', error);
       alert('개발 로그인 실패: ' + (error instanceof Error ? error.message : '알 수 없는 오류'));
@@ -411,23 +411,13 @@ const MyPage = () => {
         </div>
 
         <div
-          style={styles.menuItem}
+          style={{ ...styles.menuItem, ...styles.menuItemLast }}
           onClick={() => navigate('/support')}
           onMouseDown={pressStyle}
           onMouseUp={releaseStyle}
           onMouseLeave={releaseStyle}
         >
           문의하기 <span style={styles.menuRight}>›</span>
-        </div>
-
-        <div
-          style={{ ...styles.menuItem, ...styles.menuItemLast }}
-          onClick={() => navigate('/info')}
-          onMouseDown={pressStyle}
-          onMouseUp={releaseStyle}
-          onMouseLeave={releaseStyle}
-        >
-          정보 <span style={styles.menuRight}>›</span>
         </div>
       </div>
 

@@ -11,10 +11,7 @@ import type {
   AnalysisSSECallbacks,
   AnalysisResultEvent,
   ContractListItem,
-  ContractDetail,
-  SaveContractResponse,
   OcrWord,
-  ContractAnalysisResponse,
 } from '../types/contract.js';
 
 // Re-export types for external use
@@ -28,8 +25,6 @@ export type {
   OcrEasyExplanationResponse,
   AnalysisSSECallbacks,
   ContractListItem,
-  ContractDetail,
-  ContractAnalysisResponse,
 };
 
 // API Base URL - 환경변수로 관리하는 것을 권장
@@ -108,14 +103,6 @@ const compressDataURL = (dataURL: string): Promise<string> =>
 // API 함수들
 // ============================================
 
-type ApiSuccessResponse<T = unknown> = {
-  success: boolean;
-  code: string;
-  message: string;
-  data: T;
-  timestamp: string;
-};
-
 /**
  * 계약서 목록 조회
  * GET /api/v1/contracts
@@ -123,33 +110,6 @@ type ApiSuccessResponse<T = unknown> = {
 export const getContractList = async (): Promise<ContractListItem[]> => {
   const response = await apiClient.get<{ success: boolean; data: ContractListItem[] }>('/contracts');
   return response.data.data;
-};
-
-/**
- * 계약서 단건 조회
- * GET /api/v1/contracts/{id}
- */
-export const getContractById = async (contractId: number): Promise<ApiSuccessResponse<ContractDetail>> => {
-  const response = await apiClient.get<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`);
-  return response.data;
-};
-
-/**
- * 계약서 제목 수정
- * PATCH /api/v1/contracts/{id}
- */
-export const updateContractTitle = async (contractId: number, title: string): Promise<ApiSuccessResponse<ContractDetail>> => {
-  const response = await apiClient.patch<ApiSuccessResponse<ContractDetail>>(`/contracts/${contractId}`, { title });
-  return response.data;
-};
-
-/**
- * 계약서 삭제
- * DELETE /api/v1/contracts/{id}
- */
-export const deleteContract = async (contractId: number): Promise<ApiSuccessResponse<string>> => {
-  const response = await apiClient.delete<ApiSuccessResponse<string>>(`/contracts/${contractId}`);
-  return response.data;
 };
 
 /**
@@ -238,28 +198,6 @@ export const exportToImage = async (
 };
 
 /**
- * 계약서 저장
- * POST /api/v1/contracts  (multipart/form-data)
- */
-export const saveContract = async (
-  capturedImageData: string,
-  title: string,
-): Promise<SaveContractResponse> => {
-  const blob = dataURLtoBlob(capturedImageData);
-  const formData = new FormData();
-  formData.append('file', blob, 'contract.jpg');
-  formData.append('title', title);
-
-  const response = await apiClient.post('/contracts', formData, {
-    transformRequest: (data: FormData, headers: Record<string, string>) => {
-      delete headers['Content-Type'];
-      return data;
-    },
-  });
-  return response.data;
-};
-
-/**
  * 5번. 특정 문장 쉬운 말로 설명
  * POST /api/v1/contracts/{id}/easy-explanation
  */
@@ -290,20 +228,9 @@ export const getOcrEasyExplanation = async (
 }> => {
   const response = await apiClient.post('/contracts/easy-explanation', {
     contractId,
-    sentence: originalSentence,
+    originalSentence,
   });
 
-  return response.data.data;
-};
-
-/**
- * 저장된 분석 결과 조회
- * GET /api/v1/contracts/analysis/{jobId}
- */
-export const getContractAnalysis = async (jobId: string): Promise<ContractAnalysisResponse> => {
-  const response = await apiClient.get<ApiSuccessResponse<ContractAnalysisResponse>>(
-    `/contracts/analysis/${encodeURIComponent(jobId)}`
-  );
   return response.data.data;
 };
 

@@ -8,7 +8,6 @@ import ContractOriginalPage from "./ContractOriginalPage.js";
 import ClauseSummaryPage from "./ClauseSummaryPage.js";
 import RiskAnalysisPage from "./RiskAnalysisPage.js";
 import ContractOverlay from "../../components/ContractOverlay.js";
-import ConfirmDialog from "../../components/ConfirmDialog.js";
 
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
 import ChatbotPanel from "./ChatbotPanel.js";
@@ -76,7 +75,6 @@ function ContractCarousel() {
     return () => eventSource.close();
   }, [locationState?.jobId]);
 
-  const [showConfirm, setShowConfirm] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -85,24 +83,11 @@ function ContractCarousel() {
 
   const touchStartX = useRef<number | null>(null);
   const touchStartTime = useRef<number | null>(null);
-  const dragOffsetRef = useRef(0);
-  const swipeConfirmedRef = useRef(false);
-  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [dragOffset, setDragOffset] = useState(0);
 
   const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 390;
 
   const carouselViewportRef = useRef<HTMLDivElement | null>(null);
-
-  // React state를 거치지 않고 DOM에 직접 transform 적용 → 드래그 중 re-render 없음
-  const applyTransform = (offset: number, withTransition: boolean) => {
-    dragOffsetRef.current = offset;
-    const el = wrapperRef.current;
-    if (!el) return;
-    el.style.transition = withTransition
-      ? "transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)"
-      : "none";
-    el.style.transform = `translateX(calc(-${currentIndex * 100}% + ${offset}px))`;
-  };
 
   const haptic = () => {
     if (navigator.vibrate) navigator.vibrate(10);
@@ -111,12 +96,11 @@ function ContractCarousel() {
   const isTextSelectingRef = useRef(false);
   const selectingRef = useRef(false);
   const openTimerRef = useRef<number | null>(null);
-  const longPressTimerRef = useRef<number | null>(null);
-  const longPressActivatedRef = useRef(false);
-  const longPressTouchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   const selectionStartRangeRef = useRef<Range | null>(null);
-  const selectionEndRangeRef = useRef<Range | null>(null);
+
+  const persistMarkAttr = "data-persist-highlight";
+  const persistIdRef = useRef(0);
 
   const clearOpenTimer = () => {
     if (openTimerRef.current !== null) {
@@ -127,7 +111,7 @@ function ContractCarousel() {
 
   const isInSelectableTextArea = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false;
-    return !!target.closest(".doc-box") || !!target.closest(".text-selectable");
+    return !!target.closest(".doc-box");
   };
 
   const getCaretRangeFromPoint = (x: number, y: number): Range | null => {
@@ -155,13 +139,7 @@ function ContractCarousel() {
       r.setStart(start.startContainer, start.startOffset);
       r.setEnd(end.startContainer, end.startOffset);
     } catch {
-      // end가 start보다 앞에 있을 때 (역방향 드래그) → 방향 반전
-      try {
-        r.setStart(end.startContainer, end.startOffset);
-        r.setEnd(start.startContainer, start.startOffset);
-      } catch {
-        return;
-      }
+      return;
     }
 
     sel.removeAllRanges();
@@ -189,40 +167,109 @@ function ContractCarousel() {
   };
 
   const clearPersistentHighlight = () => {
-    const sel = window.getSelection();
-    sel?.removeAllRanges();
+    const root = carouselViewportRef.current;
+    if (!root) return;
+
+    const marks = root.querySelectorAll(`span[${persistMarkAttr}="1"]`);
+    marks.forEach((span) => {
+      const parent = span.parentNode;
+      if (!parent) return;
+
+      const textNode = document.createTextNode(span.textContent || "");
+      parent.replaceChild(textNode, span);
+      parent.normalize();
+    });
   };
 
-  const captureSelectionText = () => {
-    const start = selectionStartRangeRef.current;
-    const end = selectionEndRangeRef.current;
+  const applyPersistentHighlightFromSelection = () => {
+    const sel = window.getSelection();
+    if (!sel) return null;
+    if (!selectionIsInsideViewport(sel)) return null;
+    if (sel.rangeCount === 0) return null;
 
-    // 우리가 직접 추적한 start/end 범위로 텍스트 추출 (OS 선택 범위 무시)
-    if (start && end) {
-      const r = document.createRange();
-      try {
-        r.setStart(start.startContainer, start.startOffset);
-        r.setEnd(end.startContainer, end.startOffset);
-        const text = r.toString().trim();
-        if (text.length >= 2) return text;
-      } catch {
-        // 역방향 드래그 시도
-        try {
-          r.setStart(end.startContainer, end.startOffset);
-          r.setEnd(start.startContainer, start.startOffset);
-          const text = r.toString().trim();
-          if (text.length >= 2) return text;
-        } catch {
-          // fallthrough
+    const range = sel.getRangeAt(0);
+    const text = sel.toString().trim();
+    if (text.length < 2) return null;
+
+    clearPersistentHighlight();
+
+    // 하이라이트를 위한 CSS 클래스 기반 접근
+    const markId = `mark-${++persistIdRef.current}`;
+
+    try {
+      // 선택 영역을 개별 텍스트 노드 범위로 분할
+      const startContainer = range.startContainer;
+      const endContainer = range.endContainer;
+
+      if (startContainer === endContainer && startContainer.nodeType === 3) {
+        // 단순한 경우: 같은 텍스트 노드 내
+        const span = document.createElement("span");
+        span.setAttribute(persistMarkAttr, "1");
+        span.setAttribute("data-id", markId);
+        span.style.background = "#FFE066";
+        span.style.borderRadius = "4px";
+        span.style.padding = "0 3px";
+        span.style.display = "inline";
+
+        const clonedRange = range.cloneRange();
+        clonedRange.surroundContents(span);
+      } else {
+        // 복잡한 경우: 여러 노드에 걸침
+        // 각 텍스트 노드에 개별적으로 span 적용
+        const treeWalker = document.createTreeWalker(
+          range.commonAncestorContainer,
+          NodeFilter.SHOW_TEXT,
+          {
+            acceptNode: (node) => {
+              if (range.intersectsNode(node)) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              return NodeFilter.FILTER_REJECT;
+            }
+          }
+        );
+
+        const textNodes: Text[] = [];
+        let currentNode;
+        while ((currentNode = treeWalker.nextNode())) {
+          textNodes.push(currentNode as Text);
         }
+
+        textNodes.forEach((textNode, index) => {
+          const nodeRange = document.createRange();
+          nodeRange.selectNodeContents(textNode);
+
+          // 시작 노드
+          if (textNode === startContainer) {
+            nodeRange.setStart(startContainer, range.startOffset);
+          }
+          // 끝 노드
+          if (textNode === endContainer) {
+            nodeRange.setEnd(endContainer, range.endOffset);
+          }
+
+          const span = document.createElement("span");
+          span.setAttribute(persistMarkAttr, "1");
+          span.setAttribute("data-id", `${markId}-${index}`);
+          span.style.background = "#FFE066";
+          span.style.borderRadius = "4px";
+          span.style.padding = "0 3px";
+          span.style.display = "inline";
+
+          try {
+            nodeRange.surroundContents(span);
+          } catch (e) {
+            console.warn("Failed to surround node:", e);
+          }
+        });
       }
+    } catch (err) {
+      console.warn("highlight failed:", err);
+      return null;
     }
 
-    // fallback: 브라우저 selection
-    const sel = window.getSelection();
-    if (!sel || !selectionIsInsideViewport(sel)) return null;
-    const text = sel.toString().trim();
-    return text.length >= 2 ? text : null;
+    sel.removeAllRanges();
+    return text;
   };
 
   const getSelectionTextIfInsideViewport = () => {
@@ -241,11 +288,12 @@ function ContractCarousel() {
   };
 
   const openOverlayNow = () => {
-    if (Math.abs(dragOffsetRef.current) > 3) return;
+    if (Math.abs(dragOffset) > 3) return;
     if (sheetOpen) return;
     if (chatbotOpen) return;
 
-    const picked = getSelectionTextIfInsideViewport();
+    const fixedText = applyPersistentHighlightFromSelection();
+    const picked = fixedText ?? getSelectionTextIfInsideViewport();
     if (!picked) return;
 
     setSelectedText(picked);
@@ -261,140 +309,86 @@ function ContractCarousel() {
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const inText = isInSelectableTextArea(e.target);
-    swipeConfirmedRef.current = false;
+    isTextSelectingRef.current = inText;
 
     if (inText) {
+      selectingRef.current = true;
       clearOpenTimer();
-      longPressActivatedRef.current = false;
 
-      const touch = e.touches[0] ?? e.changedTouches[0] ?? null;
+      touchStartX.current = null;
+      touchStartTime.current = null;
+      setDragOffset(0);
+
+      const touch =
+        e.touches && e.touches.length > 0
+          ? e.touches[0]
+          : e.changedTouches && e.changedTouches.length > 0
+          ? e.changedTouches[0]
+          : null;
+
       if (!touch) return;
 
-      longPressTouchStartRef.current = { x: touch.clientX, y: touch.clientY };
+      const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
+      selectionStartRangeRef.current = startRange;
 
-      longPressTimerRef.current = window.setTimeout(() => {
-        longPressActivatedRef.current = true;
-        isTextSelectingRef.current = true;
-        selectingRef.current = true;
-        if (navigator.vibrate) navigator.vibrate(30);
-
-        const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
-        selectionStartRangeRef.current = startRange;
-
-        // 텍스트 선택 모드 전환 → 스와이프 취소
-        swipeConfirmedRef.current = false;
-        touchStartX.current = null;
-        touchStartTime.current = null;
-        applyTransform(0, false);
-      }, 1000);
-
-      touchStartX.current = touch.clientX;
-      touchStartTime.current = Date.now();
-      swipeConfirmedRef.current = true;
-      applyTransform(0, false); // transition 즉시 끔
       return;
     }
 
-    const touch = e.touches[0]!;
-    touchStartX.current = touch.clientX;
+    touchStartX.current = e.touches[0]!.clientX;
     touchStartTime.current = Date.now();
-    swipeConfirmedRef.current = true;
-    applyTransform(0, false);
+    setDragOffset(0);
   };
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (isTextSelectingRef.current && selectingRef.current) {
+      e.preventDefault();
+
       const start = selectionStartRangeRef.current;
       if (!start) return;
 
-      const touch = e.touches[0] ?? e.changedTouches[0] ?? null;
+      const touch =
+        e.touches && e.touches.length > 0
+          ? e.touches[0]
+          : e.changedTouches && e.changedTouches.length > 0
+          ? e.changedTouches[0]
+          : null;
+
       if (!touch) return;
 
       const end = getCaretRangeFromPoint(touch.clientX, touch.clientY);
       if (!end) return;
 
-      selectionEndRangeRef.current = end;
       setSelectionRange(start, end);
       return;
     }
 
-    // 롱프레스 대기 중 → 방향 판별
-    if (longPressTimerRef.current !== null && !longPressActivatedRef.current) {
-      const touch = e.touches[0];
-      const start = longPressTouchStartRef.current;
-      if (touch && start) {
-        const dx = Math.abs(touch.clientX - start.x);
-        const dy = Math.abs(touch.clientY - start.y);
-        const elapsedMs = Date.now() - (touchStartTime.current ?? Date.now());
-
-        if (dx > dy && dx > 5) {
-          if (elapsedMs < 600) {
-            // 초반 가로 이동 → 스와이프 의도 → 타이머 취소
-            clearTimeout(longPressTimerRef.current);
-            longPressTimerRef.current = null;
-          } else {
-            // 홀드 중 손가락 드리프트 → 타이머 유지, 시각 피드백만 차단
-            swipeConfirmedRef.current = false;
-            applyTransform(0, false);
-          }
-        } else if (dy > dx && dy > 10) {
-          // 세로 스크롤 → 타이머 취소
-          clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
-          swipeConfirmedRef.current = false;
-          touchStartX.current = null;
-          applyTransform(0, false);
-        }
-      }
-    }
-
-    if (!swipeConfirmedRef.current || touchStartX.current === null) return;
-
-    const touch = e.touches[0]!;
-    const delta = touch.clientX - touchStartX.current;
+    if (touchStartX.current === null) return;
+    const delta = e.touches[0]!.clientX - touchStartX.current;
     let adjusted = delta;
 
     if (currentIndex === 0 && delta > 0) adjusted = delta * 0.35;
     else if (currentIndex === pages.length - 1 && delta < 0) adjusted = delta * 0.35;
 
-    applyTransform(adjusted, false); // state 아닌 DOM 직접 업데이트
+    setDragOffset(adjusted);
   };
 
   const onTouchEnd = () => {
-    if (longPressTimerRef.current !== null) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    longPressTouchStartRef.current = null;
-    swipeConfirmedRef.current = false;
-
     if (isTextSelectingRef.current) {
-      const capturedText = captureSelectionText();
-
       isTextSelectingRef.current = false;
       selectingRef.current = false;
-      longPressActivatedRef.current = false;
       selectionStartRangeRef.current = null;
-      selectionEndRangeRef.current = null;
-      applyTransform(0, false);
+      setDragOffset(0);
 
-      if (capturedText && capturedText.length >= 2 && !sheetOpen && !chatbotOpen) {
-        clearOpenTimer();
-        openTimerRef.current = window.setTimeout(() => {
-          window.getSelection()?.removeAllRanges();
-          setSelectedText(capturedText);
-          setSheetOpen(true);
-        }, 150);
-      }
+      scheduleOpenOverlay(250);
       return;
     }
 
     if (touchStartX.current === null || touchStartTime.current === null) {
-      applyTransform(0, true);
+      setDragOffset(0);
       return;
     }
 
-    const distance = dragOffsetRef.current;
+    const distance = dragOffset;
     const time = Date.now() - touchStartTime.current;
     const velocity = distance / time;
 
@@ -408,17 +402,8 @@ function ContractCarousel() {
       else if (distance > 0 && currentIndex > 0) next = currentIndex - 1;
     }
 
-    // DOM에 직접 스냅 애니메이션 적용 후 React state 동기화
-    const el = wrapperRef.current;
-    if (el) {
-      el.style.transition = "transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-      el.style.transform = `translateX(-${next * 100}%)`;
-    }
-    dragOffsetRef.current = 0;
-    touchStartX.current = null;
-    touchStartTime.current = null;
-
-    if (next !== currentIndex) setCurrentIndex(next);
+    setCurrentIndex(next);
+    setDragOffset(0);
   };
 
   const handleHighlightClick = (text: string) => {
@@ -427,56 +412,33 @@ function ContractCarousel() {
     setSheetOpen(true);
   };
 
-  const pageStyle = {
-    width: "100%",
-    height: "100%",
-  } as const;
+  const pageStyle = (index: number) => {
+    const base = index - currentIndex;
+    const progress = dragOffset / viewportWidth;
+    const relative = base - progress;
+    const abs = Math.abs(relative);
 
-  const goToPage = (index: number) => {
-    if (index === currentIndex) return;
-    const el = wrapperRef.current;
-    if (el) {
-      el.style.transition = "transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-      el.style.transform = `translateX(-${index * 100}%)`;
-    }
-    setCurrentIndex(index);
+    const scale = 1 - Math.min(abs * 0.12, 0.14);
+    const opacity = 1 - Math.min(abs * 0.4, 0.5);
+    const translateY = Math.min(abs * 15, 18);
+
+    return {
+      width: "100%",
+      height: "100%",
+      transform: `scale(${scale}) translateY(${translateY}px)`,
+      opacity
+    };
   };
 
   const getIndicator = () => {
     return (
       <div className="indicator">
-        {pages.map((page, i) =>
-          i === currentIndex ? (
-            <span key={i} className="indicator-pill">{page.label}</span>
-          ) : (
-            <span
-              key={i}
-              className="dot"
-              style={{ cursor: "pointer" }}
-              onClick={() => goToPage(i)}
-            />
-          )
-        )}
+        {currentIndex === 0 ? <span className="indicator-pill">원문 보기</span> : <span className="dot"></span>}
+        {currentIndex === 1 ? <span className="indicator-pill">요약 보기</span> : <span className="dot"></span>}
+        {currentIndex === 2 ? <span className="indicator-pill">안전 분석</span> : <span className="dot"></span>}
       </div>
     );
   };
-
-  // 비passive touchmove: 텍스트 선택 드래그 중에만 스크롤 차단
-  // 스와이프 중에는 preventDefault를 호출하지 않음
-  // → touch-action: pan-y 영역에서 첫 touchmove에 preventDefault 하면 브라우저가 전체 터치 시퀀스를 취소함
-  useEffect(() => {
-    const el = carouselViewportRef.current;
-    if (!el) return;
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (isTextSelectingRef.current && selectingRef.current && e.cancelable) {
-        e.preventDefault();
-      }
-    };
-
-    el.addEventListener("touchmove", handleTouchMove, { passive: false });
-    return () => el.removeEventListener("touchmove", handleTouchMove);
-  }, []);
 
   useEffect(() => {
     const onMouseUp = () => openOverlayNow();
@@ -486,7 +448,7 @@ function ContractCarousel() {
       clearOpenTimer();
       document.removeEventListener("mouseup", onMouseUp);
     };
-  }, [sheetOpen, chatbotOpen]);
+  }, [sheetOpen, chatbotOpen, dragOffset]);
 
   const handleOverlayClose = () => {
     clearPersistentHighlight();
@@ -500,10 +462,7 @@ function ContractCarousel() {
       <div className="" />
 
       <div className="header">
-        <span
-          className="back-btn"
-          onClick={() => riskAnalysisDone ? navigate("/") : setShowConfirm(true)}
-        >
+        <span className="back-btn" onClick={() => navigate("/")}>
           ← 이전으로 돌아가기
         </span>
 
@@ -512,12 +471,7 @@ function ContractCarousel() {
           style={{ fontSize: 15, color: "#111", cursor: "pointer" }}
           onClick={() => {
             haptic();
-            navigate("/contract/save", {
-              state: {
-                contractId: locationState?.contractId,
-                capturedImageData: locationState?.capturedImageData,
-              },
-            });
+            navigate("/contract/save", { state: { contractId: locationState?.contractId } });
           }}
         >
           다음 →
@@ -533,23 +487,25 @@ function ContractCarousel() {
       >
         <div
           className="carousel-wrapper"
-          ref={wrapperRef}
-          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          style={{
+            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))`,
+            transition: dragOffset === 0 ? "transform 0.28s ease-out" : "none"
+          }}
         >
           <div className="carousel-page">
-            <div style={pageStyle}>
+            <div style={pageStyle(0)}>
               <ContractOriginalPage onSelect={handleHighlightClick} />
             </div>
           </div>
 
           <div className="carousel-page">
-            <div style={pageStyle}>
+            <div style={pageStyle(1)}>
               <ClauseSummaryPage onSelect={handleHighlightClick} summaryData={summaryData} />
             </div>
           </div>
 
           <div className="carousel-page">
-            <div style={pageStyle}>
+            <div style={pageStyle(2)}>
               <RiskAnalysisPage riskData={riskData} analysisDone={riskAnalysisDone} />
             </div>
           </div>
@@ -572,14 +528,6 @@ function ContractCarousel() {
 
       {chatbotOpen && (
         <ChatbotPanel onClose={() => setChatbotOpen(false)} {...(contractId ? { contractId } : {})} />
-      )}
-
-      {showConfirm && (
-        <ConfirmDialog
-          message="분석이 아직 진행중이에요, 정말로 돌아가시겠습니까?"
-          onConfirm={() => navigate("/")}
-          onCancel={() => setShowConfirm(false)}
-        />
       )}
     </div>
   );

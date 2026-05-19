@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -8,7 +7,7 @@ import './MyContracts.css';
 import checkSelected from '../assets/icons/check-selected.png';
 import checkUnselected from '../assets/icons/check-unselected.png';
 
-import { getContractList, addBookmark, removeBookmark, getContractById, deleteContract, updateContractTitle } from '../api/contractApi.js';
+import { getContractList, addBookmark, removeBookmark } from '../api/contractApi.js';
 import type { ContractListItem } from '../api/contractApi.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
@@ -31,7 +30,6 @@ type SortOrder = 'default' | 'newest' | 'oldest';
 
 const MyContracts = () => {
 
-  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [contracts, setContracts] = useState<ContractListItem[]>([]);
@@ -40,9 +38,6 @@ const MyContracts = () => {
   const [sortOrder, setSortOrder] = useState<SortOrder>('default');
   const [dateFrom, setDateFrom] = useState<Date | null>(null);
   const [dateTo, setDateTo] = useState<Date | null>(null);
-  const [editingTitleId, setEditingTitleId] = useState<number | null>(null);
-  const [editingTitleValue, setEditingTitleValue] = useState('');
-  const [isSavingTitle, setIsSavingTitle] = useState(false);
 
   useEffect(() => {
     const fetchContracts = async () => {
@@ -95,38 +90,6 @@ const MyContracts = () => {
   const toggleEdit = () => {
     setIsEditing(!isEditing);
     setSelectedIds([]);
-    setEditingTitleId(null);
-  };
-
-  const handleTitleEditClick = (e: React.MouseEvent, item: ContractListItem) => {
-    e.stopPropagation();
-    setEditingTitleId(item.contractId);
-    setEditingTitleValue(item.title);
-  };
-
-  const handleTitleSave = async (contractId: number) => {
-    const trimmed = editingTitleValue.trim();
-    if (!trimmed) {
-      setEditingTitleId(null);
-      return;
-    }
-    setIsSavingTitle(true);
-    try {
-      await updateContractTitle(contractId, trimmed);
-      setContracts(prev =>
-        prev.map(c => c.contractId === contractId ? { ...c, title: trimmed } : c)
-      );
-      setEditingTitleId(null);
-    } catch {
-      alert('제목 수정 중 오류가 발생했습니다.');
-    } finally {
-      setIsSavingTitle(false);
-    }
-  };
-
-  const handleTitleKeyDown = (e: React.KeyboardEvent, contractId: number) => {
-    if (e.key === 'Enter') handleTitleSave(contractId);
-    if (e.key === 'Escape') setEditingTitleId(null);
   };
 
   const toggleSelect = (id: number) => {
@@ -139,7 +102,7 @@ const MyContracts = () => {
     if (selectedIds.length === 0) return;
     try {
       setLoading(true);
-      await Promise.all(selectedIds.map(id => deleteContract(id)));
+      // TODO: 계약서 삭제 API 연동
       setContracts(prev => prev.filter(c => !selectedIds.includes(c.contractId)));
       setSelectedIds([]);
       setIsEditing(false);
@@ -147,21 +110,6 @@ const MyContracts = () => {
       alert("삭제 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleContractClick = async (contractId: number) => {
-    try {
-      const res = await getContractById(contractId);
-      const contract = res.data;
-      navigate(`/contract/detail/${contract.contractId}`, {
-        state: {
-          contract,
-          capturedImageData: contract.fileUrl,
-        },
-      });
-    } catch (error) {
-      console.error("계약서 조회 실패:", error);
     }
   };
 
@@ -248,9 +196,6 @@ const MyContracts = () => {
               className="mc-date-input"
               calendarClassName="mc-calendar"
               isClearable
-              portalId="datepicker-portal"
-              popperPlacement="bottom-start"
-              onFocus={(e) => e.target.blur()}
             />
             <span className="mc-date-sep">~</span>
             <DatePicker
@@ -266,9 +211,6 @@ const MyContracts = () => {
               className="mc-date-input"
               calendarClassName="mc-calendar"
               isClearable
-              portalId="datepicker-portal"
-              popperPlacement="bottom-start"
-              onFocus={(e) => e.target.blur()}
             />
           </div>
         </div>
@@ -285,7 +227,7 @@ const MyContracts = () => {
             <div
               key={item.contractId}
               className="mc-contract-item"
-              onClick={() => isEditing ? toggleSelect(item.contractId) : handleContractClick(item.contractId)}
+              onClick={() => isEditing && toggleSelect(item.contractId)}
             >
               {isEditing && (
                 <div className="mc-icon-wrapper">
@@ -308,14 +250,7 @@ const MyContracts = () => {
                 <div className="mc-contract-date">{formatDate(item.createdAt)}</div>
               </div>
 
-              {isEditing ? (
-                <button
-                  className="mc-rename-btn"
-                  onClick={(e) => handleTitleEditClick(e, item)}
-                >
-                  이름수정
-                </button>
-              ) : (
+              {!isEditing && (
                 <button
                   className={`mc-bookmark-btn${item.bookmark ? ' active' : ''}${bookmarkLoading.has(item.contractId) ? ' loading' : ''}`}
                   onClick={(e) => handleBookmarkToggle(e, item)}
@@ -329,25 +264,6 @@ const MyContracts = () => {
         )}
       </div>
 
-      {editingTitleId !== null && (
-        <div className="mc-modal-overlay" onClick={() => setEditingTitleId(null)}>
-          <div className="mc-modal" onClick={(e) => e.stopPropagation()}>
-            <input
-              className="mc-modal-input"
-              value={editingTitleValue}
-              placeholder="바꿀 이름을 입력하세요"
-              onChange={(e) => setEditingTitleValue(e.target.value)}
-              onKeyDown={(e) => handleTitleKeyDown(e, editingTitleId)}
-              disabled={isSavingTitle}
-              autoFocus
-            />
-            <div className="mc-modal-actions">
-              <button className="mc-modal-cancel" onClick={() => setEditingTitleId(null)} disabled={isSavingTitle}>취소</button>
-              <button className="mc-modal-confirm" onClick={() => handleTitleSave(editingTitleId)} disabled={isSavingTitle}>완료</button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

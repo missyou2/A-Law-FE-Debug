@@ -1,7 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { SummaryResultEvent } from "../../types/contract.js";
-import './contractCarousel.css';
 
 interface Props {
   onSelect: (text: string) => void;
@@ -13,24 +12,9 @@ function ClauseSummaryPage({ onSelect: _onSelect, summaryData }: Props) {
     return (
       <div className="page-container">
         <h2 className="page-title">임대차 계약 요약</h2>
-        <p className="page-caption">AI가 임대차 계약 내용을 분석 중에 있습니다.</p>
-
-        {/* 제목 스켈레톤 */}
-        <div className="skeleton" style={{ height: "16px", width: "55%", marginBottom: "20px" }} />
-
-        {/* 본문 스켈레톤 */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
-          {["100%", "100%", "80%", "100%", "65%"].map((w, i) => (
-            <div key={i} className="skeleton" style={{ height: "13px", width: w }} />
-          ))}
-        </div>
-
-        {/* 주요 용어 스켈레톤 */}
-        <div className="skeleton" style={{ height: "13px", width: "20%", marginBottom: "10px" }} />
-        <div style={{ display: "flex", gap: "6px" }}>
-          {["60px", "80px", "50px"].map((w, i) => (
-            <div key={i} className="skeleton" style={{ height: "26px", borderRadius: "99px", width: w }} />
-          ))}
+        <p className="page-caption">AI가 임대차 계약 내용을 이해하기 쉽게 요약했습니다.</p>
+        <div className="doc-box ai-content-fadein">
+          <p style={{ color: "#999", fontStyle: "italic" }}>분석 데이터가 없습니다.</p>
         </div>
       </div>
     );

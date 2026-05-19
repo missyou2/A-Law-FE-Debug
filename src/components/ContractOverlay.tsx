@@ -142,7 +142,9 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
         ) : error ? (
           <p className="sheet-placeholder" style={{ color: "#e74c3c" }}>{error}</p>
         ) : explanationData ? (
-          <p className="sheet-placeholder" style={{ color: "#111" }}>{explanationData.easy_explanation}</p>
+          <div className="sheet-explanation">
+            <p className="sheet-easy-translation">{explanationData.easy_explanation}</p>
+          </div>
         ) : (
           <p className="sheet-placeholder">선택한 문구에 대한 설명이 여기에 표시됩니다.</p>
         )}

@@ -2,13 +2,12 @@ import '../../App.css'
 import './scan.css'
 import './ScanLoading.css'
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft } from 'react-icons/fa';
 import LoadingIcon from '../../assets/icons/loading.png'
 import LoadingTips from './LoadingTips.js'
 import { uploadContractImage } from '../../api/contractApi.js';
-import ConfirmDialog from '../../components/ConfirmDialog.js';
 
 const getRandomTip = () => LoadingTips[Math.floor(Math.random() * LoadingTips.length)];
 
@@ -17,7 +16,6 @@ const ScanLoading = () => {
   const location = useLocation();
   const capturedImageData = location.state?.capturedImageData;
   const tip = useMemo(() => getRandomTip(), []);
-  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!capturedImageData) return;
@@ -60,8 +58,6 @@ const ScanLoading = () => {
             const status = (error as { response: { status: number } }).response.status;
             if (status === 400 || status === 415) {
               errorReason = 'invalid_format';
-            } else if (status === 401) {
-              errorReason = 'unauthorized';
             }
           }
           navigate('/scan/failed', { state: { errorReason }, replace: true });
@@ -91,19 +87,11 @@ const ScanLoading = () => {
 
       <div
         className="back-link"
-        onClick={() => setShowConfirm(true)}
+        onClick={() => navigate('/scan')}
       >
         <FaArrowLeft size={10} />
         이전으로 돌아가기
       </div>
-
-      {showConfirm && (
-        <ConfirmDialog
-          message="분석이 아직 진행중이에요, 정말로 돌아가시겠습니까?"
-          onConfirm={() => navigate('/scan')}
-          onCancel={() => setShowConfirm(false)}
-        />
-      )}
     </div>
   );
 };

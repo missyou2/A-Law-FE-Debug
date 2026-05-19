@@ -12,7 +12,6 @@ interface LocationState {
 
 interface Props {
   onSelect: (text: string) => void;
-  capturedImageData?: string | undefined;
 }
 
 const PAGE_PADDING = 18; // matches .page-container padding
@@ -41,14 +40,15 @@ const styles = {
     } as const,
 }
 
-function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp }: Props) {
-  const location = useLocation();
-  const state = location.state as LocationState | undefined;
-  const capturedImageData = capturedImageDataProp ?? state?.capturedImageData ?? null;
-  const [mode, setMode] = useState<"image" | "text">(capturedImageData ? "image" : "text");
+function ContractOriginalPage({ onSelect }: Props) {
+  const [mode, setMode] = useState<"image" | "text">("image");
   const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
+
+  const location = useLocation();
+  const state = location.state as LocationState | undefined;
+  const capturedImageData = state?.capturedImageData || null;
   const ocrText = state?.ocrText?.trim() || null;
   const ocrWords = state?.ocrWords ?? [];
 
@@ -188,9 +188,7 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
                 style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
               />
             ) : (
-              <p style={{ fontSize: "13px", color: "#9ca3af", textAlign: "center", marginTop: "40px" }}>
-                OCR 데이터가 없습니다.
-              </p>
+              <p style={{ color: "#999" }}>OCR 결과가 없습니다.</p>
             )}
           </div>
         </>

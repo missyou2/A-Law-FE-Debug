@@ -229,16 +229,7 @@
   width: 6px;
   height: 6px;
   background: #d1d5db;
-  border-radius: 99px;
-  transition: width 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease;
-}
-
-@media (hover: hover) {
-  .dot:hover {
-    width: 20px;
-    background: #5865B9;
-    box-shadow: 0 0 6px rgba(88, 101, 185, 0.5);
-  }
+  border-radius: 50%;
 }
 
 /* BottomSheet Slide Animation */
@@ -341,8 +332,7 @@
 
 /* drag-select */
 .page-container,
-.doc-box,
-.text-selectable {
+.doc-box {
   user-select: text;
   -webkit-user-select: text;
   -ms-user-select: text;
@@ -358,7 +348,7 @@
   touch-action: pan-y;
 }
 
-.container ::selection {
+::selection {
   background: #fff59d;
   color: #111;
 }
@@ -431,16 +421,4 @@
 @keyframes contentFadeIn {
   0% { opacity: 0; transform: translateY(10px); }
   100% { opacity: 1; transform: translateY(0); }
-}
-
-.skeleton {
-  background: linear-gradient(90deg, #e0e0e0 25%, #f0f0f0 50%, #e0e0e0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-radius: 6px;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
 }

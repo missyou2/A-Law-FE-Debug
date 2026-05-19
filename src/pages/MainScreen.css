@@ -59,6 +59,7 @@
   text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
   line-height: 1.2;
   text-align: left;
+  font-family: Paperlogy, sans-serif;
 }
 
 .ms-scan-subtitle {
@@ -155,6 +156,7 @@
 .ms-chatbot-main-text {
   font-size: 26px;
   font-weight: 700;
+  font-family: Paperlogy, sans-serif;
   text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   line-height: 1.2;
 }
@@ -163,6 +165,7 @@
   font-size: 13px;
   font-weight: 400;
   opacity: 0.85;
+  font-family: 'Pretendard Variable', sans-serif;
 }
 
 /* ── Recent Contracts section ── */

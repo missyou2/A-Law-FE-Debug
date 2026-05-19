@@ -123,24 +123,20 @@ const CameraPage: React.FC = () => {
                 return;
             }
 
-            // A4 비율(1:1.414)로 중앙 크롭 — 가로/세로 모두 처리
+            // 비디오가 가로(landscape)일 경우, 세로(portrait) 비율로 중앙 크롭
             const vw = video.videoWidth;
             const vh = video.videoHeight;
-            const A4_RATIO = 1 / 1.414;
+            const isLandscape = vw > vh;
 
             let sx = 0, sy = 0, sw = vw, sh = vh;
-            if (vw / vh > A4_RATIO) {
-                // 영상이 A4보다 넓은 경우: 양쪽 크롭
-                sw = vh * A4_RATIO;
+            if (isLandscape) {
+                // 9:16 비율로 중앙 크롭
+                sw = vh * (9 / 16);
                 sx = (vw - sw) / 2;
-            } else {
-                // 영상이 A4보다 긴 경우: 위아래 크롭
-                sh = vw / A4_RATIO;
-                sy = (vh - sh) / 2;
             }
 
-            canvas.width = sw;
-            canvas.height = sh;
+            canvas.width = isLandscape ? sw : vw;
+            canvas.height = isLandscape ? vh : vh;
 
             const context = canvas.getContext('2d');
 
@@ -204,7 +200,7 @@ const CameraPage: React.FC = () => {
                     ref={videoRef}
                     style={{
                         width: '80%',
-                        aspectRatio: '1 / 1.414',
+                        aspectRatio: '9 / 16',
                         objectFit: 'cover',
                         border: '2px solid #333',
                         borderRadius: '10px',

@@ -16,19 +16,8 @@ export interface OcrWord {
 }
 
 /**
- * 계약서 저장
- * POST /api/v1/contracts
- */
-export interface SaveContractResponse {
-  job_id: string;
-  contract_id: number;
-  status: string;
-  created_at: string;
-}
-
-/**
  * 1번. 계약서 이미지 업로드 → OCR 결과 응답
- * POST /api/v1/contracts/ocr
+ * POST /api/v1/contracts
  */
 export interface ContractOCRResponse {
   status: 'ocr_complete' | 'ocr_failed' | 'error' | 'fail';
@@ -144,15 +133,6 @@ export interface ContractListItem {
 }
 
 /**
- * 계약서 단건 조회
- * GET /api/v1/contracts/{id}
- */
-export interface ContractDetail extends ContractListItem {
-  analysisId: string;
-  fileUrl: string;
-}
-
-/**
  * OCR 오버레이 — 선택 문장 쉬운 말로 설명
  * POST /api/v1/contracts/easy-explanation
  */
@@ -165,35 +145,6 @@ export interface OcrEasyExplanationResponse {
   sentence: string;
   easy_explanation: string;
   examples: string[];
-}
-
-/**
- * GET /api/v1/contracts/analysis/{jobId}
- * 저장된 분석 결과 조회
- */
-export interface ContractAnalysisResponse {
-  jobId: string;
-  contractId: number;
-  status: string;
-  processingTimeMs: number;
-  errorMessage: string;
-  createdAt: string;
-  summary: SummaryResultEvent | null;
-  riskAnalysis: {
-    totalClauses: number;
-    riskCount: number;
-    cautionCount: number;
-    safetyCount: number;
-    riskPercentage: number;
-    clauseResults: {
-      clauseTitle: string;
-      clauseContent: string;
-      riskLevel: string;
-      legalReference: string;
-      reasoningSummary: string;
-      category: string;
-    }[];
-  } | null;
 }
 
 /**

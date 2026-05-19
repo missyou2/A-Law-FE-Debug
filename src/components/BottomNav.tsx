@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import './TopNav.css';
+import './BottomNav.css';
 
 const NAV_ITEMS = [
   { path: '/',            label: '홈' },
@@ -7,7 +7,7 @@ const NAV_ITEMS = [
   { path: '/mypage',      label: '마이페이지' },
 ];
 
-const TopNav = () => {
+const BottomNav = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -31,4 +31,4 @@ const TopNav = () => {
   );
 };
 
-export default TopNav;
+export default BottomNav;
