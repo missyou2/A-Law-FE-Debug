@@ -69,8 +69,8 @@ export interface VoiceFactCheckResponse {
 
 /**
  * 녹음 파일 저장
- * - 계약서 연결: POST /api/v1/contracts/{contractId}/voice-records
- * - 단순 저장:   POST /api/v1/voice-records
+ * POST /api/v1/voice-records
+ * - contractId 있으면 계약서 연동, 없으면 voice-only
  */
 export const uploadVoiceRecord = async (
   audioBlob: Blob,
@@ -80,14 +80,14 @@ export const uploadVoiceRecord = async (
   const formData = new FormData();
   formData.append('audio', audioBlob, 'recording.mp3');
 
-  const url = contractId !== undefined
-    ? `/contracts/${contractId}/voice-records`
-    : '/voice-records';
+  const params: Record<string, string | number> = {};
+  if (contractId !== undefined) params.contractId = contractId;
+  if (title) params.title = title;
 
   const response = await apiClient.post<{ success: boolean; data: VoiceRecordUploadResponse }>(
-    url,
+    '/voice-records',
     formData,
-    { params: title ? { title } : {} },
+    { params },
   );
   return response.data.data;
 };
