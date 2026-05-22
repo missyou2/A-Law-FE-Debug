@@ -445,6 +445,14 @@ function ContractCarousel() {
   const getIndicator = () => {
     return (
       <div className="indicator">
+        <button
+          className="carousel-arrow-btn"
+          onClick={() => goToPage(currentIndex - 1)}
+          disabled={currentIndex === 0}
+          aria-label="이전 페이지"
+        >
+          ‹
+        </button>
         {pages.map((page, i) =>
           i === currentIndex ? (
             <span key={i} className="indicator-pill">{page.label}</span>
@@ -457,6 +465,14 @@ function ContractCarousel() {
             />
           )
         )}
+        <button
+          className="carousel-arrow-btn"
+          onClick={() => goToPage(currentIndex + 1)}
+          disabled={currentIndex === pages.length - 1}
+          aria-label="다음 페이지"
+        >
+          ›
+        </button>
       </div>
     );
   };
