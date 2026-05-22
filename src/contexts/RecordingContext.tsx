@@ -73,13 +73,10 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const startRecording = async () => {
-    if (micPermission === 'denied') {
-      alert("마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크 권한을 허용해 주세요.");
-      return;
-    }
     try {
       micStreamRef.current?.getTracks().forEach(t => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicPermission('granted');
       micStreamRef.current = stream;
 
       const mediaRecorder = new MediaRecorder(stream);
@@ -107,8 +104,14 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
         setRecordingSeconds(recordingSecondsRef.current);
       }, 1000);
       if (navigator.vibrate) navigator.vibrate(50);
-    } catch (err) {
-      console.error("녹음 시작 실패:", err);
+    } catch (err: unknown) {
+      const name = err instanceof Error ? err.name : '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setMicPermission('denied');
+        setToast('마이크 권한이 필요합니다. 브라우저 설정에서 허용해 주세요.');
+      } else {
+        console.error("녹음 시작 실패:", err);
+      }
     }
   };
 
