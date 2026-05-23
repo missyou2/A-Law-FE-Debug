@@ -77,6 +77,7 @@ function ContractCarousel() {
   }, [locationState?.jobId]);
 
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showSaveWarning, setShowSaveWarning] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -528,6 +529,10 @@ function ContractCarousel() {
           style={{ fontSize: 15, color: "#111", cursor: "pointer" }}
           onClick={() => {
             haptic();
+            if (!riskAnalysisDone) {
+              setShowSaveWarning(true);
+              return;
+            }
             navigate("/contract/save", {
               state: {
                 contractId: locationState?.contractId,
@@ -596,6 +601,30 @@ function ContractCarousel() {
           onConfirm={() => navigate("/")}
           onCancel={() => setShowConfirm(false)}
         />
+      )}
+
+      {showSaveWarning && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 9999 }}
+          onClick={() => setShowSaveWarning(false)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{ background: "#fff", borderRadius: "16px", padding: "28px 24px 20px", width: "min(320px, 88vw)", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }}
+            onClick={e => e.stopPropagation()}
+          >
+            <p style={{ margin: "0 0 24px", fontSize: "15px", fontWeight: 600, color: "#111", lineHeight: "1.55", textAlign: "center" }}>
+              계약서 분석이 아직 진행 중이에요.<br />분석 완료 후 저장할 수 있어요.
+            </p>
+            <button
+              onClick={() => setShowSaveWarning(false)}
+              style={{ width: "100%", padding: "12px 0", borderRadius: "10px", border: "none", background: "#e0e0e0", color: "#555", fontSize: "15px", fontWeight: 600, cursor: "pointer" }}
+            >
+              확인
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
