@@ -19,6 +19,10 @@ const pages = [
   { id: 2, label: "안전 분석" }
 ];
 
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 function ContractCarousel() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -319,7 +323,7 @@ function ContractCarousel() {
       if (!end) return;
 
       selectionEndRangeRef.current = end;
-      setSelectionRange(start, end);
+      if (!isIOS) setSelectionRange(start, end);
       return;
     }
 

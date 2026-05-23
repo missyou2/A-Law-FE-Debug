@@ -41,6 +41,10 @@ const styles = {
     } as const,
 }
 
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp }: Props) {
   const location = useLocation();
   const state = location.state as LocationState | undefined;
@@ -143,7 +147,7 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       lineHeight: 1,
-                      userSelect: "text",
+                      userSelect: isIOS ? "none" : "text",
                       ...(debugMode && {
                         border: "1px solid rgba(255, 0, 0, 0.5)",
                         background: "rgba(255, 255, 0, 0.1)",
