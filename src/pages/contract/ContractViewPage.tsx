@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
 import type { ContractDetail, SummaryResultEvent, AnalysisResultEvent } from "../../types/contract.js";
-import { getContractById, getContractAnalysis } from "../../api/contractApi.js";
+import { getContractById } from "../../api/contractApi.js";
 
 import "./contractCarousel.css";
 import ContractOriginalPage from "./ContractOriginalPage.js";
@@ -37,35 +37,30 @@ function ContractViewPage() {
   const [analysisDone, setAnalysisDone] = useState(false);
 
   useEffect(() => {
-    const analysisId = contract?.analysisId;
-    if (!analysisId) return;
-    getContractAnalysis(analysisId)
-      .then(res => {
-        if (res.summary) setSummaryData(res.summary);
-        if (res.riskAnalysis) {
-          setRiskData({
-            totalClauses: res.riskAnalysis.totalClauses,
-            riskCount: res.riskAnalysis.riskCount,
-            cautionCount: res.riskAnalysis.cautionCount,
-            safetyCount: res.riskAnalysis.safetyCount,
-            clauseResults: res.riskAnalysis.clauseResults.map((c, i) => ({
-              clauseId: i,
-              clauseTitle: c.clauseTitle,
-              clauseContent: c.clauseContent,
-              riskLevel: c.riskLevel,
-              legalReference: c.legalReference,
-              reasoningSummary: c.reasoningSummary,
-              recommendation: '',
-              relatedLaw: '',
-              score: 0,
-              category: c.category,
-            })),
-          });
-        }
-        setAnalysisDone(true);
-      })
-      .catch(() => setAnalysisDone(true));
-  }, [contract?.analysisId]);
+    if (!contract) return;
+    if (contract.summary) setSummaryData(contract.summary);
+    if (contract.riskAnalysis) {
+      setRiskData({
+        totalClauses: contract.riskAnalysis.totalClauses,
+        riskCount: contract.riskAnalysis.riskCount,
+        cautionCount: contract.riskAnalysis.cautionCount,
+        safetyCount: contract.riskAnalysis.safetyCount,
+        clauseResults: contract.riskAnalysis.clauseResults.map((c, i) => ({
+          clauseId: i,
+          clauseTitle: c.clauseTitle,
+          clauseContent: c.clauseContent,
+          riskLevel: c.riskLevel,
+          legalReference: c.legalReference,
+          reasoningSummary: c.reasoningSummary,
+          recommendation: '',
+          relatedLaw: '',
+          score: 0,
+          category: c.category,
+        })),
+      });
+    }
+    setAnalysisDone(true);
+  }, [contract]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedText, setSelectedText] = useState<string | null>(null);
@@ -404,8 +399,8 @@ function ContractViewPage() {
             <div style={{ width: "100%", height: "100%" }}>
               <ContractOriginalPage
                 onSelect={handleHighlightClick}
-                capturedImageData={contract?.fileUrl ?? locationState?.capturedImageData}
-                ocrText={contract?.rawText}
+                capturedImageData={contract?.image_url ?? contract?.fileUrl ?? locationState?.capturedImageData}
+                ocrText={contract?.rawText ?? contract?.full_text}
                 markdown={contract?.markdown}
                 ocrWords={contract?.words}
               />
