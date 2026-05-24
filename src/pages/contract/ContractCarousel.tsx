@@ -233,7 +233,8 @@ function ContractCarousel() {
 
   // iOS custom highlight: draw yellow rects directly on the DOM to avoid
   // ::selection (which requires user-select:text, re-enabling iOS blue handles).
-  // mix-blend-mode:multiply keeps text readable, same visual as a real highlighter.
+  // Semi-transparent yellow (no mix-blend-mode) — multiply on a transparent fixed
+  // backdrop composites against nothing, making the rects invisible.
   const updateSelectionHighlight = () => {
     const container = highlightContainerRef.current;
     if (!container) return;
@@ -263,7 +264,7 @@ function ContractCarousel() {
     Array.from(rects).forEach((rect) => {
       if (rect.width < 2) return;
       const div = document.createElement("div");
-      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:#fff59d;mix-blend-mode:multiply;border-radius:2px;pointer-events:none;`;
+      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:rgba(255,245,157,0.75);border-radius:2px;pointer-events:none;`;
       container.appendChild(div);
     });
   };
