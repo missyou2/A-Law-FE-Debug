@@ -49,7 +49,6 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
   const state = location.state as LocationState | undefined;
   const capturedImageData = capturedImageDataProp ?? state?.capturedImageData ?? null;
   const [mode, setMode] = useState<"image" | "text">(capturedImageData ? "image" : "text");
-  const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
   const ocrText = ocrTextProp?.trim() || state?.ocrText?.trim() || null;
@@ -89,25 +88,6 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
           marginBottom: "10px"
         }}
       >
-        {mode === "image" && (
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "13px",
-              color: "#555",
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={debugMode}
-              onChange={(e) => setDebugMode(e.target.checked)}
-            />
-            박스 표시 (디버그)
-          </label>
-        )}
         <button
           className="switch-btn"
           onClick={() => setMode(mode === "image" ? "text" : "image")}
@@ -147,10 +127,6 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
                       overflow: "hidden",
                       lineHeight: 1,
                       userSelect: "text",
-                      ...(debugMode && {
-                        border: "1px solid rgba(255, 0, 0, 0.5)",
-                        background: "rgba(255, 255, 0, 0.1)",
-                      }),
                     }}
                   >
                     {word.text}
