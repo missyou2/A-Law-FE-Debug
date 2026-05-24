@@ -88,7 +88,9 @@ function ContractViewPage() {
   const selectionEndRangeRef = useRef<Range | null>(null);
   const mouseSwipingRef = useRef(false);
   const mouseDraggingRef = useRef(false);
+  const mouseTextSelectingRef = useRef(false);
   const touchActiveRef = useRef(false);
+  const highlightContainerRef = useRef<HTMLDivElement | null>(null);
 
   const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 390;
   const pages = [
@@ -186,6 +188,40 @@ function ContractViewPage() {
 
   const clearPersistentHighlight = () => window.getSelection()?.removeAllRanges();
 
+  const updateSelectionHighlight = () => {
+    const container = highlightContainerRef.current;
+    if (!container) return;
+    container.innerHTML = "";
+    const start = selectionStartRangeRef.current;
+    const end = selectionEndRangeRef.current;
+    if (!start || !end) return;
+    let rects: DOMRectList | null = null;
+    try {
+      const r = document.createRange();
+      r.setStart(start.startContainer, start.startOffset);
+      r.setEnd(end.startContainer, end.startOffset);
+      rects = r.getClientRects();
+    } catch {
+      try {
+        const r = document.createRange();
+        r.setStart(end.startContainer, end.startOffset);
+        r.setEnd(start.startContainer, start.startOffset);
+        rects = r.getClientRects();
+      } catch { return; }
+    }
+    Array.from(rects).forEach((rect) => {
+      if (rect.width < 2) return;
+      const div = document.createElement("div");
+      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:#fff59d;border-radius:2px;pointer-events:none;`;
+      container.appendChild(div);
+    });
+  };
+
+  const clearSelectionHighlight = () => {
+    const container = highlightContainerRef.current;
+    if (container) container.innerHTML = "";
+  };
+
   const openOverlayNow = () => {
     if (Math.abs(dragOffsetRef.current) > 3 || sheetOpen || chatbotOpen) return;
     const sel = window.getSelection();
@@ -258,7 +294,8 @@ function ContractViewPage() {
       const end = getCaretRangeFromPoint(touch.clientX, touch.clientY);
       if (!end) return;
       selectionEndRangeRef.current = end;
-      if (!isIOS) setSelectionRange(start, end);
+      if (isIOS) updateSelectionHighlight();
+      else setSelectionRange(start, end);
       return;
     }
 
@@ -320,6 +357,8 @@ function ContractViewPage() {
           setSelectedText(capturedText);
           setSheetOpen(true);
         }, 150);
+      } else {
+        clearSelectionHighlight();
       }
       return;
     }
@@ -436,6 +475,7 @@ function ContractViewPage() {
 
   const handleOverlayClose = () => {
     clearPersistentHighlight();
+    clearSelectionHighlight();
     window.getSelection()?.removeAllRanges();
     setSheetOpen(false);
   };
@@ -540,6 +580,11 @@ function ContractViewPage() {
       </div>
 
       {getIndicator()}
+
+      <div
+        ref={highlightContainerRef}
+        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 8, mixBlendMode: "multiply" }}
+      />
 
       {sheetOpen && (
         <ContractOverlay

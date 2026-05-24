@@ -264,7 +264,7 @@ function ContractCarousel() {
     Array.from(rects).forEach((rect) => {
       if (rect.width < 2) return;
       const div = document.createElement("div");
-      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:rgba(255,245,157,0.75);border-radius:2px;pointer-events:none;`;
+      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:#fff59d;border-radius:2px;pointer-events:none;`;
       container.appendChild(div);
     });
   };
@@ -640,7 +640,7 @@ function ContractCarousel() {
       {/* iOS custom selection highlight — position:fixed so getClientRects() coords map directly */}
       <div
         ref={highlightContainerRef}
-        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 8 }}
+        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 8, mixBlendMode: "multiply" }}
       />
 
       {sheetOpen && (
