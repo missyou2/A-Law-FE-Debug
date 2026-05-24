@@ -142,11 +142,14 @@ function DocumentSavePage() {
 
           try {
             const result = await saveContract(capturedImageData, title.trim());
-            if (isImportant && result.contract_id) {
-              await addBookmark(result.contract_id);
+            console.log('[saveContract] result:', result);
+            const contractId = result.contract_id ?? (result as any).contractId;
+            if (isImportant && contractId) {
+              await addBookmark(contractId);
             }
             navigate('/contract/saved');
-          } catch {
+          } catch (e) {
+            console.error('[DocumentSavePage] save/bookmark error:', e);
             setError("저장에 실패했습니다. 다시 시도해주세요.");
           } finally {
             setIsSaving(false);
