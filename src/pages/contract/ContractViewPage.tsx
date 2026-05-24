@@ -88,6 +88,7 @@ function ContractViewPage() {
   const selectionEndRangeRef = useRef<Range | null>(null);
   const mouseSwipingRef = useRef(false);
   const mouseDraggingRef = useRef(false);
+  const touchActiveRef = useRef(false);
 
   const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 390;
   const pages = [
@@ -201,6 +202,7 @@ function ContractViewPage() {
   };
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (touchActiveRef.current) return;
     if (isInSelectableTextArea(e.target)) return;
     mouseSwipingRef.current = true;
     mouseDraggingRef.current = false;
@@ -210,6 +212,7 @@ function ContractViewPage() {
   };
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchActiveRef.current = true;
     const inText = isInSelectableTextArea(e.target);
     swipeConfirmedRef.current = false;
 
@@ -293,6 +296,7 @@ function ContractViewPage() {
   };
 
   const onTouchEnd = () => {
+    setTimeout(() => { touchActiveRef.current = false; }, 500);
     if (longPressTimerRef.current !== null) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -373,6 +377,7 @@ function ContractViewPage() {
 
   useEffect(() => {
     const onMouseUp = () => {
+      if (touchActiveRef.current) return;
       if (mouseSwipingRef.current) {
         mouseSwipingRef.current = false;
         if (mouseDraggingRef.current) {
