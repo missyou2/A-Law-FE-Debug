@@ -18,6 +18,8 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
 
   const startY = useRef(0);
   const startHeight = useRef(minHeight);
+  const backdropRef = useRef<HTMLDivElement | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [explanationData, setExplanationData] = useState<{ original_sentence: string; easy_explanation: string } | null>(null);
@@ -32,6 +34,20 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
   useEffect(() => {
     setTimeout(() => setOpenAnim(true), 20);
     setHeight(minHeight);
+  }, []);
+
+  // Prevent background scroll on iOS when overlay is open.
+  // Both the dimmed backdrop and the draggable sheet need to block touchmove.
+  useEffect(() => {
+    const prevent = (e: TouchEvent) => e.preventDefault();
+    const backdrop = backdropRef.current;
+    const sheet = sheetRef.current;
+    backdrop?.addEventListener("touchmove", prevent, { passive: false });
+    sheet?.addEventListener("touchmove", prevent, { passive: false });
+    return () => {
+      backdrop?.removeEventListener("touchmove", prevent);
+      sheet?.removeEventListener("touchmove", prevent);
+    };
   }, []);
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -112,11 +128,13 @@ function ContractOverlay({ selectedText, onClose, contractId }: Props) {
     <>
       {/* DIMMED BACKDROP */}
       <div
+        ref={backdropRef}
         className={`sheet-backdrop ${openAnim ? "open" : ""}`}
         onClick={backdropClose}
       />
 
       <div
+        ref={sheetRef}
         className={`bottom-sheet slide-up ${openAnim ? "open" : ""}`}
         style={{
           height,

@@ -390,7 +390,6 @@
 }
 
 /* drag-select */
-.page-container,
 .doc-box,
 .text-selectable {
   user-select: text;
@@ -402,6 +401,19 @@
   user-select: text;
   -webkit-user-select: text;
   -ms-user-select: text;
+}
+
+/* iOS Safari only: disable native long-press selection to prevent conflict
+   with the custom selection handler. Android Chrome does not support
+   -webkit-touch-callout so this block never matches there. */
+@supports (-webkit-touch-callout: none) {
+  .doc-box,
+  .text-selectable,
+  .highlight {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 .doc-box {

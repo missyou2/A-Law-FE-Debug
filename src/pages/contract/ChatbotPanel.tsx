@@ -33,6 +33,8 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
   const [isClosing, setIsClosing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const backdropRef = useRef<HTMLDivElement | null>(null);
+  const messagesRef = useRef<HTMLDivElement | null>(null);
 
   // 열기 애니메이션: double RAF로 초기 렌더와 트랜지션 분리
   useEffect(() => {
@@ -57,6 +59,20 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Prevent background scroll on iOS when panel is open.
+  // Backdrop covers inset:0, so we block touchmove there.
+  // When the touch is inside the messages list we allow it so messages can scroll.
+  useEffect(() => {
+    const backdrop = backdropRef.current;
+    if (!backdrop) return;
+    const prevent = (e: TouchEvent) => {
+      if (messagesRef.current?.contains(e.target as Node)) return;
+      e.preventDefault();
+    };
+    backdrop.addEventListener("touchmove", prevent, { passive: false });
+    return () => backdrop.removeEventListener("touchmove", prevent);
+  }, []);
 
   const handleClose = () => {
     setIsClosing(true);
@@ -96,6 +112,7 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
 
   return (
     <div
+      ref={backdropRef}
       onClick={handleClose}
       style={{
         position: "fixed",
@@ -157,7 +174,7 @@ function ChatbotPanel({ onClose, initialQuestion }: Props) {
         </div>
 
         {/* 메시지 목록 */}
-        <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
+        <div ref={messagesRef} style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain", display: "flex", flexDirection: "column", gap: 8, paddingTop: 12 }}>
           {messages.map((m, i) => (
             <ChatBubble key={i} role={m.role} text={m.text} typing={m.typing} />
           ))}

@@ -19,6 +19,10 @@ const pages = [
   { id: 2, label: "안전 분석" }
 ];
 
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 function ContractCarousel() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -235,6 +239,12 @@ function ContractCarousel() {
     if (!sel) return null;
     if (!selectionIsInsideViewport(sel)) return null;
 
+    const anchorEl =
+      sel.anchorNode?.nodeType === 1
+        ? (sel.anchorNode as Element)
+        : sel.anchorNode?.parentElement;
+    if (!anchorEl || (!anchorEl.closest(".doc-box") && !anchorEl.closest(".text-selectable"))) return null;
+
     const text = sel.toString().trim();
     if (text.length < 2) return null;
 
@@ -282,7 +292,6 @@ function ContractCarousel() {
         const startRange = getCaretRangeFromPoint(touch.clientX, touch.clientY);
         selectionStartRangeRef.current = startRange;
 
-        // 텍스트 선택 모드 전환 → 스와이프 취소
         swipeConfirmedRef.current = false;
         touchStartX.current = null;
         touchStartTime.current = null;
@@ -292,7 +301,7 @@ function ContractCarousel() {
       touchStartX.current = touch.clientX;
       touchStartTime.current = Date.now();
       swipeConfirmedRef.current = true;
-      applyTransform(0, false); // transition 즉시 끔
+      applyTransform(0, false);
       return;
     }
 
@@ -315,7 +324,7 @@ function ContractCarousel() {
       if (!end) return;
 
       selectionEndRangeRef.current = end;
-      setSelectionRange(start, end);
+      if (!isIOS) setSelectionRange(start, end);
       return;
     }
 
