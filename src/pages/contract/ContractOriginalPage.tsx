@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import type { OcrWord } from '../../types/contract.js';
 
@@ -13,6 +13,9 @@ interface LocationState {
 interface Props {
   onSelect: (text: string) => void;
   capturedImageData?: string | undefined;
+  ocrText?: string | undefined;
+  markdown?: string | undefined;
+  ocrWords?: OcrWord[] | undefined;
 }
 
 const PAGE_PADDING = 18; // matches .page-container padding
@@ -45,16 +48,15 @@ const isIOS =
   /iPad|iPhone|iPod/.test(navigator.userAgent) ||
   (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 
-function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp }: Props) {
+function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataProp, ocrText: ocrTextProp, markdown: markdownProp, ocrWords: ocrWordsProp }: Props) {
   const location = useLocation();
   const state = location.state as LocationState | undefined;
   const capturedImageData = capturedImageDataProp ?? state?.capturedImageData ?? null;
   const [mode, setMode] = useState<"image" | "text">(capturedImageData ? "image" : "text");
-  const [debugMode, setDebugMode] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const [imgSize, setImgSize] = useState({ w: 0, h: 0 });
-  const ocrText = state?.ocrText?.trim() || null;
-  const ocrWords = state?.ocrWords ?? [];
+  const ocrText = ocrTextProp?.trim() || state?.ocrText?.trim() || null;
+  const ocrWords: OcrWord[] = ocrWordsProp ?? state?.ocrWords ?? [];
 
   const handleImageLoad = useCallback(() => {
     if (imgRef.current) {
@@ -90,25 +92,6 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
           marginBottom: "10px"
         }}
       >
-        {mode === "image" && (
-          <label
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "13px",
-              color: "#555",
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={debugMode}
-              onChange={(e) => setDebugMode(e.target.checked)}
-            />
-            박스 표시 (디버그)
-          </label>
-        )}
         <button
           className="switch-btn"
           onClick={() => setMode(mode === "image" ? "text" : "image")}
@@ -148,10 +131,6 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
                       overflow: "hidden",
                       lineHeight: 1,
                       userSelect: isIOS ? "none" : "text",
-                      ...(debugMode && {
-                        border: "1px solid rgba(255, 0, 0, 0.5)",
-                        background: "rgba(255, 255, 0, 0.1)",
-                      }),
                     }}
                   >
                     {word.text}
@@ -186,8 +165,15 @@ function ContractOriginalPage({ onSelect, capturedImageData: capturedImageDataPr
           <p className="page-caption">OCR로 추출된 계약서 본문입니다.</p>
 
           <div className="doc-box">
-            {ocrText ? (
+            {markdownProp ? (
               <div
+                className="text-selectable"
+                dangerouslySetInnerHTML={{ __html: markdownProp }}
+                style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
+              />
+            ) : ocrText ? (
+              <div
+                className="text-selectable"
                 dangerouslySetInnerHTML={{ __html: stripMarkdownPipes(ocrText) }}
                 style={{ fontSize: "13px", lineHeight: "1.7", overflowX: "auto" }}
               />

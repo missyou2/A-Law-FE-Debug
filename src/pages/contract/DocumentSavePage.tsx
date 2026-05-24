@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 import './contractCarousel.css'
 import '../../App.css'
-import { saveContract } from "../../api/contractApi.js";
+import { saveContract, addBookmark } from "../../api/contractApi.js";
 
 const styles={
     container: {
@@ -141,7 +141,13 @@ function DocumentSavePage() {
           setError("");
 
           try {
-            await saveContract(capturedImageData, title.trim());
+            const result = await saveContract(capturedImageData, title.trim());
+            if (isImportant) {
+              const savedId = result?.contract_id ?? (result as unknown as { contractId?: number })?.contractId;
+              if (savedId) {
+                try { await addBookmark(savedId); } catch { /* bookmark failure is non-blocking */ }
+              }
+            }
             navigate('/contract/saved');
           } catch {
             setError("저장에 실패했습니다. 다시 시도해주세요.");

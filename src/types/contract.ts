@@ -9,6 +9,7 @@
  */
 export interface OcrWord {
   text: string;
+  confidence?: number;
   x: number;
   y: number;
   width: number;
@@ -150,6 +151,33 @@ export interface ContractListItem {
 export interface ContractDetail extends ContractListItem {
   analysisId: string;
   fileUrl: string;
+  image_url?: string;
+  rawText?: string;
+  full_text?: string;
+  markdown?: string;
+  image_width?: number;
+  image_height?: number;
+  contract_data?: Record<string, string>;
+  validation?: Record<string, string>;
+  words?: OcrWord[];
+  warnings?: string[];
+  summary?: SummaryResultEvent | null;
+  riskAnalysis?: {
+    totalClauses: number;
+    riskCount: number;
+    cautionCount: number;
+    safetyCount: number;
+    riskPercentage?: number;
+    clauseResults: {
+      clauseTitle: string;
+      clauseContent: string;
+      riskLevel: string;
+      legalReference: string;
+      relatedWork?: string;
+      reasoningSummary: string;
+      category: string;
+    }[];
+  } | null;
 }
 
 /**

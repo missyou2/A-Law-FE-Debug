@@ -45,23 +45,21 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
   const timerRef = useRef<number | null>(null);
   const recordingSecondsRef = useRef(0);
 
-  // 앱 진입 시 마이크 권한 미리 획득
+  // 앱 진입 시 이미 허용된 권한 상태만 조회 (팝업 없음)
   useEffect(() => {
-    const requestMicPermission = async () => {
+    const checkMicPermission = async () => {
       try {
         if (navigator.permissions) {
           const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
           if (result.state === 'granted') { setMicPermission('granted'); return; }
           if (result.state === 'denied') { setMicPermission('denied'); return; }
         }
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach(t => t.stop());
-        setMicPermission('granted');
+        // 'prompt' 상태이면 unknown 유지 — 실제 요청은 녹음 시작 시 수행
       } catch {
-        setMicPermission('denied');
+        // permissions API 미지원 환경 — unknown 유지
       }
     };
-    requestMicPermission();
+    checkMicPermission();
 
     return () => {
       micStreamRef.current?.getTracks().forEach(t => t.stop());
@@ -75,13 +73,10 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
   };
 
   const startRecording = async () => {
-    if (micPermission === 'denied') {
-      alert("마이크 권한이 거부되었습니다. 브라우저 설정에서 마이크 권한을 허용해 주세요.");
-      return;
-    }
     try {
       micStreamRef.current?.getTracks().forEach(t => t.stop());
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicPermission('granted');
       micStreamRef.current = stream;
 
       const mediaRecorder = new MediaRecorder(stream);
@@ -109,8 +104,14 @@ export const RecordingProvider = ({ children }: { children: React.ReactNode }) =
         setRecordingSeconds(recordingSecondsRef.current);
       }, 1000);
       if (navigator.vibrate) navigator.vibrate(50);
-    } catch (err) {
-      console.error("녹음 시작 실패:", err);
+    } catch (err: unknown) {
+      const name = err instanceof Error ? err.name : '';
+      if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
+        setMicPermission('denied');
+        setToast('마이크 권한이 필요합니다. 브라우저 설정에서 허용해 주세요.');
+      } else {
+        console.error("녹음 시작 실패:", err);
+      }
     }
   };
 
