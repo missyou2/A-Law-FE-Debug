@@ -11,6 +11,10 @@ import ContractOverlay from "../../components/ContractOverlay.js";
 import ChatbotFloatingButton from "./ChatbotFloatingButton.js";
 import ChatbotPanel from "./ChatbotPanel.js";
 
+const isIOS =
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 function ContractViewPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -244,12 +248,14 @@ function ContractViewPage() {
 
   const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
     if (isTextSelectingRef.current && selectingRef.current) {
+      const start = selectionStartRangeRef.current;
+      if (!start) return;
       const touch = e.touches[0] ?? e.changedTouches[0] ?? null;
-      if (!touch || !selectionStartRangeRef.current) return;
+      if (!touch) return;
       const end = getCaretRangeFromPoint(touch.clientX, touch.clientY);
       if (!end) return;
       selectionEndRangeRef.current = end;
-      setSelectionRange(selectionStartRangeRef.current, end);
+      if (!isIOS) setSelectionRange(start, end);
       return;
     }
 
@@ -260,9 +266,14 @@ function ContractViewPage() {
         const dx = Math.abs(touch.clientX - start.x);
         const dy = Math.abs(touch.clientY - start.y);
         const elapsed = Date.now() - (touchStartTime.current ?? Date.now());
-        if (dx > dy && dx > 5 && elapsed < 600) {
-          clearTimeout(longPressTimerRef.current);
-          longPressTimerRef.current = null;
+        if (dx > dy && dx > 5) {
+          if (elapsed < 600) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          } else {
+            swipeConfirmedRef.current = false;
+            applyTransform(0, false);
+          }
         } else if (dy > dx && dy > 10) {
           clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
