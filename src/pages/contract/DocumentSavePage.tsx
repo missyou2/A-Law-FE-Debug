@@ -141,9 +141,9 @@ function DocumentSavePage() {
           setError("");
 
           try {
-            await saveContract(capturedImageData, title.trim());
-            if (isImportant && state?.contractId) {
-              await addBookmark(state.contractId);
+            const result = await saveContract(capturedImageData, title.trim());
+            if (isImportant && result?.contract_id) {
+              await addBookmark(result.contract_id);
             }
             navigate('/contract/saved');
           } catch {
