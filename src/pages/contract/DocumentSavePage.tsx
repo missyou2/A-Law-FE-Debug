@@ -142,8 +142,11 @@ function DocumentSavePage() {
 
           try {
             const result = await saveContract(capturedImageData, title.trim());
-            if (isImportant && result?.contract_id) {
-              await addBookmark(result.contract_id);
+            console.log('[save] saveContract result:', result);
+            const savedId = result?.contract_id ?? (result as unknown as { contractId?: number })?.contractId;
+            console.log('[save] savedId:', savedId, 'isImportant:', isImportant);
+            if (isImportant && savedId) {
+              await addBookmark(savedId);
             }
             navigate('/contract/saved');
           } catch {
