@@ -106,6 +106,7 @@ export const loginWithKakao = async (): Promise<void> => {
 
   window.Kakao.Auth.authorize({
     redirectUri: 'https://api.a-law.site/oauth2/authorization/kakao',
+    throughTalk: false,
   });
 };
 
