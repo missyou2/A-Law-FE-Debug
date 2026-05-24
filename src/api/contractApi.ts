@@ -250,13 +250,13 @@ export const saveContract = async (
   formData.append('file', blob, 'contract.jpg');
   formData.append('title', title);
 
-  const response = await apiClient.post('/contracts', formData, {
+  const response = await apiClient.post<ApiSuccessResponse<SaveContractResponse>>('/contracts', formData, {
     transformRequest: (data: FormData, headers: Record<string, string>) => {
       delete headers['Content-Type'];
       return data;
     },
   });
-  return response.data;
+  return response.data.data;
 };
 
 /**
