@@ -122,6 +122,7 @@ function ContractCarousel() {
 
   const selectionStartRangeRef = useRef<Range | null>(null);
   const selectionEndRangeRef = useRef<Range | null>(null);
+  const highlightContainerRef = useRef<HTMLDivElement | null>(null);
 
   const clearOpenTimer = () => {
     if (openTimerRef.current !== null) {
@@ -230,6 +231,48 @@ function ContractCarousel() {
     return text.length >= 2 ? text : null;
   };
 
+  // iOS custom highlight: draw yellow rects directly on the DOM to avoid
+  // ::selection (which requires user-select:text, re-enabling iOS blue handles).
+  // mix-blend-mode:multiply keeps text readable, same visual as a real highlighter.
+  const updateSelectionHighlight = () => {
+    const container = highlightContainerRef.current;
+    if (!container) return;
+    container.innerHTML = "";
+
+    const start = selectionStartRangeRef.current;
+    const end = selectionEndRangeRef.current;
+    if (!start || !end) return;
+
+    let rects: DOMRectList | null = null;
+    try {
+      const r = document.createRange();
+      r.setStart(start.startContainer, start.startOffset);
+      r.setEnd(end.startContainer, end.startOffset);
+      rects = r.getClientRects();
+    } catch {
+      try {
+        const r = document.createRange();
+        r.setStart(end.startContainer, end.startOffset);
+        r.setEnd(start.startContainer, start.startOffset);
+        rects = r.getClientRects();
+      } catch {
+        return;
+      }
+    }
+
+    Array.from(rects).forEach((rect) => {
+      if (rect.width < 2) return;
+      const div = document.createElement("div");
+      div.style.cssText = `position:absolute;left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;height:${rect.height}px;background:#fff59d;mix-blend-mode:multiply;border-radius:2px;pointer-events:none;`;
+      container.appendChild(div);
+    });
+  };
+
+  const clearSelectionHighlight = () => {
+    const container = highlightContainerRef.current;
+    if (container) container.innerHTML = "";
+  };
+
   const getSelectionTextIfInsideViewport = () => {
     if (sheetOpen) return null;
     if (chatbotOpen) return null;
@@ -324,7 +367,8 @@ function ContractCarousel() {
       if (!end) return;
 
       selectionEndRangeRef.current = end;
-      if (!isIOS) setSelectionRange(start, end);
+      if (isIOS) updateSelectionHighlight();
+      else setSelectionRange(start, end);
       return;
     }
 
@@ -394,7 +438,10 @@ function ContractCarousel() {
           window.getSelection()?.removeAllRanges();
           setSelectedText(capturedText);
           setSheetOpen(true);
+          // keep highlight visible while overlay is open; cleared in handleOverlayClose
         }, 150);
+      } else {
+        clearSelectionHighlight();
       }
       return;
     }
@@ -516,6 +563,7 @@ function ContractCarousel() {
 
   const handleOverlayClose = () => {
     clearPersistentHighlight();
+    clearSelectionHighlight();
     const sel = window.getSelection();
     sel?.removeAllRanges();
     setSheetOpen(false);
@@ -587,6 +635,12 @@ function ContractCarousel() {
       </div>
 
       {getIndicator()}
+
+      {/* iOS custom selection highlight — position:fixed so getClientRects() coords map directly */}
+      <div
+        ref={highlightContainerRef}
+        style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 8 }}
+      />
 
       {sheetOpen && (
         <ContractOverlay
