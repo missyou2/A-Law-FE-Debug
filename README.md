@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/A-Law-Pproject/A-Law-Frontend/main/src/assets/icons/chatbot.png" width="120" alt="A-Law Logo" />
+<img src="https://raw.githubusercontent.com/A-Law-Pproject/A-Law-Frontend/main/src/assets/icons/alaw-icon.png" width="120" alt="A-Law Logo" />
 
 # A-Law Frontend
 
